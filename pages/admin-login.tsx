@@ -49,9 +49,11 @@ const AdminLoginPage: React.FC = () => {
       if (response.ok) {
         if (result.emergencyMode) {
           setEmergencyMode(true);
-          setMessage('Serwer email niedostępny. Użyj kodu awaryjnego MASTER123');
+          setMessage('⚠️ SERWER EMAIL NIEDOSTĘPNY - sprawdź logi serwera dla kodu awaryjnego');
+          setError(''); // Wyczyść błędy
         } else {
           setMessage('Kod dostępu został wysłany na Twój email administratora.');
+          setEmergencyMode(false);
         }
         setStep('code');
       } else {
@@ -174,15 +176,21 @@ const AdminLoginPage: React.FC = () => {
               
               {emergencyMode && (
                 <div style={{
-                  marginBottom: '15px',
-                  padding: '10px',
-                  backgroundColor: '#fff3cd',
-                  border: '1px solid #ffeaa7',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  color: '#856404'
+                  marginBottom: '20px',
+                  padding: '15px',
+                  backgroundColor: '#ffebcd',
+                  border: '2px solid #ff6b35',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  color: '#d63384',
+                  textAlign: 'center',
+                  fontWeight: 'bold'
                 }}>
-                  <strong>⚠️ Tryb awaryjny:</strong> Użyj kodu <strong>MASTER123</strong>
+                  🆘 <strong>TRYB AWARYJNY</strong> 🆘<br/>
+                  <div style={{ fontSize: '14px', marginTop: '10px' }}>
+                    Serwer email niedostępny.<br/>
+                    Sprawdź logi serwera dla kodu awaryjnego.
+                  </div>
                 </div>
               )}
               
@@ -195,7 +203,7 @@ const AdminLoginPage: React.FC = () => {
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   required
-                  maxLength={9}
+                  maxLength={6}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -213,7 +221,7 @@ const AdminLoginPage: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={loading || (code.length < 6)}
+                disabled={loading || code.length !== 6}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -222,8 +230,8 @@ const AdminLoginPage: React.FC = () => {
                   border: 'none',
                   borderRadius: '4px',
                   fontSize: '16px',
-                  cursor: (loading || code.length < 6) ? 'not-allowed' : 'pointer',
-                  opacity: (loading || code.length < 6) ? 0.6 : 1
+                  cursor: (loading || code.length !== 6) ? 'not-allowed' : 'pointer',
+                  opacity: (loading || code.length !== 6) ? 0.6 : 1
                 }}
               >
                 {loading ? 'Weryfikacja...' : 'Zaloguj jako admin'}
