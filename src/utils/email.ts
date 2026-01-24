@@ -3,15 +3,39 @@ import * as nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
+  secure: false, // true for 465, false for 587
+  requireTLS: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 60000, // 60 sekund
+  greetingTimeout: 30000, // 30 sekund
+  socketTimeout: 60000 // 60 sekund
+});
+
+// Test połączenia SMTP przy starcie
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('❌ Błąd konfiguracji SMTP:', error);
+  } else {
+    console.log('✅ Serwer SMTP jest gotowy do wysyłania emaili');
+  }
 });
 
 export async function sendAdminNotification(email: string, ip: string): Promise<void> {
   const adminEmail = 'michal@conceptfab.com';
+  
+  console.log('📧 Próba wysłania emaila do admina:', adminEmail);
+  console.log('📧 Konfiguracja SMTP:', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    user: process.env.SMTP_USER,
+    hasPassword: !!process.env.SMTP_PASS
+  });
   
   const mailOptions = {
     from: process.env.SMTP_USER,
@@ -31,10 +55,18 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email wysłany pomyślnie:', result.messageId);
+  } catch (error) {
+    console.error('❌ Błąd wysyłania emaila:', error);
+    throw error;
+  }
 }
 
 export async function sendLoginCode(email: string, code: string): Promise<void> {
+  console.log('📧 Próba wysłania kodu do użytkownika:', email);
+  
   const mailOptions = {
     from: process.env.SMTP_USER,
     to: email,
@@ -63,5 +95,11 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Kod wysłany pomyślnie do:', email, 'MessageID:', result.messageId);
+  } catch (error) {
+    console.error('❌ Błąd wysyłania kodu do:', email, error);
+    throw error;
+  }
 }

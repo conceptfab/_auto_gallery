@@ -10,6 +10,7 @@ const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [emergencyMode, setEmergencyMode] = useState(false);
 
   useEffect(() => {
     checkIfAlreadyLoggedIn();
@@ -46,7 +47,12 @@ const AdminLoginPage: React.FC = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage('Kod dostępu został wysłany na Twój email administratora.');
+        if (result.emergencyMode) {
+          setEmergencyMode(true);
+          setMessage('Serwer email niedostępny. Użyj kodu awaryjnego MASTER123');
+        } else {
+          setMessage('Kod dostępu został wysłany na Twój email administratora.');
+        }
         setStep('code');
       } else {
         setError(result.error || 'Wystąpił błąd');
@@ -166,16 +172,30 @@ const AdminLoginPage: React.FC = () => {
             <form onSubmit={handleCodeSubmit}>
               <h2 style={{ marginBottom: '20px', color: '#555' }}>Wprowadź kod z emaila</h2>
               
+              {emergencyMode && (
+                <div style={{
+                  marginBottom: '15px',
+                  padding: '10px',
+                  backgroundColor: '#fff3cd',
+                  border: '1px solid #ffeaa7',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  color: '#856404'
+                }}>
+                  <strong>⚠️ Tryb awaryjny:</strong> Użyj kodu <strong>MASTER123</strong>
+                </div>
+              )}
+              
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#666' }}>
-                  Kod dostępu administratora (6 znaków):
+                  Kod dostępu administratora:
                 </label>
                 <input
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   required
-                  maxLength={6}
+                  maxLength={9}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -193,7 +213,7 @@ const AdminLoginPage: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={loading || code.length !== 6}
+                disabled={loading || (code.length < 6)}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -202,8 +222,8 @@ const AdminLoginPage: React.FC = () => {
                   border: 'none',
                   borderRadius: '4px',
                   fontSize: '16px',
-                  cursor: (loading || code.length !== 6) ? 'not-allowed' : 'pointer',
-                  opacity: (loading || code.length !== 6) ? 0.6 : 1
+                  cursor: (loading || code.length < 6) ? 'not-allowed' : 'pointer',
+                  opacity: (loading || code.length < 6) ? 0.6 : 1
                 }}
               >
                 {loading ? 'Weryfikacja...' : 'Zaloguj jako admin'}

@@ -38,16 +38,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     addAdminCode(email, adminCode);
 
-    // Wyślij kod na email administratora
-    await sendAdminAccessCode(email, code);
-
-    console.log('🔑 Wygenerowano kod admina dla:', email);
-
-    res.status(200).json({ 
-      message: 'Admin access code sent',
-      email,
-      expiresAt 
-    });
+    // Próbuj wysłać kod na email administratora
+    try {
+      await sendAdminAccessCode(email, code);
+      console.log('✅ Kod administratora wysłany na email:', email);
+      
+      res.status(200).json({ 
+        message: 'Admin access code sent to email',
+        email,
+        expiresAt 
+      });
+    } catch (emailError) {
+      console.error('❌ Błąd wysyłania kodu administratora:', emailError);
+      console.log('🆘 Używaj kodu awaryjnego:', process.env.ADMIN_EMERGENCY_CODE);
+      
+      res.status(200).json({ 
+        message: 'Email server unavailable. Use emergency code.',
+        email,
+        expiresAt,
+        emergencyMode: true
+      });
+    }
 
   } catch (error) {
     console.error('Error generating admin code:', error);

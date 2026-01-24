@@ -24,26 +24,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: 'Unauthorized admin email' });
     }
 
-    const adminCode = getAdminCode(email);
+    // Sprawdź czy używa kodu awaryjnego
+    const emergencyCode = process.env.ADMIN_EMERGENCY_CODE;
+    const isEmergencyCode = emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
 
-    if (!adminCode) {
-      return res.status(404).json({ error: 'No active admin code for this email' });
-    }
+    if (isEmergencyCode) {
+      console.log('🆘 Używa kodu awaryjnego do logowania administratora');
+      loginAdmin(email);
+    } else {
+      // Standardowa weryfikacja kodu
+      const adminCode = getAdminCode(email);
 
-    // Sprawdź czy kod nie wygasł
-    if (new Date() > adminCode.expiresAt) {
+      if (!adminCode) {
+        return res.status(404).json({ error: 'No active admin code for this email' });
+      }
+
+      // Sprawdź czy kod nie wygasł
+      if (new Date() > adminCode.expiresAt) {
+        removeAdminCode(email);
+        return res.status(410).json({ error: 'Admin code has expired' });
+      }
+
+      // Sprawdź czy kod się zgadza
+      if (adminCode.code !== code.toUpperCase()) {
+        return res.status(401).json({ error: 'Invalid admin code' });
+      }
+
+      // Kod poprawny - usuń z aktywnych i zaloguj admina
       removeAdminCode(email);
-      return res.status(410).json({ error: 'Admin code has expired' });
+      loginAdmin(email);
     }
-
-    // Sprawdź czy kod się zgadza
-    if (adminCode.code !== code.toUpperCase()) {
-      return res.status(401).json({ error: 'Invalid admin code' });
-    }
-
-    // Kod poprawny - usuń z aktywnych i zaloguj admina
-    removeAdminCode(email);
-    loginAdmin(email);
 
     // Ustaw admin cookie
     res.setHeader('Set-Cookie', [

@@ -30,7 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('📧 Dodano pending email:', email, 'Total pending:', storage.pendingEmails.size);
 
     // Wyślij powiadomienie do admina
-    await sendAdminNotification(email, ipString);
+    try {
+      await sendAdminNotification(email, ipString);
+      console.log('✅ Email do admina wysłany pomyślnie');
+    } catch (emailError) {
+      console.error('❌ Błąd wysyłania emaila do admina:', emailError);
+      // Nie przerywaj procesu - pending email został już dodany
+    }
 
     res.status(200).json({ 
       message: 'Request sent to admin for approval',
