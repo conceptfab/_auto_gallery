@@ -10,7 +10,8 @@
       "Bash(rm:*)",
       "Bash(pkill:*)",
       "Bash(grep:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
