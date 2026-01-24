@@ -4,6 +4,9 @@ export interface ImageFile {
   url: string;
   size?: number;
   lastModified?: string;
+  width?: number;
+  height?: number;
+  fileSize?: number;
 }
 
 export interface GalleryFolder {

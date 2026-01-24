@@ -197,10 +197,35 @@ export async function scanRemoteDirectory(url: string): Promise<GalleryFolder[]>
               fullUrl = new URL(href, folderInfo.url).href;
             }
 
+            // Pobierz rozmiar pliku i datę modyfikacji
+            let fileSize: number | undefined;
+            let lastModified: string | undefined;
+            try {
+              const headResponse = await axios.head(fullUrl, {
+                timeout: 5000,
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+                }
+              });
+              const contentLength = headResponse.headers['content-length'];
+              if (contentLength) {
+                fileSize = parseInt(contentLength, 10);
+              }
+              
+              const lastModifiedHeader = headResponse.headers['last-modified'];
+              if (lastModifiedHeader) {
+                lastModified = lastModifiedHeader;
+              }
+            } catch (error) {
+              console.log(`⚠️ Nie udało się pobrać metadanych pliku ${href}`);
+            }
+
             const imageFile: ImageFile = {
               name: text || href.split('/').pop() || href,
               path: href,
-              url: fullUrl
+              url: fullUrl,
+              fileSize,
+              lastModified
             };
             currentFolder.images.push(imageFile);
           }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
 import CacheProgress from './CacheProgress';
+import ImageMetadata from './ImageMetadata';
 
 interface GalleryProps {
   refreshKey?: number;
@@ -37,7 +38,8 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
           if (clearData.success) {
             console.log('✅ Cache cleared successfully');
             setIsForceRefreshing(false);
-            setShowCacheProgress(true);
+            // Po wyczyszczeniu cache, pobierz galerię od nowa
+            await fetchGalleryData();
             return;
           } else {
             console.error('❌ Failed to clear cache:', clearData.message);
@@ -141,7 +143,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
   if (loading) {
     const loadingMessage = isForceRefreshing 
       ? 'Odświeżanie galerii - czyszczenie cache...' 
-      : `Ładowanie galerii... (loading: ${loading.toString()}, folders: ${folders.length}, error: ${error || 'none'})`;
+      : 'Ładowanie galerii...';
     
     return (
       <div className="loading">
@@ -162,14 +164,10 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
   }
 
   return (
-    <div className="gallery-container">
+    <>
       {showCacheProgress && (
         <CacheProgress onComplete={handleCacheComplete} />
       )}
-      
-      <div className="gallery-description">
-        <p>Galeria obrazów z https://conceptfab.com/__metro/gallery/</p>
-      </div>
 
       {folders.length === 0 ? (
         <div className="no-images">
@@ -205,11 +203,16 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
             />
             <div className="modal-info">
               <h3>{selectedImage.name}</h3>
+              <ImageMetadata 
+                src={selectedImage.url} 
+                fileSize={selectedImage.fileSize} 
+                lastModified={selectedImage.lastModified}
+              />
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

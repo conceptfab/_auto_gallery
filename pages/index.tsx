@@ -2,7 +2,11 @@ import React from 'react';
 import Head from 'next/head';
 import Gallery from '@/src/components/Gallery';
 
-const HomePage: React.FC = () => {
+interface HomePageProps {
+  refreshKey?: number;
+}
+
+const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
   return (
     <>
       <Head>
@@ -12,7 +16,7 @@ const HomePage: React.FC = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <Gallery />
+        <Gallery refreshKey={refreshKey} />
       </main>
     </>
   );

@@ -15,11 +15,6 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
         </div>
         
         <div className="menu-center">
-          <ul className="menu-items">
-            <li><a href="/">Galeria</a></li>
-            <li><a href="#about">O aplikacji</a></li>
-            <li><a href="#settings">Ustawienia</a></li>
-          </ul>
         </div>
         
         <div className="menu-right">

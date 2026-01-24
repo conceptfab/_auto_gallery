@@ -1,5 +1,6 @@
 import React from 'react';
 import { ImageFile } from '@/src/types/gallery';
+import ImageMetadata from './ImageMetadata';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -54,7 +55,23 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName,
             />
           </div>
           <div className="image-title">
-            {image.name}
+            <div className="image-title-top">
+              <div className="image-name">{image.name}</div>
+              <button 
+                className="download-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const link = document.createElement('a');
+                  link.href = image.url;
+                  link.download = image.name;
+                  link.click();
+                }}
+                title="Pobierz plik"
+              >
+                ⬇
+              </button>
+            </div>
+            <ImageMetadata src={image.url} fileSize={image.fileSize} lastModified={image.lastModified} />
           </div>
         </div>
       ))}
