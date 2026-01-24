@@ -117,6 +117,8 @@ async function findSubfolders(url: string): Promise<Array<{name: string, url: st
   }
 }
 
+import { NextApiRequest, NextApiResponse } from 'next';
+
 export async function scanRemoteDirectory(url: string): Promise<GalleryFolder[]> {
   console.log(`\n🚀 ROZPOCZĘCIE SKANOWANIA GALERII: ${url}\n`);
   
@@ -215,5 +217,25 @@ export async function scanRemoteDirectory(url: string): Promise<GalleryFolder[]>
   } catch (error) {
     console.error(`❌ Błąd skanowania ${url}:`, error);
     throw error;
+  }
+}
+
+// Default handler for Next.js API route
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    const folders = await scanRemoteDirectory(url);
+    res.status(200).json({ folders });
+  } catch (error) {
+    console.error('Gallery scan error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
