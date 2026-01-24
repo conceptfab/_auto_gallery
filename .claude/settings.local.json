@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:conceptfab.com)",
+      "Bash(mkdir:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run lint)",
+      "Bash(curl:*)",
+      "Bash(rm:*)",
+      "Bash(pkill:*)",
+      "Bash(grep:*)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
