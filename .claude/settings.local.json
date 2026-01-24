@@ -14,7 +14,12 @@
       "Bash(npm install:*)",
       "Bash(copy .env.example .env)",
       "Bash(cp:*)",
-      "Bash(npm cache clean:*)"
+      "Bash(npm cache clean:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.railway.com)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
