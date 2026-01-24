@@ -12,19 +12,41 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false
   },
-  connectionTimeout: 60000, // 60 sekund
-  greetingTimeout: 30000, // 30 sekund
-  socketTimeout: 60000 // 60 sekund
+  connectionTimeout: 30000, // 30 sekund (skrócone)
+  greetingTimeout: 15000, // 15 sekund (skrócone)
+  socketTimeout: 30000 // 30 sekund (skrócone)
 });
 
-// Test połączenia SMTP przy starcie
-transporter.verify(function(error, success) {
-  if (error) {
-    console.error('❌ Błąd konfiguracji SMTP:', error);
-  } else {
+// Test połączenia SMTP przy starcie z timeout
+const testConnection = async () => {
+  try {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('SMTP verification timeout after 30 seconds')), 30000)
+    );
+    
+    await Promise.race([
+      new Promise<void>((resolve, reject) => {
+        transporter.verify((error, success) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      }),
+      timeoutPromise
+    ]);
+    
     console.log('✅ Serwer SMTP jest gotowy do wysyłania emaili');
+  } catch (error) {
+    console.error('❌ Błąd konfiguracji SMTP:', error);
+    console.log('💡 Sprawdź konfigurację SMTP w zmiennych środowiskowych');
+    console.log('💡 Sprawdź czy port 587 nie jest blokowany przez firewall');
   }
-});
+};
+
+// Uruchom test asynchronicznie
+testConnection();
 
 export async function sendAdminNotification(email: string, ip: string): Promise<void> {
   const adminEmail = 'michal@conceptfab.com';
@@ -56,10 +78,29 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
   };
 
   try {
-    const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email wysłany pomyślnie:', result.messageId);
+    // Dodaj timeout dla całej operacji
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Email send operation timed out after 45 seconds')), 45000)
+    );
+    
+    const result = await Promise.race([
+      transporter.sendMail(mailOptions),
+      timeoutPromise
+    ]);
+    
+    console.log('✅ Email wysłany pomyślnie:', (result as any).messageId);
   } catch (error) {
-    console.error('❌ Błąd wysyłania emaila:', error);
+    console.error('❌ Błąd wysyłania emaila do admina:', error);
+    
+    // Loguj dodatkowe informacje o błędzie
+    if (error && typeof error === 'object') {
+      console.error('Error details:', {
+        code: (error as any).code,
+        command: (error as any).command,
+        message: (error as any).message
+      });
+    }
+    
     throw error;
   }
 }
@@ -96,10 +137,29 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
   };
 
   try {
-    const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Kod wysłany pomyślnie do:', email, 'MessageID:', result.messageId);
+    // Dodaj timeout dla całej operacji
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Email send operation timed out after 45 seconds')), 45000)
+    );
+    
+    const result = await Promise.race([
+      transporter.sendMail(mailOptions),
+      timeoutPromise
+    ]);
+    
+    console.log('✅ Kod wysłany pomyślnie do:', email, 'MessageID:', (result as any).messageId);
   } catch (error) {
     console.error('❌ Błąd wysyłania kodu do:', email, error);
+    
+    // Loguj dodatkowe informacje o błędzie
+    if (error && typeof error === 'object') {
+      console.error('Error details:', {
+        code: (error as any).code,
+        command: (error as any).command,
+        message: (error as any).message
+      });
+    }
+    
     throw error;
   }
 }
