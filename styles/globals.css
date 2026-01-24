@@ -51,7 +51,7 @@ a {
 /* Logo text style - main application title */
 .menu-left .logo h1 {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 200;
   color: #333;
   margin: 0;
 }
@@ -319,11 +319,11 @@ a {
 
 /* Folder name title with underline accent */
 .folder-title {
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 2.4rem;
+  font-weight: 100;
   margin-bottom: 8px;
   color: #2c3e50;
-  border-bottom: 3px solid #007bff;
+  border-bottom: 1px solid #8c8c8c;
   padding-bottom: 10px;
 }
 
@@ -543,6 +543,7 @@ a {
   font-size: 1.2rem;
   color: #2c3e50;
   word-break: break-word;
+  font-weight: 200;
   margin-bottom: 8px;
 }
 
@@ -563,7 +564,7 @@ a {
 /* Resolution text in modal - blue color, bold */
 .modal-info .image-metadata .resolution {
   color: #4a90e2;
-  font-weight: 500;
+  font-weight: 200;
 }
 
 /* File size text in modal */
