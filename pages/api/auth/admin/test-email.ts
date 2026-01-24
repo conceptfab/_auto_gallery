@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('❌ Błąd wysyłania testu emaila:', error);
     res.status(500).json({ 
       error: 'Failed to send test email',
-      details: error.message
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }
