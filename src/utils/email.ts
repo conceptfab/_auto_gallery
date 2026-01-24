@@ -48,7 +48,7 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
         
         <p>Aby zatwierdzić lub odrzucić wniosek, przejdź do panelu administracyjnego:</p>
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://app.conceptfab.com'}/admin" 
+        <a href="https://app.conceptfab.com/admin" 
            style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
           Panel Administracyjny
         </a>
