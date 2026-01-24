@@ -127,8 +127,20 @@ export function getWhitelist(): string[] {
   return getData().whitelist;
 }
 
+export function removeFromWhitelist(email: string): void {
+  updateData((data) => {
+    data.whitelist = data.whitelist.filter(e => e !== email);
+  });
+}
+
 export function getBlacklist(): string[] {
   return getData().blacklist;
+}
+
+export function removeFromBlacklist(email: string): void {
+  updateData((data) => {
+    data.blacklist = data.blacklist.filter(e => e !== email);
+  });
 }
 
 export function addActiveCode(email: string, loginCode: LoginCode): void {

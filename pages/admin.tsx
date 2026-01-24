@@ -102,6 +102,35 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleRemoveFromList = async (email: string, listType: 'whitelist' | 'blacklist') => {
+    if (!confirm(`Czy na pewno chcesz usunąć ${email} z ${listType === 'whitelist' ? 'białej' : 'czarnej'} listy?`)) {
+      return;
+    }
+
+    setProcessing(email);
+    try {
+      const response = await fetch('/api/auth/admin/remove-from-list', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, listType }),
+      });
+
+      if (response.ok) {
+        await fetchData(); // Odśwież dane
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error removing email from list:', error);
+      alert('Error removing email');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   if (checkingAuth) {
     return (
       <div style={{ 
@@ -250,10 +279,29 @@ const AdminPanel: React.FC = () => {
                     background: '#e8f5e8', 
                     padding: '8px 12px', 
                     borderRadius: '4px',
-                    border: '1px solid #4CAF50'
+                    border: '1px solid #4CAF50',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}
                 >
-                  {email}
+                  <span>{email}</span>
+                  <button
+                    onClick={() => handleRemoveFromList(email, 'whitelist')}
+                    disabled={processing === email}
+                    style={{
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      border: 'none',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      cursor: processing === email ? 'not-allowed' : 'pointer',
+                      fontSize: '12px',
+                      opacity: processing === email ? 0.6 : 1
+                    }}
+                  >
+                    Usuń
+                  </button>
                 </div>
               ))}
             </div>
@@ -277,10 +325,29 @@ const AdminPanel: React.FC = () => {
                     background: '#fdeaea', 
                     padding: '8px 12px', 
                     borderRadius: '4px',
-                    border: '1px solid #f44336'
+                    border: '1px solid #f44336',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}
                 >
-                  {email}
+                  <span>{email}</span>
+                  <button
+                    onClick={() => handleRemoveFromList(email, 'blacklist')}
+                    disabled={processing === email}
+                    style={{
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      border: 'none',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      cursor: processing === email ? 'not-allowed' : 'pointer',
+                      fontSize: '12px',
+                      opacity: processing === email ? 0.6 : 1
+                    }}
+                  >
+                    Usuń
+                  </button>
                 </div>
               ))}
             </div>
