@@ -57,8 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Ustaw admin cookie
     res.setHeader('Set-Cookie', [
-      `admin_email=${email}; Path=/; Max-Age=3600; HttpOnly; SameSite=Strict`,
-      `admin_logged=true; Path=/; Max-Age=3600; SameSite=Strict`
+      `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict`,
+      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict`
     ]);
 
     console.log('👑 Administrator zalogowany:', email);

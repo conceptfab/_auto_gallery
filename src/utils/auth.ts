@@ -15,8 +15,8 @@ export function isUserLoggedIn(email: string): boolean {
 
 export function setAuthCookie(res: NextApiResponse, email: string): void {
   res.setHeader('Set-Cookie', [
-    `auth_email=${email}; Path=/; Max-Age=3600; HttpOnly; SameSite=Strict`,
-    `auth_logged=true; Path=/; Max-Age=3600; SameSite=Strict`
+    `auth_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict`,
+    `auth_logged=true; Path=/; Max-Age=43200; SameSite=Strict`
   ]);
 }
 

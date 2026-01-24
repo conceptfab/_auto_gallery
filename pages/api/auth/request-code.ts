@@ -1,7 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { sendAdminNotification } from '../../../src/utils/email';
-import { EmailRequest } from '../../../src/types/auth';
-import { addPendingEmail, storage } from '../../../src/utils/storage';
+import { sendAdminNotification, sendLoginCode } from '../../../src/utils/email';
+import { EmailRequest, LoginCode } from '../../../src/types/auth';
+import { 
+  addPendingEmail, 
+  getPendingEmails, 
+  getWhitelist, 
+  getBlacklist,
+  addActiveCode,
+  cleanupExpiredCodes
+} from '../../../src/utils/storage';
+
+function generateCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -9,14 +20,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Oczyść wygasłe kody przed przetwarzaniem
+    cleanupExpiredCodes();
+
     const { email }: EmailRequest = req.body;
 
     if (!email || !email.includes('@')) {
       return res.status(400).json({ error: 'Invalid email address' });
     }
 
+    // Sprawdź czy email jest na czarnej liście
+    const blacklist = getBlacklist();
+    if (blacklist.includes(email)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Sprawdź czy email jest na białej liście
+    const whitelist = getWhitelist();
+    if (whitelist.includes(email)) {
+      // Email jest na białej liście - wygeneruj i wyślij kod od razu
+      const code = generateCode();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minut
+      
+      const loginCode: LoginCode = {
+        email,
+        code,
+        expiresAt,
+        createdAt: new Date()
+      };
+
+      addActiveCode(email, loginCode);
+
+      // Wyślij kod na email
+      try {
+        await sendLoginCode(email, code);
+        console.log('✅ Kod wysłany automatycznie do użytkownika z białej listy:', email);
+        
+        res.status(200).json({ 
+          message: 'Code sent to your email',
+          email 
+        });
+        return;
+      } catch (emailError) {
+        console.error('❌ Błąd wysyłania kodu do użytkownika:', emailError);
+        return res.status(500).json({ error: 'Failed to send code' });
+      }
+    }
+
+    // Email nie jest na białej liście - standardowy proces (pending + powiadomienie do admina)
     // Sprawdź czy email nie został już wysłany w ostatnich 5 minutach
-    const existing = storage.pendingEmails.get(email);
+    const pendingEmails = getPendingEmails();
+    const existing = pendingEmails.find(pe => pe.email === email);
     if (existing && Date.now() - existing.timestamp.getTime() < 5 * 60 * 1000) {
       return res.status(429).json({ error: 'Please wait before requesting another code' });
     }
@@ -27,7 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     addPendingEmail(email, ipString);
     
-    console.log('📧 Dodano pending email:', email, 'Total pending:', storage.pendingEmails.size);
+    const updatedPendingEmails = getPendingEmails();
+    console.log('📧 Dodano pending email:', email, 'Total pending:', updatedPendingEmails.length);
 
     // Wyślij powiadomienie do admina
     try {
@@ -48,5 +103,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Internal server error' });
   }
 }
-
-// Export jest już niepotrzebny - używamy globalnego storage

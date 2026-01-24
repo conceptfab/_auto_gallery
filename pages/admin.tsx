@@ -46,8 +46,6 @@ const AdminPanel: React.FC = () => {
   useEffect(() => {
     if (authStatus?.isAdminLoggedIn) {
       fetchData();
-      const interval = setInterval(fetchData, 5000); // Odświeżaj co 5 sekund
-      return () => clearInterval(interval);
     }
   }, [authStatus]);
 

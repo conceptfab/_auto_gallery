@@ -160,7 +160,7 @@ const LoginPage: React.FC = () => {
                   opacity: loading ? 0.6 : 1
                 }}
               >
-                {loading ? 'Wysyłanie...' : 'Wyślij wniosek'}
+                {loading ? 'Wysyłanie...' : 'Wyślij email'}
               </button>
             </form>
           ) : (

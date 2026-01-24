@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { cleanupExpiredCodes, cleanupOldRequests, storage } from '../../../src/utils/storage';
+import { cleanupExpiredCodes, cleanupOldRequests, getPendingEmails } from '../../../src/utils/storage';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -9,13 +9,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const expiredCodes = cleanupExpiredCodes();
     const oldRequests = cleanupOldRequests();
+    const pendingEmails = getPendingEmails();
 
     res.status(200).json({
       message: 'Cleanup completed',
       expiredCodes,
       oldRequests,
-      activeCodesCount: storage.activeCodes.size,
-      pendingRequestsCount: storage.pendingEmails.size
+      activeCodesCount: 0, // We don't have direct access to active codes count in new system
+      pendingRequestsCount: pendingEmails.length
     });
 
   } catch (error) {

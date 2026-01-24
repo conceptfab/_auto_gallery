@@ -48,7 +48,7 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
         
         <p>Aby zatwierdzić lub odrzucić wniosek, przejdź do panelu administracyjnego:</p>
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/admin" 
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://app.conceptfab.com'}/admin" 
            style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
           Panel Administracyjny
         </a>
@@ -83,11 +83,6 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
         <p><strong>Ważne:</strong> Ten kod jest ważny przez <strong>15 minut</strong> od momentu otrzymania tej wiadomości.</p>
         
         <p>Aby się zalogować, wejdź na stronę i wprowadź swój email oraz powyższy kod.</p>
-        
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login" 
-           style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
-          Zaloguj się
-        </a>
         
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
           Jeśli nie prosiłeś o dostęp, zignoruj tę wiadomość.

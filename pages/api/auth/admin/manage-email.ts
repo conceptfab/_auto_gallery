@@ -2,12 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { sendLoginCode } from '../../../../src/utils/email';
 import { AdminAction, LoginCode } from '../../../../src/types/auth';
 import { 
-  storage, 
   removePendingEmail, 
   addToWhitelist, 
   addToBlacklist, 
   addActiveCode,
-  cleanupExpiredCodes 
+  cleanupExpiredCodes,
+  getPendingEmails
 } from '../../../../src/utils/storage';
 
 function generateCode(): string {
@@ -29,7 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Email and action required' });
     }
 
-    if (!storage.pendingEmails.has(email)) {
+    const pendingEmails = getPendingEmails();
+    if (!pendingEmails.some(p => p.email === email)) {
       return res.status(404).json({ error: 'Email not found in pending requests' });
     }
 

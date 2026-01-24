@@ -1,5 +1,7 @@
-// Globalne przechowywanie danych w pamięci
-// W produkcji powinno być zastąpione bazą danych
+import fs from 'fs';
+import path from 'path';
+
+// Trwałe przechowywanie danych w plikach JSON
 
 export interface PendingEmail {
   email: string;
@@ -14,90 +16,164 @@ export interface LoginCode {
   createdAt: Date;
 }
 
-// Globalne storage
-const globalStorage = {
-  pendingEmails: new Map<string, { timestamp: Date; ip: string }>(),
-  whitelist: new Set<string>(),
-  blacklist: new Set<string>(),
-  activeCodes: new Map<string, LoginCode>(),
-  loggedInUsers: new Set<string>(),
-  adminCodes: new Map<string, LoginCode>(),
-  loggedInAdmins: new Set<string>()
-};
-
-// Sprawdź czy to jest pierwszy import
-if (!global.authStorage) {
-  global.authStorage = globalStorage;
+interface StorageData {
+  pendingEmails: Record<string, { timestamp: string; ip: string }>;
+  whitelist: string[];
+  blacklist: string[];
+  activeCodes: Record<string, LoginCode>;
+  loggedInUsers: string[];
+  adminCodes: Record<string, LoginCode>;
+  loggedInAdmins: string[];
 }
 
-export const storage = global.authStorage;
+const DATA_FILE = path.join(process.cwd(), 'data', 'storage.json');
+
+// Domyślne dane
+const defaultData: StorageData = {
+  pendingEmails: {},
+  whitelist: [],
+  blacklist: [],
+  activeCodes: {},
+  loggedInUsers: [],
+  adminCodes: {},
+  loggedInAdmins: []
+};
+
+// Załaduj dane z pliku
+function loadData(): StorageData {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      return { ...defaultData, ...data };
+    }
+  } catch (error) {
+    console.error('❌ Błąd ładowania danych:', error);
+  }
+  return defaultData;
+}
+
+// Zapisz dane do pliku
+function saveData(data: StorageData): void {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('❌ Błąd zapisywania danych:', error);
+  }
+}
+
+// Cache danych w pamięci
+let cachedData: StorageData | null = null;
+
+function getData(): StorageData {
+  if (!cachedData) {
+    cachedData = loadData();
+  }
+  return cachedData;
+}
+
+function updateData(updater: (data: StorageData) => void): void {
+  const data = getData();
+  updater(data);
+  cachedData = data;
+  saveData(data);
+}
 
 // Funkcje pomocnicze
 export function addPendingEmail(email: string, ip: string): void {
-  storage.pendingEmails.set(email, { timestamp: new Date(), ip });
+  updateData((data) => {
+    data.pendingEmails[email] = { timestamp: new Date().toISOString(), ip };
+  });
 }
 
 export function removePendingEmail(email: string): void {
-  storage.pendingEmails.delete(email);
+  updateData((data) => {
+    delete data.pendingEmails[email];
+  });
 }
 
 export function getPendingEmails(): PendingEmail[] {
-  return Array.from(storage.pendingEmails.entries()).map(([email, data]) => ({
+  const data = getData();
+  return Object.entries(data.pendingEmails).map(([email, item]) => ({
     email,
-    timestamp: data.timestamp,
-    ip: data.ip
+    timestamp: new Date(item.timestamp),
+    ip: item.ip
   }));
 }
 
 export function addToWhitelist(email: string): void {
-  storage.whitelist.add(email);
+  updateData((data) => {
+    if (!data.whitelist.includes(email)) {
+      data.whitelist.push(email);
+    }
+  });
 }
 
 export function addToBlacklist(email: string): void {
-  storage.blacklist.add(email);
+  updateData((data) => {
+    if (!data.blacklist.includes(email)) {
+      data.blacklist.push(email);
+    }
+  });
 }
 
 export function getWhitelist(): string[] {
-  return Array.from(storage.whitelist);
+  return getData().whitelist;
 }
 
 export function getBlacklist(): string[] {
-  return Array.from(storage.blacklist);
+  return getData().blacklist;
 }
 
 export function addActiveCode(email: string, loginCode: LoginCode): void {
-  storage.activeCodes.set(email, loginCode);
+  updateData((data) => {
+    data.activeCodes[email] = loginCode;
+  });
 }
 
 export function getActiveCode(email: string): LoginCode | undefined {
-  return storage.activeCodes.get(email);
+  return getData().activeCodes[email];
 }
 
 export function removeActiveCode(email: string): void {
-  storage.activeCodes.delete(email);
+  updateData((data) => {
+    delete data.activeCodes[email];
+  });
 }
 
 export function loginUser(email: string): void {
-  storage.loggedInUsers.add(email);
+  updateData((data) => {
+    if (!data.loggedInUsers.includes(email)) {
+      data.loggedInUsers.push(email);
+    }
+  });
 }
 
 export function logoutUser(email: string): void {
-  storage.loggedInUsers.delete(email);
+  updateData((data) => {
+    data.loggedInUsers = data.loggedInUsers.filter(u => u !== email);
+  });
 }
 
 export function isUserLoggedIn(email: string): boolean {
-  return storage.loggedInUsers.has(email);
+  return getData().loggedInUsers.includes(email);
 }
 
 export function cleanupExpiredCodes(): number {
   const now = new Date();
   let expiredCount = 0;
   
-  Array.from(storage.activeCodes.entries()).forEach(([email, loginCode]) => {
-    if (now > loginCode.expiresAt) {
-      storage.activeCodes.delete(email);
-      expiredCount++;
-    }
+  updateData((data) => {
+    Object.keys(data.activeCodes).forEach(email => {
+      const loginCode = data.activeCodes[email];
+      if (now > new Date(loginCode.expiresAt)) {
+        delete data.activeCodes[email];
+        expiredCount++;
+      }
+    });
   });
   
   return expiredCount;
@@ -107,55 +183,66 @@ export function cleanupOldRequests(): number {
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   let cleanedCount = 0;
   
-  Array.from(storage.pendingEmails.entries()).forEach(([email, data]) => {
-    if (data.timestamp < dayAgo) {
-      storage.pendingEmails.delete(email);
-      cleanedCount++;
-    }
+  updateData((data) => {
+    Object.keys(data.pendingEmails).forEach(email => {
+      const item = data.pendingEmails[email];
+      if (new Date(item.timestamp) < dayAgo) {
+        delete data.pendingEmails[email];
+        cleanedCount++;
+      }
+    });
   });
   
   return cleanedCount;
 }
 
 export function addAdminCode(email: string, loginCode: LoginCode): void {
-  storage.adminCodes.set(email, loginCode);
+  updateData((data) => {
+    data.adminCodes[email] = loginCode;
+  });
 }
 
 export function getAdminCode(email: string): LoginCode | undefined {
-  return storage.adminCodes.get(email);
+  return getData().adminCodes[email];
 }
 
 export function removeAdminCode(email: string): void {
-  storage.adminCodes.delete(email);
+  updateData((data) => {
+    delete data.adminCodes[email];
+  });
 }
 
 export function loginAdmin(email: string): void {
-  storage.loggedInAdmins.add(email);
+  updateData((data) => {
+    if (!data.loggedInAdmins.includes(email)) {
+      data.loggedInAdmins.push(email);
+    }
+  });
 }
 
 export function logoutAdmin(email: string): void {
-  storage.loggedInAdmins.delete(email);
+  updateData((data) => {
+    data.loggedInAdmins = data.loggedInAdmins.filter(u => u !== email);
+  });
 }
 
 export function isAdminLoggedIn(email: string): boolean {
-  return storage.loggedInAdmins.has(email);
+  return getData().loggedInAdmins.includes(email);
 }
 
 export function cleanupExpiredAdminCodes(): number {
   const now = new Date();
   let expiredCount = 0;
   
-  Array.from(storage.adminCodes.entries()).forEach(([email, loginCode]) => {
-    if (now > loginCode.expiresAt) {
-      storage.adminCodes.delete(email);
-      expiredCount++;
-    }
+  updateData((data) => {
+    Object.keys(data.adminCodes).forEach(email => {
+      const loginCode = data.adminCodes[email];
+      if (now > new Date(loginCode.expiresAt)) {
+        delete data.adminCodes[email];
+        expiredCount++;
+      }
+    });
   });
   
   return expiredCount;
-}
-
-// Rozszerzenie global interface dla TypeScript
-declare global {
-  var authStorage: typeof globalStorage | undefined;
 }
