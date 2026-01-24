@@ -19,7 +19,11 @@ a {
   text-decoration: none;
 }
 
-/* Top Menu Bar Styles */
+/* ========================================
+   TOP MENU BAR STYLES
+   ======================================== */
+
+/* Fixed top navigation bar with blur effect */
 .top-menu-bar {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -33,6 +37,7 @@ a {
   z-index: 100;
 }
 
+/* Container for menu items with max width and flex layout */
 .menu-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -43,6 +48,7 @@ a {
   height: 35px;
 }
 
+/* Logo text style - main application title */
 .menu-left .logo h1 {
   font-size: 1.1rem;
   font-weight: 600;
@@ -50,12 +56,14 @@ a {
   margin: 0;
 }
 
+/* Center section for navigation items (currently empty) */
 .menu-center {
   flex: 1;
   display: flex;
   justify-content: center;
 }
 
+/* Navigation menu items list */
 .menu-items {
   display: flex;
   list-style: none;
@@ -68,6 +76,7 @@ a {
   margin: 0;
 }
 
+/* Navigation links styling */
 .menu-items a {
   color: #333;
   text-decoration: none;
@@ -83,11 +92,13 @@ a {
   color: #007bff;
 }
 
+/* Right section for refresh button */
 .menu-right {
   display: flex;
   align-items: center;
 }
 
+/* Refresh button in top menu */
 .menu-right .refresh-button {
   background: rgba(0, 123, 255, 0.8);
   color: white;
@@ -103,77 +114,96 @@ a {
   background: rgba(0, 86, 179, 0.9);
 }
 
-/* Responsive menu */
+/* ========================================
+   RESPONSIVE MENU STYLES
+   ======================================== */
+
+/* Tablet view adjustments */
 @media (max-width: 768px) {
   body {
-    padding-top: 30px;
+    padding-top: 30px; /* Reduced padding for smaller screens */
   }
   
   .menu-container {
-    padding: 0 15px;
-    height: 30px;
+    padding: 0 15px; /* Less horizontal padding */
+    height: 30px; /* Smaller menu height */
   }
   
+  /* Smaller logo text on tablets */
   .menu-left .logo h1 {
     font-size: 1rem;
   }
   
   .menu-items {
-    gap: 12px;
+    gap: 12px; /* Reduced spacing between menu items */
   }
   
+  /* Smaller navigation links */
   .menu-items a {
     font-size: 0.75rem;
     padding: 4px 8px;
   }
   
+  /* Smaller refresh button */
   .menu-right .refresh-button {
     font-size: 0.7rem;
     padding: 3px 8px;
   }
 }
 
+/* Mobile view adjustments */
 @media (max-width: 480px) {
   body {
-    padding-top: 28px;
+    padding-top: 28px; /* Even smaller padding for mobile */
   }
   
   .menu-container {
-    height: 28px;
+    height: 28px; /* Compact menu height */
   }
   
+  /* Hide menu items on mobile to save space */
   .menu-center {
     display: none;
   }
   
+  /* Compact logo text for mobile */
   .menu-left .logo h1 {
     font-size: 0.9rem;
   }
   
+  /* Very compact refresh button for mobile */
   .menu-right .refresh-button {
     font-size: 0.65rem;
     padding: 3px 6px;
   }
 }
 
+/* ========================================
+   GALLERY LAYOUT STYLES
+   ======================================== */
+
+/* Main gallery container with max width and centering */
 .gallery-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
+/* Gallery description section */
 .gallery-description {
   text-align: center;
   margin-bottom: 30px;
   padding: 15px;
 }
 
+/* Description text styling */
 .gallery-description p {
   font-size: 1.1rem;
   color: #666;
   margin: 0;
 }
 
+/* Gallery header section with card styling */
 .gallery-header {
   text-align: center;
   margin-bottom: 40px;
@@ -183,6 +213,7 @@ a {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Main gallery title */
 .gallery-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
@@ -190,12 +221,18 @@ a {
   color: #2c3e50;
 }
 
+/* Gallery header subtitle text */
 .gallery-header p {
   font-size: 1.1rem;
   color: #666;
   margin-bottom: 20px;
 }
 
+/* ========================================
+   BUTTON STYLES
+   ======================================== */
+
+/* Main refresh button styling */
 .refresh-button {
   background: #007bff;
   color: white;
@@ -211,6 +248,11 @@ a {
   background: #0056b3;
 }
 
+/* ========================================
+   STATE MESSAGE STYLES
+   ======================================== */
+
+/* Loading state message */
 .loading {
   text-align: center;
   font-size: 1.5rem;
@@ -218,6 +260,7 @@ a {
   color: #666;
 }
 
+/* Error state container */
 .error {
   text-align: center;
   padding: 40px 20px;
@@ -227,12 +270,14 @@ a {
   margin: 20px 0;
 }
 
+/* Error message text */
 .error p {
   font-size: 1.2rem;
   color: #e53e3e;
   margin-bottom: 20px;
 }
 
+/* Retry button in error state */
 .retry-button {
   background: #e53e3e;
   color: white;
@@ -247,6 +292,7 @@ a {
   background: #c53030;
 }
 
+/* No images found message */
 .no-images {
   text-align: center;
   padding: 60px 20px;
@@ -255,16 +301,23 @@ a {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* ========================================
+   GALLERY FOLDERS STYLES
+   ======================================== */
+
+/* Container for all folder sections */
 .folders-container {
   display: flex;
   flex-direction: column;
   gap: 40px;
 }
 
+/* Individual folder section */
 .folder-section {
   padding: 30px;
 }
 
+/* Folder name title with underline accent */
 .folder-title {
   font-size: 1.8rem;
   font-weight: 600;
@@ -274,12 +327,18 @@ a {
   padding-bottom: 10px;
 }
 
+/* Image count subtitle under folder title */
 .image-count {
   color: #666;
   font-size: 1rem;
   margin-bottom: 20px;
 }
 
+/* ========================================
+   IMAGE GRID LAYOUT STYLES
+   ======================================== */
+
+/* Responsive grid layout for images */
 .image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -287,12 +346,13 @@ a {
   margin-top: 20px;
 }
 
+/* Individual image item container */
 .image-item {
   display: block;
   width: 100%;
 }
 
-
+/* Container for image with hover effects */
 .image-container {
   width: 100%;
   cursor: pointer;
@@ -304,6 +364,7 @@ a {
   opacity: 0.8;
 }
 
+/* Image element styling - responsive and block display */
 .gallery-image {
   width: 100%;
   height: auto;
@@ -311,6 +372,11 @@ a {
 }
 
 
+/* ========================================
+   IMAGE TITLE AND METADATA STYLES
+   ======================================== */
+
+/* Image title container - shows on hover */
 .image-title {
   margin-top: 10px;
   font-size: 0.85rem;
@@ -323,10 +389,12 @@ a {
   transition: opacity 0.3s ease;
 }
 
+/* Show image title on hover */
 .image-item:hover .image-title {
   opacity: 1;
 }
 
+/* Top row layout for image name and download button */
 .image-title-top {
   display: flex;
   justify-content: space-between;
@@ -334,11 +402,13 @@ a {
   margin-bottom: 2px;
 }
 
+/* Image filename styling */
 .image-name {
   font-weight: 500;
   flex: 1;
 }
 
+/* Download button next to image name */
 .download-button {
   background: rgba(74, 144, 226, 0.8);
   color: white;
@@ -356,36 +426,51 @@ a {
   transition: all 0.3s ease;
 }
 
+/* Download button hover effects */
 .download-button:hover {
   background: rgba(74, 144, 226, 1);
   transform: scale(1.1);
 }
 
+/* ========================================
+   IMAGE METADATA STYLES
+   ======================================== */
+
+/* Container for image metadata (resolution, size, date) */
 .image-metadata {
   font-size: 0.75rem;
   color: #888;
   font-weight: 300;
 }
 
+/* Spacing between metadata items */
 .image-metadata .resolution,
 .image-metadata .file-size,
 .image-metadata .last-modified {
   margin-right: 8px;
 }
 
+/* Image resolution text - blue color */
 .image-metadata .resolution {
   color: #4a90e2;
 }
 
+/* File size text - gray color */
 .image-metadata .file-size {
   color: #666;
 }
 
+/* Last modified date - gray italic text */
 .image-metadata .last-modified {
   color: #888;
   font-style: italic;
 }
 
+/* ========================================
+   MODAL WINDOW STYLES
+   ======================================== */
+
+/* Full screen overlay for modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -400,6 +485,7 @@ a {
   padding: 20px;
 }
 
+/* Modal content container with shadow and border */
 .modal-content {
   position: relative;
   max-width: 90vw;
@@ -413,6 +499,7 @@ a {
   flex-direction: column;
 }
 
+/* Small close button (X) in top right corner */
 .close-button {
   position: absolute;
   top: 15px;
@@ -437,6 +524,7 @@ a {
   color: white;
 }
 
+/* Large image display in modal */
 .modal-image {
   max-width: 100%;
   max-height: 70vh;
@@ -444,11 +532,13 @@ a {
   display: block;
 }
 
+/* Modal information section below image */
 .modal-info {
   padding: 20px;
   background: #F8F8F8;
 }
 
+/* Image filename in modal */
 .modal-info h3 {
   font-size: 1.2rem;
   color: #2c3e50;
@@ -456,11 +546,13 @@ a {
   margin-bottom: 8px;
 }
 
+/* Metadata styling in modal - larger than thumbnail view */
 .modal-info .image-metadata {
   color: #666;
   font-size: 0.9rem;
 }
 
+/* Metadata items spacing in modal */
 .modal-info .image-metadata .resolution,
 .modal-info .image-metadata .file-size,
 .modal-info .image-metadata .last-modified {
@@ -468,21 +560,28 @@ a {
   display: inline-block;
 }
 
+/* Resolution text in modal - blue color, bold */
 .modal-info .image-metadata .resolution {
   color: #4a90e2;
   font-weight: 500;
 }
 
+/* File size text in modal */
 .modal-info .image-metadata .file-size {
   color: #666;
 }
 
+/* Date text in modal - italic gray */
 .modal-info .image-metadata .last-modified {
   color: #888;
   font-style: italic;
 }
 
-/* Cache Progress Styles */
+/* ========================================
+   CACHE PROGRESS MODAL STYLES
+   ======================================== */
+
+/* Overlay for cache progress modal */
 .cache-progress-overlay {
   position: fixed;
   top: 0;
@@ -498,6 +597,7 @@ a {
   z-index: 2000;
 }
 
+/* Modal container for cache progress */
 .cache-progress-modal {
   background: white;
   border: 1px solid #e0e0e0;
@@ -509,6 +609,7 @@ a {
   text-align: center;
 }
 
+/* Cache progress modal title */
 .cache-progress-header h3 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -516,12 +617,14 @@ a {
   margin: 0 0 8px 0;
 }
 
+/* Cache progress modal description */
 .cache-progress-header p {
   font-size: 1rem;
   color: #666;
   margin: 0 0 25px 0;
 }
 
+/* Progress information row layout */
 .progress-info {
   display: flex;
   justify-content: space-between;
@@ -529,18 +632,21 @@ a {
   margin-bottom: 15px;
 }
 
+/* Current stage text */
 .stage-text {
   font-size: 0.9rem;
   color: #333;
   font-weight: 500;
 }
 
+/* Progress counter (e.g., "5/10") */
 .progress-counter {
   font-size: 0.9rem;
   color: #666;
   font-weight: 600;
 }
 
+/* Progress bar background container */
 .progress-bar-container {
   width: 100%;
   height: 8px;
@@ -550,6 +656,7 @@ a {
   margin-bottom: 15px;
 }
 
+/* Progress bar fill with gradient */
 .progress-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, #007bff, #0056b3);
@@ -557,6 +664,7 @@ a {
   border-radius: 4px;
 }
 
+/* Current file being processed */
 .current-file {
   font-size: 0.85rem;
   color: #666;
@@ -564,11 +672,13 @@ a {
   word-break: break-word;
 }
 
+/* Filename styling in progress */
 .current-file .filename {
   font-weight: 500;
   color: #333;
 }
 
+/* Error message in cache progress */
 .error-message {
   color: #e53e3e;
   font-size: 0.9rem;
@@ -579,50 +689,66 @@ a {
   border-radius: 6px;
 }
 
+/* ========================================
+   RESPONSIVE GALLERY STYLES
+   ======================================== */
+
+/* Tablet responsive adjustments */
 @media (max-width: 768px) {
+  /* Reduced padding for smaller screens */
   .gallery-container {
     padding: 10px;
   }
   
+  /* Compact gallery header */
   .gallery-header {
     margin-bottom: 20px;
     padding: 15px;
   }
   
+  /* Smaller main title on tablets */
   .gallery-header h1 {
     font-size: 2rem;
   }
   
+  /* Smaller grid items on tablets */
   .image-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
   }
   
+  /* Reduced folder section padding */
   .folder-section {
     padding: 20px;
   }
   
+  /* Modal adjustments for tablet */
   .modal-content {
     margin: 10px;
     max-width: calc(100vw - 20px);
     max-height: calc(100vh - 20px);
   }
   
+  /* Smaller modal image on tablet */
   .modal-image {
     max-height: 60vh;
   }
 }
 
+/* Mobile responsive adjustments */
 @media (max-width: 480px) {
+  /* Single column layout on mobile */
   .image-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
   
+  /* Even smaller title on mobile */
   .gallery-header h1 {
     font-size: 1.8rem;
   }
   
+  /* Smaller folder titles on mobile */
   .folder-title {
     font-size: 1.5rem;
   }
