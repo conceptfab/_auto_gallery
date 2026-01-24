@@ -26,7 +26,10 @@ interface StorageData {
   loggedInAdmins: string[];
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'storage.json');
+// Użyj Railway volume /data-storage jeśli istnieje, w przeciwnym razie lokalny folder data/
+const DATA_FILE = fs.existsSync('/data-storage')
+  ? '/data-storage/storage.json'
+  : path.join(process.cwd(), 'data', 'storage.json');
 
 // Domyślne dane
 const defaultData: StorageData = {
