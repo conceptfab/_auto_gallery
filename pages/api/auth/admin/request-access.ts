@@ -38,26 +38,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     addAdminCode(email, adminCode);
 
-    // Próbuj wysłać kod na email administratora (ale zawsze pozwalaj przejść dalej)
-    let emailSent = false;
+    // Próbuj wysłać kod na email administratora
     try {
       await sendAdminAccessCode(email, code);
       console.log('✅ Kod administratora wysłany na email:', email);
-      emailSent = true;
+      
+      res.status(200).json({ 
+        message: 'Admin access code sent to email',
+        email,
+        expiresAt 
+      });
     } catch (emailError) {
       console.error('❌ Błąd wysyłania kodu administratora:', emailError);
-      console.log('🆘 TRYB AWARYJNY - Kod awaryjny w logach serwera:', process.env.ADMIN_EMERGENCY_CODE);
+      console.log('🆘 Używaj kodu awaryjnego:', process.env.ADMIN_EMERGENCY_CODE);
+      
+      res.status(200).json({ 
+        message: 'Email server unavailable. Use emergency code.',
+        email,
+        expiresAt,
+        emergencyMode: true
+      });
     }
-
-    // Zawsze zwróć success żeby przejść do formularza kodu
-    res.status(200).json({ 
-      message: emailSent 
-        ? 'Admin access code sent to email'
-        : 'Email server unavailable. Use emergency code.',
-      email,
-      expiresAt,
-      emergencyMode: !emailSent
-    });
 
   } catch (error) {
     console.error('Error generating admin code:', error);

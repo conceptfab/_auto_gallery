@@ -79,29 +79,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleTestEmail = async () => {
-    try {
-      const response = await fetch('/api/auth/admin/test-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert(`✅ Email testowy wysłany na: ${result.sentTo}\nKod testowy: ${result.testCode}`);
-      } else {
-        alert(`❌ Błąd wysyłania emaila: ${result.error}\n${result.details || ''}`);
-      }
-    } catch (error) {
-      console.error('Error testing email:', error);
-      alert('❌ Błąd połączenia z serwerem');
-    }
-  };
-
   const handleAction = async (email: string, action: 'approve' | 'reject') => {
     setProcessing(email);
     try {
@@ -174,21 +151,6 @@ const AdminPanel: React.FC = () => {
             <span style={{ fontSize: '14px', color: '#666' }}>
               Zalogowany: <strong>{authStatus.email}</strong>
             </span>
-            <button
-              onClick={handleTestEmail}
-              style={{
-                backgroundColor: '#2196F3',
-                color: 'white',
-                border: 'none',
-                padding: '8px 15px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                marginRight: '10px'
-              }}
-            >
-              Test Email
-            </button>
             <button
               onClick={handleAdminLogout}
               style={{
