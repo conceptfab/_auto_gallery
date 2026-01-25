@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import { ADMIN_EMAIL, EMAIL_FROM, ADMIN_PANEL_URL } from '@/src/config/constants';
+import { logger } from '@/src/utils/logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,15 +33,12 @@ const testConnection = async () => {
 testConnection();
 
 export async function sendAdminNotification(email: string, ip: string): Promise<void> {
-  const adminEmail = 'michal@conceptfab.com';
-  
-  console.log('📧 Próba wysłania emaila do admina:', adminEmail);
-  console.log('📧 Używanie Resend API');
+  logger.emailEvent('sending admin notification', ADMIN_EMAIL);
   
   try {
     const result = await resend.emails.send({
-      from: 'Content Browser <no-reply@conceptfab.com>',
-      to: adminEmail,
+      from: EMAIL_FROM,
+      to: ADMIN_EMAIL,
       subject: 'Nowy wniosek o dostęp - Content Browser',
       html: `
         <h2>Nowy wniosek o dostęp do Content Browser</h2>
@@ -48,27 +47,26 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
         
         <p>Aby zatwierdzić lub odrzucić wniosek, przejdź do panelu administracyjnego:</p>
-        <a href="https://app.conceptfab.com/admin" 
+        <a href="${ADMIN_PANEL_URL}" 
            style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
           Panel Administracyjny
         </a>
       `,
     });
     
-    console.log('✅ Email wysłany pomyślnie:', result.data?.id);
+    logger.emailEvent('admin notification sent successfully', ADMIN_EMAIL, result.data?.id);
   } catch (error) {
-    console.error('❌ Błąd wysyłania emaila do admina:', error);
+    logger.error('Failed to send admin notification', error);
     throw error;
   }
 }
 
 export async function sendLoginCode(email: string, code: string): Promise<void> {
-  console.log('📧 Próba wysłania kodu do użytkownika:', email);
-  console.log('📧 Używanie Resend API');
+  logger.emailEvent('sending login code', email);
   
   try {
     const result = await resend.emails.send({
-      from: 'Content Browser <no-reply@conceptfab.com>',
+      from: EMAIL_FROM,
       to: email,
       subject: 'Kod dostępu do Content Browser',
       html: `
@@ -90,9 +88,9 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
       `,
     });
     
-    console.log('✅ Kod wysłany pomyślnie do:', email, 'ID:', result.data?.id);
+    logger.emailEvent('login code sent successfully', email, result.data?.id);
   } catch (error) {
-    console.error('❌ Błąd wysyłania kodu do:', email, error);
+    logger.error('Failed to send login code to', email, error);
     throw error;
   }
 }

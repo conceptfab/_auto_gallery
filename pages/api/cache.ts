@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 import crypto from 'crypto';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
 
 interface CacheRequest {
   action: 'start' | 'progress';
@@ -42,7 +43,7 @@ async function processCacheGeneration(res: NextApiResponse) {
     const { scanRemoteDirectory } = await import('./gallery-utils');
     
     console.log('Starting gallery scan...');
-    const folders = await scanRemoteDirectory('https://conceptfab.com/__metro/gallery/');
+    const folders = await scanRemoteDirectory(GALLERY_BASE_URL);
     
     if (!folders || folders.length === 0) {
       throw new Error('No gallery folders found');

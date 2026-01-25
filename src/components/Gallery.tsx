@@ -3,6 +3,7 @@ import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
 import CacheProgress from './CacheProgress';
 import ImageMetadata from './ImageMetadata';
+import { logger } from '@/src/utils/logger';
 
 interface GalleryProps {
   refreshKey?: number;
@@ -17,16 +18,16 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
   const [cacheReady, setCacheReady] = useState(false);
   const [isForceRefreshing, setIsForceRefreshing] = useState(false);
 
-  console.log('🔍 Gallery component render - loading:', loading, 'folders:', folders.length, 'error:', error);
+  logger.debug('Gallery component render', { loading, folderCount: folders.length, error });
 
   const checkCacheAndFetch = async (forceClearCache = false) => {
-    console.log('🚀 Starting gallery load...');
+    logger.galleryStart('gallery load');
     setCacheReady(false);
     
     try {
       // If force refresh is requested, clear cache first
       if (forceClearCache) {
-        console.log('🧹 Force refresh requested - clearing cache...');
+        logger.cacheStatus('Force refresh - clearing cache');
         setIsForceRefreshing(true);
         setLoading(true);
         setError(null);
@@ -36,13 +37,13 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
           const clearData = await clearResponse.json();
           
           if (clearData.success) {
-            console.log('✅ Cache cleared successfully');
+            logger.cacheStatus('Cache cleared successfully');
             setIsForceRefreshing(false);
             // Po wyczyszczeniu cache, pobierz galerię od nowa
             await fetchGalleryData();
             return;
           } else {
-            console.error('❌ Failed to clear cache:', clearData.message);
+            logger.error('Failed to clear cache', clearData.message);
             setIsForceRefreshing(false);
           }
         } catch (clearError) {
@@ -185,7 +186,6 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
                 images={folder.images} 
                 onImageClick={handleImageClick}
                 folderName={folder.name}
-                useCache={cacheReady}
               />
             </section>
           ))}

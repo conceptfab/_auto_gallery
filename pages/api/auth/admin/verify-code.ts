@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { LoginRequest } from '../../../../src/types/auth';
 import { getAdminCode, removeAdminCode, cleanupExpiredAdminCodes, loginAdmin } from '../../../../src/utils/storage';
 
-const ADMIN_EMAIL = 'michal@conceptfab.com';
+import { ADMIN_EMAIL } from '../../../../src/config/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

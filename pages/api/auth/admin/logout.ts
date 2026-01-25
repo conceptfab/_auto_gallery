@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { logoutAdmin } from '../../../../src/utils/storage';
-
-const ADMIN_EMAIL = 'michal@conceptfab.com';
+import { ADMIN_EMAIL } from '../../../../src/config/constants';
 
 function getAdminEmailFromCookie(req: NextApiRequest): string | null {
   const cookies = req.headers.cookie;

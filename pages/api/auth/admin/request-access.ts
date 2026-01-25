@@ -3,7 +3,7 @@ import { sendLoginCode } from '../../../../src/utils/email';
 import { addAdminCode, cleanupExpiredAdminCodes } from '../../../../src/utils/storage';
 import { LoginCode } from '../../../../src/types/auth';
 
-const ADMIN_EMAIL = 'michal@conceptfab.com';
+import { ADMIN_EMAIL } from '../../../../src/config/constants';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();

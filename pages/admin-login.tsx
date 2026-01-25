@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 const AdminLoginPage: React.FC = () => {
   const router = useRouter();
   const [step, setStep] = useState<'email' | 'code'>('email');
-  const [email, setEmail] = useState('michal@conceptfab.com');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -286,11 +286,5 @@ const AdminLoginPage: React.FC = () => {
     </>
   );
 };
-
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
 
 export default AdminLoginPage;

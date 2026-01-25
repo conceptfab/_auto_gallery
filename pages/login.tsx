@@ -290,9 +290,3 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}

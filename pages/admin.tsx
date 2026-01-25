@@ -375,9 +375,3 @@ const AdminPanel: React.FC = () => {
 };
 
 export default AdminPanel;
-
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}

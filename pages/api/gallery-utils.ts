@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { GalleryFolder, ImageFile } from '@/src/types/gallery';
-
-const GALLERY_BASE_URL = 'https://conceptfab.com/__metro/gallery/';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
 
 // Funkcja do liczenia plików graficznych w folderze
@@ -245,6 +244,19 @@ export async function scanRemoteDirectory(url: string): Promise<GalleryFolder[]>
   }
 }
 
+// URL validation function
+function validateGalleryUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    // Only allow HTTPS and specific conceptfab.com domain
+    return parsedUrl.protocol === 'https:' && 
+           parsedUrl.hostname === 'conceptfab.com' &&
+           parsedUrl.pathname.startsWith('/__metro/gallery/');
+  } catch {
+    return false;
+  }
+}
+
 // Default handler for Next.js API route
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -253,8 +265,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { url } = req.body;
-    if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
+    
+    // Validate required URL
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'Valid URL is required' });
+    }
+
+    // Validate URL security
+    if (!validateGalleryUrl(url)) {
+      return res.status(400).json({ 
+        error: 'Invalid URL. Only HTTPS URLs from conceptfab.com/__metro/gallery/ are allowed' 
+      });
     }
 
     const folders = await scanRemoteDirectory(url);

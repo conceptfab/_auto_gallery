@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GalleryResponse } from '@/src/types/gallery';
 import { scanRemoteDirectory } from './gallery-utils';
+import { withRateLimit } from '@/src/utils/rateLimiter';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
 
-const GALLERY_BASE_URL = 'https://conceptfab.com/__metro/gallery/';
-
-export default async function handler(
+async function galleryHandler(
   req: NextApiRequest,
   res: NextApiResponse<GalleryResponse>
 ) {
@@ -30,3 +30,6 @@ export default async function handler(
     });
   }
 }
+
+// Apply rate limiting: 5 requests per minute
+export default withRateLimit(5, 60000)(galleryHandler);

@@ -3,6 +3,7 @@ import { scanRemoteDirectory } from './gallery-utils';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
 
 interface CacheManifest {
   generated: string;
@@ -68,7 +69,7 @@ export default async function handler(
 
     // Skanuj aktualną galerię
     console.log('🔍 Scanning current gallery structure...');
-    const currentFolders = await scanRemoteDirectory('https://conceptfab.com/__metro/gallery/');
+    const currentFolders = await scanRemoteDirectory(GALLERY_BASE_URL);
     
     // Oblicz statystyki aktualnej galerii
     const currentStats = {
