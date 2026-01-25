@@ -13,11 +13,10 @@ interface AuthStatus {
 const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
-
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
+  
+  // Hide on login pages
+  const isLoginPage = router.pathname === '/login' || router.pathname === '/admin-login';
+  
   const checkAuthStatus = async () => {
     try {
       const response = await fetch('/api/auth/status');
@@ -27,6 +26,14 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
       console.error('Error checking auth status:', error);
     }
   };
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+  
+  if (isLoginPage) {
+    return null;
+  }
 
   const handleLogout = async () => {
     try {

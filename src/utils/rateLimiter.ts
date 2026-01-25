@@ -18,11 +18,17 @@ class RateLimiter {
 
   private cleanup() {
     const now = Date.now();
-    for (const [key, entry] of this.requests.entries()) {
+    const keysToDelete: string[] = [];
+    
+    this.requests.forEach((entry, key) => {
       if (now > entry.resetTime) {
-        this.requests.delete(key);
+        keysToDelete.push(key);
       }
-    }
+    });
+    
+    keysToDelete.forEach(key => {
+      this.requests.delete(key);
+    });
   }
 
   private getClientId(req: NextApiRequest): string {

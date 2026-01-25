@@ -75,3 +75,10 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
 };
 
 export default HomePage;
+
+// Disable static generation to avoid router issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

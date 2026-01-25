@@ -13,15 +13,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Oczyść wygasłe kody
     cleanupExpiredAdminCodes();
 
-    const { email, code }: LoginRequest = req.body;
+    const { code }: { code: string } = req.body;
 
-    if (!email || !code) {
-      return res.status(400).json({ error: 'Email and code required' });
+    if (!code) {
+      return res.status(400).json({ error: 'Code required' });
     }
 
-    // Sprawdź czy to jest email administratora
-    if (email !== ADMIN_EMAIL) {
-      return res.status(403).json({ error: 'Unauthorized admin email' });
+    // Zawsze używaj skonfigurowanego emaila administratora
+    const email = ADMIN_EMAIL;
+    
+    if (!email) {
+      return res.status(500).json({ error: 'Admin email not configured' });
     }
 
     // Sprawdź czy używa kodu awaryjnego

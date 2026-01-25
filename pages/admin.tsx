@@ -375,3 +375,10 @@ const AdminPanel: React.FC = () => {
 };
 
 export default AdminPanel;
+
+// Disable static generation to avoid router issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

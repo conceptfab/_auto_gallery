@@ -290,3 +290,10 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
+// Disable static generation to avoid router issues
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
