@@ -160,7 +160,7 @@ const AdminPanel: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Panel Administracyjny - AutoGallery</title>
+        <title>Panel Administracyjny - Content Browser</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       

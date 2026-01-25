@@ -92,7 +92,7 @@ const LoginPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Logowanie - AutoGallery</title>
+        <title>Logowanie - Content Browser</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       
@@ -117,7 +117,7 @@ const LoginPage: React.FC = () => {
             marginBottom: '30px',
             color: '#333'
           }}>
-            AutoGallery
+            Content Browser
           </h1>
 
           {step === 'email' ? (

@@ -61,8 +61,8 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
   return (
     <>
       <Head>
-        <title>CONCEPTFAB AutoGallery - Galeria obrazów</title>
-        <meta name="description" content="CONCEPTFAB AutoGallery - Automatyczna galeria obrazów z conceptfab.com" />
+        <title>CONCEPTFAB Content Browser - Galeria obrazów</title>
+        <meta name="description" content="CONCEPTFAB Content Browser - Automatyczna galeria obrazów z conceptfab.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

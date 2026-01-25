@@ -42,7 +42,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
       <div className="menu-container">
         <div className="menu-left">
           <div className="logo">
-            <h1>CONCEPTFAB AutoGallery</h1>
+            <h1>CONCEPTFAB Content Browser</h1>
           </div>
         </div>
         

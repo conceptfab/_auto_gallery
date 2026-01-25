@@ -38,11 +38,11 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
   
   try {
     const result = await resend.emails.send({
-      from: 'AutoGallery <no-reply@conceptfab.com>',
+      from: 'Content Browser <no-reply@conceptfab.com>',
       to: adminEmail,
-      subject: 'Nowy wniosek o dostęp - AutoGallery',
+      subject: 'Nowy wniosek o dostęp - Content Browser',
       html: `
-        <h2>Nowy wniosek o dostęp do AutoGallery</h2>
+        <h2>Nowy wniosek o dostęp do Content Browser</h2>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>IP:</strong> ${ip}</p>
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
@@ -68,11 +68,11 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
   
   try {
     const result = await resend.emails.send({
-      from: 'AutoGallery <no-reply@conceptfab.com>',
+      from: 'Content Browser <no-reply@conceptfab.com>',
       to: email,
-      subject: 'Kod dostępu do AutoGallery',
+      subject: 'Kod dostępu do Content Browser',
       html: `
-        <h2>Twój kod dostępu do AutoGallery</h2>
+        <h2>Twój kod dostępu do Content Browser</h2>
         <p>Witaj!</p>
         <p>Twój wniosek o dostęp został zatwierdzony. Oto Twój kod dostępu:</p>
         
