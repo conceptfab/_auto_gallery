@@ -98,7 +98,8 @@ async function main() {
   run(`git commit -m "${fullMessage}"`, { silent: true });
 
   // Wygeneruj version.json
-  require('./generate-version.js');
+  console.log('📝 Generowanie version.json...');
+  run('node scripts/generate-version.js', { silent: true });
 
   // Dodaj version.json do commita
   run('git add public/version.json', { silent: true });

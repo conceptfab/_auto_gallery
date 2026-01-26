@@ -1,6 +1,6 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "0.35",
+  "version": "0.351",
   "private": true,
   "scripts": {
     "dev": "next dev",
