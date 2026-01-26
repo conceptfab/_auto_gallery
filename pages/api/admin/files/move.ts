@@ -2,8 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../../src/utils/auth';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateMoveToken } from '../../../../src/utils/fileToken';
-import { clearCachedGallery } from '../../../../src/utils/galleryCache';
-import path from 'path';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -47,18 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (!response.ok) {
       return res.status(response.status).json(data);
-    }
-
-    // Wyczyść cache dla folderu źródłowego i docelowego
-    try {
-      const sourceFolder = path.dirname(sourcePath).replace(/^\//, '').replace(/\/$/, '');
-      const targetFolderPath = targetFolder.replace(/^\//, '').replace(/\/$/, '');
-      await Promise.all([
-        clearCachedGallery(sourceFolder),
-        clearCachedGallery(targetFolderPath)
-      ]);
-    } catch (e) {
-      // Ignore cache clear errors
     }
 
     res.status(200).json(data);

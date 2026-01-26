@@ -1,7 +1,6 @@
 import React from 'react';
 import { ImageFile } from '@/src/types/gallery';
 import ImageMetadata from './ImageMetadata';
-import { logger } from '@/src/utils/logger';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -10,16 +9,16 @@ interface ImageGridProps {
 }
 
 const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName }) => {
-  logger.debug('ImageGrid rendering', { imagesCount: images.length, folderName });
+  console.log('🖼️ ImageGrid rendering with', images.length, 'images');
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
-    logger.warn('Image load error', { src: target.src, folderName });
+    console.warn('⚠️ Image load error:', target.src);
     target.style.display = 'none';
   };
 
   const handleImageLoad = (image: ImageFile) => {
-    logger.debug('Image loaded', { imageName: image.name, folderName });
+    console.log('✅ Image loaded:', image.name);
   };
 
   const getOptimizedImageUrl = (image: ImageFile, size: 'thumb' | 'full' = 'thumb') => {
@@ -62,11 +61,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName 
                 <i className="las la-download"></i>
               </button>
             </div>
-            <ImageMetadata 
-              src={getOptimizedImageUrl(image, 'thumb')} 
-              fileSize={image.fileSize} 
-              lastModified={image.lastModified} 
-            />
+            <ImageMetadata src={image.url} fileSize={image.fileSize} lastModified={image.lastModified} />
           </div>
         </div>
       ))}

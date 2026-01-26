@@ -97,20 +97,8 @@ class RateLimiter {
   }
 }
 
-// Global instance z ochroną przed memory leak w development
-declare global {
-  var rateLimiterInstance: RateLimiter | undefined;
-}
-
-// W development używaj globalnej instancji, w production nową
-const globalRateLimiter = 
-  process.env.NODE_ENV !== 'production' && global.rateLimiterInstance
-    ? global.rateLimiterInstance
-    : new RateLimiter();
-
-if (process.env.NODE_ENV !== 'production') {
-  global.rateLimiterInstance = globalRateLimiter;
-}
+// Global instance
+const globalRateLimiter = new RateLimiter();
 
 export function withRateLimit(
   maxRequests: number = 10,

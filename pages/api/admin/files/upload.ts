@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../../src/utils/auth';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateUploadToken } from '../../../../src/utils/fileToken';
-import { clearCachedGallery } from '../../../../src/utils/galleryCache';
 
 export const config = {
   api: {
@@ -70,13 +69,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (!response.ok) {
       return res.status(response.status).json(data);
-    }
-
-    // Wyczyść cache dla tego folderu po udanym uploadzie
-    try {
-      await clearCachedGallery(folderPath);
-    } catch (e) {
-      // Ignore cache clear errors - nie krytyczne
     }
 
     res.status(200).json(data);

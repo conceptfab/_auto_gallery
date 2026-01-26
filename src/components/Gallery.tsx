@@ -115,64 +115,30 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   }, [refreshKey]);
 
   const fetchGalleryData = async () => {
-    let controller: AbortController | null = null;
-    let timeout: NodeJS.Timeout | null = null;
-    
     try {
       logger.info('Fetching gallery data');
       setLoading(true);
       setError(null);
       
-      controller = new AbortController();
-      timeout = setTimeout(() => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => {
         logger.error('Gallery API timeout');
-        if (controller) {
-          controller.abort();
-        }
+        controller.abort();
       }, 30000); // 30s timeout
       
       // Dodaj groupId do URL jeśli jest podany (podgląd admina)
-      // Dodaj timestamp aby wymusić świeże dane (wyłącz cache)
-      const apiUrl = groupId 
-        ? `/api/gallery?groupId=${groupId}&_t=${Date.now()}` 
-        : `/api/gallery?_t=${Date.now()}`;
+      const apiUrl = groupId ? `/api/gallery?groupId=${groupId}` : '/api/gallery';
       
       const response = await fetch(apiUrl, {
-        signal: controller.signal,
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+        signal: controller.signal
       });
       
-      if (timeout) {
-        clearTimeout(timeout);
-        timeout = null;
-      }
-      
+      clearTimeout(timeout);
       logger.debug('Response status', { status: response.status });
       
-      // Obsługa 304 Not Modified - jeśli cache jest pusty, pobierz ponownie
+      // Obsługa 304 Not Modified
       if (response.status === 304) {
-        logger.info('Gallery not modified - but checking if we have data');
-        // Jeśli nie mamy danych w stanie, wymuś pobranie
-        if (folders.length === 0) {
-          logger.info('No data in state, forcing refresh');
-          // Pobierz ponownie bez cache
-          const refreshResponse = await fetch(apiUrl.replace(/_t=\d+/, `_t=${Date.now()}`), {
-            signal: controller.signal,
-            cache: 'no-store'
-          });
-          
-          if (refreshResponse.ok) {
-            const refreshData: GalleryResponse = await refreshResponse.json();
-            if (refreshData.success && refreshData.data) {
-              setFolders(refreshData.data);
-              setError(null);
-            }
-          }
-        }
+        logger.info('Gallery not modified - using cached data');
         setLoading(false);
         return;
       }
@@ -184,24 +150,15 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       const data: GalleryResponse = await response.json();
       logger.debug('Response data', { 
         dataLength: JSON.stringify(data).length,
-        foldersCount: data.data?.length || 0,
-        success: data.success
+        foldersCount: data.data?.length || 0 
       });
       
-      if (data.success) {
-        // Nawet jeśli data.data jest puste, ustaw to - może być celowo puste
-        if (data.data) {
-          logger.info('Gallery loaded successfully', { foldersCount: data.data.length });
-          setFolders(data.data);
-          setError(null);
-        } else {
-          logger.warn('Gallery API returned success but no data', { error: data.error });
-          setFolders([]);
-          setError(data.error || 'Brak danych w galerii');
-        }
+      if (data.success && data.data && data.data.length > 0) {
+        logger.info('Gallery loaded successfully', { foldersCount: data.data.length });
+        setFolders(data.data);
+        setError(null);
       } else {
-        logger.error('Gallery API error', { error: data.error || 'Unknown error' });
-        setFolders([]);
+        logger.error('Gallery API error or empty', { error: data.error || 'Empty data' });
         setError(data.error || 'Brak danych w galerii');
       }
     } catch (err: any) {
@@ -212,9 +169,6 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         setError(`Błąd połączenia: ${err.message}`);
       }
     } finally {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
       logger.debug('Setting loading to false');
       setLoading(false);
     }
@@ -247,26 +201,11 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     );
   }
 
-  // Sprawdź czy są jakieś obrazy w folderach
-  const hasImages = folders.some(folder => {
-    const countImages = (f: GalleryFolder): number => {
-      let count = f.images.length;
-      if (f.subfolders) {
-        count += f.subfolders.reduce((sum, sub) => sum + countImages(sub), 0);
-      }
-      return count;
-    };
-    return countImages(folder) > 0;
-  });
-
   return (
     <>
-      {folders.length === 0 || !hasImages ? (
+      {folders.length === 0 ? (
         <div className="no-images">
           <p>Nie znaleziono obrazów w galerii</p>
-          <button onClick={fetchGalleryData} className="retry-button" style={{ marginTop: '10px' }}>
-            Odśwież
-          </button>
         </div>
       ) : (
         <div className="folders-container">
@@ -307,7 +246,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
             <div className="modal-info">
               <h3>{selectedImage.name}</h3>
               <ImageMetadata 
-                src={getOptimizedImageUrl(selectedImage, 'full')} 
+                src={selectedImage.url} 
                 fileSize={selectedImage.fileSize} 
                 lastModified={selectedImage.lastModified}
               />
