@@ -7,16 +7,27 @@ interface HomePageProps {
   refreshKey?: number;
 }
 
+interface UserGroupInfo {
+  id: string;
+  name: string;
+  clientName: string;
+  galleryFolder: string;
+}
+
 interface AuthStatus {
   isLoggedIn: boolean;
   email: string | null;
   isAdmin: boolean;
+  group: UserGroupInfo | null;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Parametr groupId dla podglądu admina
+  const groupId = router.query.groupId as string | undefined;
 
   useEffect(() => {
     checkAuthStatus();
@@ -69,7 +80,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
       </Head>
 
       <main>
-        <Gallery refreshKey={refreshKey} />
+        <Gallery refreshKey={refreshKey} groupId={groupId} />
       </main>
     </>
   );

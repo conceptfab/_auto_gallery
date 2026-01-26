@@ -31,6 +31,15 @@ export function getEmailFromCookie(req: NextApiRequest): string | null {
   const cookies = req.headers.cookie;
   if (!cookies) return null;
   
+  // Sprawdź najpierw ciasteczka admina
+  const adminEmailMatch = cookies.match(/admin_email=([^;]*)/);
+  const adminLoggedMatch = cookies.match(/admin_logged=([^;]*)/);
+  
+  if (adminEmailMatch && adminLoggedMatch && adminLoggedMatch[1] === 'true') {
+    return adminEmailMatch[1];
+  }
+  
+  // Potem sprawdź zwykłe ciasteczka użytkownika
   const emailMatch = cookies.match(/auth_email=([^;]*)/);
   const loggedMatch = cookies.match(/auth_logged=([^;]*)/);
   

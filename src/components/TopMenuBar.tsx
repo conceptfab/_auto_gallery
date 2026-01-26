@@ -3,11 +3,13 @@ import { useRouter } from 'next/router';
 
 interface TopMenuBarProps {
   onRefresh?: () => void;
+  clientName?: string;
 }
 
 interface AuthStatus {
   isLoggedIn: boolean;
   email: string | null;
+  isAdmin: boolean;
 }
 
 interface VersionInfo {
@@ -17,7 +19,7 @@ interface VersionInfo {
   buildTime: string;
 }
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
@@ -58,8 +60,15 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
+      if (authStatus?.isAdmin) {
+        // Admin logout - czyści admin cookies
+        await fetch('/api/auth/admin/logout', { method: 'POST' });
+        router.push('/admin-login');
+      } else {
+        // Zwykły user logout
+        await fetch('/api/auth/logout', { method: 'POST' });
+        router.push('/login');
+      }
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -78,6 +87,18 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
         </div>
         
         <div className="menu-center">
+          {clientName && (
+            <span style={{
+              fontSize: '1.1rem',
+              fontWeight: 300,
+              color: '#9C27B0',
+              padding: '4px 12px',
+              backgroundColor: 'rgba(156, 39, 176, 0.1)',
+              borderRadius: '4px'
+            }}>
+              {clientName}
+            </span>
+          )}
         </div>
         
         <div className="menu-right">
@@ -103,6 +124,46 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
           )}
           {authStatus?.isLoggedIn && (
             <>
+              {authStatus.isAdmin && router.pathname !== '/admin' && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  title="Panel admina"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    padding: '6px',
+                    cursor: 'pointer',
+                    fontSize: '27px',
+                    width: '48px',
+                    height: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <i className="las la-tools" style={{ color: '#f44336' }}></i>
+                </button>
+              )}
+              {authStatus.isAdmin && router.pathname === '/admin' && (
+                <button
+                  onClick={() => window.open('/', '_blank')}
+                  title="Galeria"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    padding: '6px',
+                    cursor: 'pointer',
+                    fontSize: '27px',
+                    width: '48px',
+                    height: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <i className="lar la-images" style={{ color: '#5c5c5c' }}></i>
+                </button>
+              )}
               <span style={{ 
                 fontSize: '14px', 
                 color: '#666',

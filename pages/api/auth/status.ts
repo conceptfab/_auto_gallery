@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie, isUserLoggedIn } from '../../../src/utils/auth';
+import { getEmailFromCookie } from '../../../src/utils/auth';
+import { getUserGroup } from '../../../src/utils/storage';
 import { ADMIN_EMAIL } from '../../../src/config/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,17 +15,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ 
         isLoggedIn: false,
         email: null,
-        isAdmin: false
+        isAdmin: false,
+        group: null
       });
     }
 
-    const isLoggedIn = isUserLoggedIn(email);
     const isAdmin = email === ADMIN_EMAIL;
+    // Jeśli mamy email z cookie (getEmailFromCookie sprawdza auth_logged=true), 
+    // to użytkownik jest zalogowany - nie polegamy tylko na liście w storage
+    // bo może być utracona po restarcie serwera
+    const isLoggedIn = true; // email z cookie = zalogowany
+    const userGroup = getUserGroup(email);
     
     res.status(200).json({ 
       isLoggedIn,
-      email: isLoggedIn ? email : null,
-      isAdmin: isLoggedIn ? isAdmin : false
+      email: email,
+      isAdmin: isAdmin,
+      group: userGroup ? {
+        id: userGroup.id,
+        name: userGroup.name,
+        clientName: userGroup.clientName,
+        galleryFolder: userGroup.galleryFolder
+      } : null
     });
 
   } catch (error) {

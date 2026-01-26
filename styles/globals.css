@@ -123,10 +123,15 @@ a {
 
 /* Wrapper for all folder types */
 .folder-wrapper {
-  margin-bottom: 20px;
+  margin-bottom: 0;
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
+}
+
+/* Więcej przestrzeni gdy folder jest otwarty */
+.folder-wrapper.expanded {
+  margin-bottom: 20px;
 }
 
 /* Level-based indentation */
@@ -144,7 +149,7 @@ a {
 }
 
 .category-header {
-  padding: 15px 20px;
+  padding: 8px 20px;
 }
 
 .category-title {
@@ -170,7 +175,7 @@ a {
 }
 
 .gallery-section {
-  padding: 20px;
+  padding: 8px 20px;
 }
 
 .gallery-title {

@@ -30,7 +30,7 @@ const FolderSection: React.FC<FolderSectionProps> = ({ folder, onImageClick }) =
     const hasCollapsibleContent = currentFolder.subfolders || (!currentFolder.isCategory && currentFolder.images.length > 0);
     
     return (
-      <div key={currentFolder.path} className={`folder-wrapper ${categoryClass} ${indentClass}`}>
+      <div key={currentFolder.path} className={`folder-wrapper ${categoryClass} ${indentClass} ${!isCollapsed ? 'expanded' : ''}`}>
         {currentFolder.isCategory ? (
           <div className="category-header">
             <h2 className="category-title">
@@ -98,9 +98,10 @@ const FolderSection: React.FC<FolderSectionProps> = ({ folder, onImageClick }) =
 
 interface GalleryProps {
   refreshKey?: number;
+  groupId?: string;
 }
 
-const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
+const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -188,7 +189,10 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
         controller.abort();
       }, 30000); // 30s timeout
       
-      const response = await fetch('/api/gallery', {
+      // Dodaj groupId do URL jeśli jest podany (podgląd admina)
+      const apiUrl = groupId ? `/api/gallery?groupId=${groupId}` : '/api/gallery';
+      
+      const response = await fetch(apiUrl, {
         signal: controller.signal
       });
       

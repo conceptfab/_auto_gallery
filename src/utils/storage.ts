@@ -16,6 +16,14 @@ export interface LoginCode {
   createdAt: Date;
 }
 
+export interface UserGroup {
+  id: string;
+  name: string;
+  clientName: string;
+  galleryFolder: string;
+  users: string[];
+}
+
 interface StorageData {
   pendingEmails: Record<string, { timestamp: string; ip: string }>;
   whitelist: string[];
@@ -24,6 +32,7 @@ interface StorageData {
   loggedInUsers: string[];
   adminCodes: Record<string, LoginCode>;
   loggedInAdmins: string[];
+  groups: UserGroup[];
 }
 
 // Użyj Railway volume /data-storage jeśli istnieje, w przeciwnym razie lokalny folder data/
@@ -39,7 +48,8 @@ const defaultData: StorageData = {
   activeCodes: {},
   loggedInUsers: [],
   adminCodes: {},
-  loggedInAdmins: []
+  loggedInAdmins: [],
+  groups: []
 };
 
 // Załaduj dane z pliku
@@ -260,4 +270,107 @@ export function cleanupExpiredAdminCodes(): number {
   });
   
   return expiredCount;
+}
+
+// ==================== GRUPY UŻYTKOWNIKÓW ====================
+
+function generateGroupId(): string {
+  return 'grp_' + Math.random().toString(36).substring(2, 11);
+}
+
+export function getGroups(): UserGroup[] {
+  return getData().groups || [];
+}
+
+export function getGroupById(id: string): UserGroup | undefined {
+  return getGroups().find(g => g.id === id);
+}
+
+export function createGroup(name: string, clientName: string, galleryFolder: string): UserGroup {
+  const newGroup: UserGroup = {
+    id: generateGroupId(),
+    name,
+    clientName,
+    galleryFolder,
+    users: []
+  };
+  
+  updateData((data) => {
+    if (!data.groups) data.groups = [];
+    data.groups.push(newGroup);
+  });
+  
+  return newGroup;
+}
+
+export function updateGroup(id: string, updates: { name?: string; clientName?: string; galleryFolder?: string }): UserGroup | null {
+  let updatedGroup: UserGroup | null = null;
+  
+  updateData((data) => {
+    const group = data.groups?.find(g => g.id === id);
+    if (group) {
+      if (updates.name !== undefined) group.name = updates.name;
+      if (updates.clientName !== undefined) group.clientName = updates.clientName;
+      if (updates.galleryFolder !== undefined) group.galleryFolder = updates.galleryFolder;
+      updatedGroup = { ...group };
+    }
+  });
+  
+  return updatedGroup;
+}
+
+export function deleteGroup(id: string): boolean {
+  let deleted = false;
+  
+  updateData((data) => {
+    const index = data.groups?.findIndex(g => g.id === id) ?? -1;
+    if (index !== -1) {
+      data.groups.splice(index, 1);
+      deleted = true;
+    }
+  });
+  
+  return deleted;
+}
+
+export function addUserToGroup(groupId: string, email: string): boolean {
+  let added = false;
+  
+  updateData((data) => {
+    // Usuń użytkownika z innych grup
+    data.groups?.forEach(g => {
+      g.users = g.users.filter(u => u !== email);
+    });
+    
+    // Dodaj do wybranej grupy
+    const group = data.groups?.find(g => g.id === groupId);
+    if (group && !group.users.includes(email)) {
+      group.users.push(email);
+      added = true;
+    }
+  });
+  
+  return added;
+}
+
+export function removeUserFromGroup(groupId: string, email: string): boolean {
+  let removed = false;
+  
+  updateData((data) => {
+    const group = data.groups?.find(g => g.id === groupId);
+    if (group) {
+      const index = group.users.indexOf(email);
+      if (index !== -1) {
+        group.users.splice(index, 1);
+        removed = true;
+      }
+    }
+  });
+  
+  return removed;
+}
+
+export function getUserGroup(email: string): UserGroup | null {
+  const groups = getGroups();
+  return groups.find(g => g.users.includes(email)) || null;
 }

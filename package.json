@@ -1,13 +1,14 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "0.1.0",
+  "version": "0.35",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/generate-version.js && next build",
     "start": "next start",
     "lint": "next lint",
-    "version": "node scripts/generate-version.js"
+    "version": "node scripts/generate-version.js",
+    "commit": "node scripts/commit.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
