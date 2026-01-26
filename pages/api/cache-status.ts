@@ -52,7 +52,9 @@ export default async function handler(
       try {
         const manifestContent = fs.readFileSync(manifestPath, 'utf8');
         currentCache = JSON.parse(manifestContent);
-        logger.debug('Found existing cache manifest', { generated: currentCache.generated, version: currentCache.version });
+        if (currentCache) {
+          logger.debug('Found existing cache manifest', { generated: currentCache.generated, version: currentCache.version });
+        }
       } catch (error) {
         logger.error('Error reading cache manifest', error);
         return res.status(200).json({
