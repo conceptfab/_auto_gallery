@@ -1,6 +1,5 @@
 /**
- * Interaktywny commit z aktualizacją wersji
- * Po uruchomieniu pyta o wersję i opis
+ * Szybki interaktywny commit z aktualizacją wersji
  */
 
 const { execSync } = require('child_process');
@@ -8,111 +7,65 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = q => new Promise(r => rl.question(q, r));
+const git = cmd => execSync(`git ${cmd}`, { encoding: 'utf8', stdio: 'pipe' }).trim();
 
-function ask(question) {
-  return new Promise(resolve => rl.question(question, resolve));
-}
-
-function run(command, options = {}) {
-  try {
-    const result = execSync(command, { 
-      encoding: 'utf8', 
-      stdio: options.silent ? 'pipe' : 'inherit',
-      ...options 
-    });
-    return result ? result.trim() : '';
-  } catch (error) {
-    if (!options.ignoreError) {
-      console.error(`❌ Błąd: ${error.message}`);
-      process.exit(1);
-    }
-    return null;
-  }
-}
-
-function getCurrentVersion() {
-  const packagePath = path.join(__dirname, '..', 'package.json');
-  const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-  return pkg.version || '0.1.0';
-}
-
-function updatePackageVersion(newVersion) {
-  const packagePath = path.join(__dirname, '..', 'package.json');
-  const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-  pkg.version = newVersion;
-  fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + '\n');
-}
+const pkgPath = path.join(__dirname, '..', 'package.json');
+const verPath = path.join(__dirname, '..', 'public', 'version.json');
 
 async function main() {
-  console.log('\n🚀 Automatyczny commit\n');
+  console.log('\n🚀 Commit\n');
 
-  // Sprawdź czy są zmiany
-  const status = run('git status --porcelain', { silent: true });
-  if (!status) {
-    console.log('ℹ️ Brak zmian do commitu');
-    rl.close();
-    process.exit(0);
+  // Sprawdź zmiany
+  try {
+    const status = git('status --porcelain');
+    if (!status) {
+      console.log('ℹ️ Brak zmian');
+      return rl.close();
+    }
+    console.log('📋 Zmiany:\n' + git('status --short') + '\n');
+  } catch { 
+    console.log('❌ Git error'); 
+    return rl.close(); 
   }
 
-  // Pokaż zmiany
-  console.log('📋 Zmienione pliki:');
-  run('git status --short');
-  console.log('');
-
-  // Pobierz aktualną wersję
-  const currentVersion = getCurrentVersion();
-  
-  // Zapytaj o wersję
-  const version = await ask(`📦 Wersja (obecna: ${currentVersion}): `);
-  if (!version.trim()) {
-    console.log('❌ Wersja jest wymagana');
-    rl.close();
-    process.exit(1);
-  }
-
-  // Zapytaj o opis
-  const message = await ask('📝 Opis zmian: ');
-  if (!message.trim()) {
-    console.log('❌ Opis jest wymagany');
-    rl.close();
-    process.exit(1);
-  }
-
+  // Pobierz wersję
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const ver = await ask(`📦 Wersja (${pkg.version}): `);
+  const msg = await ask('📝 Opis: ');
   rl.close();
-  
-  console.log('\n⏳ Tworzenie commitu...\n');
 
-  // Zaktualizuj package.json
-  updatePackageVersion(version.trim());
-  console.log(`📦 package.json → v${version.trim()}`);
+  if (!ver.trim() || !msg.trim()) {
+    return console.log('❌ Wersja i opis wymagane');
+  }
 
-  // Dodaj wszystkie zmiany
-  run('git add -A', { silent: true });
+  console.log('\n⏳ Commit...');
 
-  // Stwórz commit
-  const fullMessage = `v${version.trim()}: ${message.trim()}`;
-  run(`git commit -m "${fullMessage}"`, { silent: true });
+  // Update package.json
+  pkg.version = ver.trim();
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 
-  // Wygeneruj version.json
-  console.log('📝 Generowanie version.json...');
-  run('node scripts/generate-version.js', { silent: true });
+  // Commit wszystko
+  git('add -A');
+  git(`commit -m "v${ver.trim()}: ${msg.trim()}"`);
 
-  // Dodaj version.json do commita
-  run('git add public/version.json', { silent: true });
-  run('git commit --amend --no-edit', { silent: true });
+  // Update version.json z nowym hashem
+  const hash = git('rev-parse --short HEAD');
+  const date = git('log -1 --format=%cd --date=short').replace(/-/g, '');
+  fs.writeFileSync(verPath, JSON.stringify({
+    hash, date,
+    message: `v${ver.trim()}: ${msg.trim()}`.substring(0, 50),
+    buildTime: new Date().toISOString()
+  }, null, 2));
 
-  // Pokaż wynik
-  const hash = run('git rev-parse --short HEAD', { silent: true });
-  
-  console.log('\n✅ Commit utworzony!');
-  console.log(`   Wersja: v${version.trim()}`);
-  console.log(`   Opis: ${message.trim()}`);
-  console.log(`   Hash: ${hash}`);
-  console.log('\n💡 Aby wypchnąć: git push\n');
+  // Amend z version.json
+  git('add public/version.json');
+  git('commit --amend --no-edit');
+
+  console.log(`\n✅ v${ver.trim()}: ${msg.trim()}`);
+  console.log(`   Hash: ${git('rev-parse --short HEAD')}`);
+  console.log('\n💡 git push\n');
 }
 
 main();
