@@ -1,5 +1,5 @@
 /**
- * Szybki interaktywny commit z aktualizacją wersji
+ * Interaktywny commit z logami
  */
 
 const { execSync } = require('child_process');
@@ -7,65 +7,116 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const ask = q => new Promise(r => rl.question(q, r));
-const git = cmd => execSync(`git ${cmd}`, { encoding: 'utf8', stdio: 'pipe' }).trim();
-
 const pkgPath = path.join(__dirname, '..', 'package.json');
 const verPath = path.join(__dirname, '..', 'public', 'version.json');
 
-async function main() {
-  console.log('\n🚀 Commit\n');
+function log(msg) {
+  console.log(`[${new Date().toISOString().substr(11, 8)}] ${msg}`);
+}
 
-  // Sprawdź zmiany
+function git(cmd) {
+  log(`GIT: ${cmd}`);
   try {
+    const result = execSync(`git ${cmd}`, { encoding: 'utf8', timeout: 10000 });
+    log(`GIT OK`);
+    return result.trim();
+  } catch (e) {
+    log(`GIT ERROR: ${e.message}`);
+    throw e;
+  }
+}
+
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+function ask(question) {
+  return new Promise(resolve => {
+    log(`PYTANIE: ${question}`);
+    rl.question(question, answer => {
+      log(`ODPOWIEDŹ: ${answer}`);
+      resolve(answer);
+    });
+  });
+}
+
+async function main() {
+  log('START');
+  
+  try {
+    log('Sprawdzam status git...');
     const status = git('status --porcelain');
+    
     if (!status) {
-      console.log('ℹ️ Brak zmian');
-      return rl.close();
+      log('Brak zmian');
+      rl.close();
+      return;
     }
-    console.log('📋 Zmiany:\n' + git('status --short') + '\n');
-  } catch { 
-    console.log('❌ Git error'); 
-    return rl.close(); 
+    
+    console.log('\n📋 Zmiany:');
+    console.log(status);
+    console.log('');
+
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    log(`Obecna wersja: ${pkg.version}`);
+
+    const ver = await ask(`📦 Wersja (${pkg.version}): `);
+    log(`Wpisana wersja: "${ver}"`);
+    
+    const msg = await ask('📝 Opis: ');
+    log(`Wpisany opis: "${msg}"`);
+    
+    rl.close();
+    log('readline zamknięty');
+
+    if (!ver.trim() || !msg.trim()) {
+      log('Brak wersji lub opisu - koniec');
+      return;
+    }
+
+    log('Aktualizuję package.json...');
+    pkg.version = ver.trim();
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+    log('package.json zapisany');
+
+    log('git add -A...');
+    git('add -A');
+
+    log('git commit...');
+    git(`commit -m "v${ver.trim()}: ${msg.trim()}"`);
+
+    log('Pobieram hash...');
+    const hash = git('rev-parse --short HEAD');
+    
+    log('Pobieram datę...');
+    const date = git('log -1 --format=%cd --date=short').replace(/-/g, '');
+
+    log('Zapisuję version.json...');
+    fs.writeFileSync(verPath, JSON.stringify({
+      hash, date,
+      message: `v${ver.trim()}: ${msg.trim()}`.substring(0, 50),
+      buildTime: new Date().toISOString()
+    }, null, 2));
+    log('version.json zapisany');
+
+    log('git add version.json...');
+    git('add public/version.json');
+
+    log('git commit --amend...');
+    git('commit --amend --no-edit');
+
+    log('Pobieram finalny hash...');
+    const finalHash = git('rev-parse --short HEAD');
+
+    console.log(`\n✅ v${ver.trim()}: ${msg.trim()}`);
+    console.log(`   Hash: ${finalHash}`);
+    console.log('\n💡 git push\n');
+    
+    log('KONIEC - sukces');
+
+  } catch (error) {
+    log(`BŁĄD: ${error.message}`);
+    console.error('\n❌ Błąd:', error.message);
+    rl.close();
   }
-
-  // Pobierz wersję
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  const ver = await ask(`📦 Wersja (${pkg.version}): `);
-  const msg = await ask('📝 Opis: ');
-  rl.close();
-
-  if (!ver.trim() || !msg.trim()) {
-    return console.log('❌ Wersja i opis wymagane');
-  }
-
-  console.log('\n⏳ Commit...');
-
-  // Update package.json
-  pkg.version = ver.trim();
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
-
-  // Commit wszystko
-  git('add -A');
-  git(`commit -m "v${ver.trim()}: ${msg.trim()}"`);
-
-  // Update version.json z nowym hashem
-  const hash = git('rev-parse --short HEAD');
-  const date = git('log -1 --format=%cd --date=short').replace(/-/g, '');
-  fs.writeFileSync(verPath, JSON.stringify({
-    hash, date,
-    message: `v${ver.trim()}: ${msg.trim()}`.substring(0, 50),
-    buildTime: new Date().toISOString()
-  }, null, 2));
-
-  // Amend z version.json
-  git('add public/version.json');
-  git('commit --amend --no-edit');
-
-  console.log(`\n✅ v${ver.trim()}: ${msg.trim()}`);
-  console.log(`   Hash: ${git('rev-parse --short HEAD')}`);
-  console.log('\n💡 git push\n');
 }
 
 main();
