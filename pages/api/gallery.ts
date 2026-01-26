@@ -54,8 +54,8 @@ async function galleryHandler(
     
     // Funkcja pomocnicza do skanowania (wybiera metodę)
     const scanFolder = async (folder: string, useCache: boolean = true): Promise<GalleryFolder[]> => {
-      // Sprawdź cache tylko dla publicznych galerii (nie dla private scanning)
-      if (useCache && !usePrivateScanning) {
+      // Sprawdź cache ZAWSZE (dla obu trybów - publicznych i prywatnych)
+      if (useCache) {
         const cached = await getCachedGallery(folder, groupId as string | undefined);
         if (cached) {
           return cached;
@@ -84,10 +84,8 @@ async function galleryHandler(
         folders = convertFolderUrls(folders, galleryUrl);
       }
 
-      // Zapisz do cache (tylko dla publicznych galerii)
-      if (!usePrivateScanning) {
-        await setCachedGallery(folder, folders, groupId as string | undefined);
-      }
+      // Zapisz do cache ZAWSZE (dla obu trybów)
+      await setCachedGallery(folder, folders, groupId as string | undefined);
 
       return folders;
     };

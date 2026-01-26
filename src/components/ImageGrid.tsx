@@ -1,6 +1,7 @@
 import React from 'react';
 import { ImageFile } from '@/src/types/gallery';
 import ImageMetadata from './ImageMetadata';
+import { logger } from '@/src/utils/logger';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -9,16 +10,16 @@ interface ImageGridProps {
 }
 
 const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName }) => {
-  console.log('🖼️ ImageGrid rendering with', images.length, 'images');
+  logger.debug('ImageGrid rendering', { imagesCount: images.length, folderName });
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
-    console.warn('⚠️ Image load error:', target.src);
+    logger.warn('Image load error', { src: target.src, folderName });
     target.style.display = 'none';
   };
 
   const handleImageLoad = (image: ImageFile) => {
-    console.log('✅ Image loaded:', image.name);
+    logger.debug('Image loaded', { imageName: image.name, folderName });
   };
 
   const getOptimizedImageUrl = (image: ImageFile, size: 'thumb' | 'full' = 'thumb') => {

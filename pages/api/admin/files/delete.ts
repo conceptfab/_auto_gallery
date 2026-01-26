@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../../src/utils/auth';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateDeleteToken } from '../../../../src/utils/fileToken';
+import { clearCachedGallery } from '../../../../src/utils/galleryCache';
+import pathModule from 'path';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -35,6 +37,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (!response.ok) {
       return res.status(response.status).json(data);
+    }
+
+    // Wyczyść cache dla folderu zawierającego usunięty plik
+    try {
+      const folderPath = pathModule.dirname(path).replace(/^\//, '').replace(/\/$/, '');
+      await clearCachedGallery(folderPath);
+    } catch (e) {
+      // Ignore cache clear errors
     }
 
     res.status(200).json(data);

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../../src/utils/auth';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateMkdirToken } from '../../../../src/utils/fileToken';
+import { clearCachedGallery } from '../../../../src/utils/galleryCache';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -45,6 +46,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (!response.ok) {
       return res.status(response.status).json(data);
+    }
+
+    // Wyczyść cache dla folderu rodzica po utworzeniu nowego folderu
+    try {
+      const parentFolderPath = parentFolder.replace(/^\//, '').replace(/\/$/, '');
+      await clearCachedGallery(parentFolderPath);
+    } catch (e) {
+      // Ignore cache clear errors
     }
 
     res.status(200).json(data);

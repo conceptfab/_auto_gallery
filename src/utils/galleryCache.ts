@@ -19,11 +19,33 @@ try {
 const CACHE_TTL = 300; // 5 minut
 
 /**
- * Generuje klucz cache dla folderu galerii
+ * Generuje klucz cache dla folderu galerii z sanityzacją
  */
 function getCacheKey(folder: string, groupId?: string): string {
-  const baseKey = `gallery:${folder || 'root'}`;
-  return groupId ? `${baseKey}:group:${groupId}` : baseKey;
+  // Sanityzacja folderu - usuń niebezpieczne znaki
+  const sanitizedFolder = (folder || 'root')
+    .replace(/\.\./g, '') // Usuń .. (path traversal)
+    .replace(/[^a-zA-Z0-9/_-]/g, '_') // Tylko bezpieczne znaki
+    .substring(0, 200); // Max długość klucza
+  
+  const baseKey = `gallery:${sanitizedFolder}`;
+  
+  if (groupId) {
+    const sanitizedGroupId = groupId.replace(/[^a-zA-Z0-9_-]/g, '');
+    return `${baseKey}:group:${sanitizedGroupId}`;
+  }
+  
+  return baseKey;
+}
+
+/**
+ * Wrapper z timeout dla operacji Redis
+ */
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  const timeout = new Promise<null>((resolve) => {
+    setTimeout(() => resolve(null), ms);
+  });
+  return Promise.race([promise, timeout]);
 }
 
 /**
@@ -45,7 +67,7 @@ export function generateETag(folders: GalleryFolder[]): string {
 }
 
 /**
- * Pobiera cache'owaną strukturę galerii
+ * Pobiera cache'owaną strukturę galerii z timeout
  */
 export async function getCachedGallery(
   folder: string, 
@@ -57,7 +79,8 @@ export async function getCachedGallery(
 
   try {
     const key = getCacheKey(folder, groupId);
-    const cached = await redis.get<GalleryFolder[]>(key);
+    // Timeout 500ms - lepiej zwrócić null niż blokować request
+    const cached = await withTimeout(redis.get<GalleryFolder[]>(key), 500);
     return cached;
   } catch (error) {
     console.error('Redis get error:', error);
@@ -66,7 +89,7 @@ export async function getCachedGallery(
 }
 
 /**
- * Zapisuje strukturę galerii do cache
+ * Zapisuje strukturę galerii do cache z timeout
  */
 export async function setCachedGallery(
   folder: string, 
@@ -79,7 +102,8 @@ export async function setCachedGallery(
 
   try {
     const key = getCacheKey(folder, groupId);
-    await redis.set(key, data, { ex: CACHE_TTL });
+    // Timeout 500ms - nie blokujemy jeśli Redis jest wolny
+    await withTimeout(redis.set(key, data, { ex: CACHE_TTL }), 500);
   } catch (error) {
     console.error('Redis set error:', error);
     // Graceful degradation - nie przerywamy działania
@@ -87,7 +111,7 @@ export async function setCachedGallery(
 }
 
 /**
- * Czyści cache dla konkretnego folderu
+ * Czyści cache dla konkretnego folderu z timeout
  */
 export async function clearCachedGallery(
   folder: string,
@@ -99,9 +123,11 @@ export async function clearCachedGallery(
 
   try {
     const key = getCacheKey(folder, groupId);
-    await redis.del(key);
+    // Timeout 500ms
+    await withTimeout(redis.del(key), 500);
   } catch (error) {
     console.error('Redis del error:', error);
+    // Ignore errors - cache clear nie jest krytyczne
   }
 }
 

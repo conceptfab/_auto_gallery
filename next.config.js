@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true, // Włącz kompresję GZIP dla odpowiedzi
   images: {
     remotePatterns: [
       {
