@@ -58,7 +58,7 @@ async function galleryHandler(
       // Sprawdź cache ZAWSZE (dla obu trybów - publicznych i prywatnych)
       if (useCache && false) { // TYMCZASOWO WYŁĄCZONE
         const cached = await getCachedGallery(folder, groupId as string | undefined);
-        if (cached?.length > 0) { // Tylko jeśli cache ma dane
+        if (cached !== null && cached.length > 0) { // Tylko jeśli cache ma dane
           return cached;
         }
       }
