@@ -4,7 +4,6 @@ import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateMkdirToken } from '../../../../src/utils/fileToken';
 import { clearCachedGallery } from '../../../../src/utils/galleryCache';
 import { logger } from '../../../../src/utils/logger';
-import { logger } from '../../../../src/utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
