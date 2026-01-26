@@ -102,23 +102,8 @@ const AdminLoginPage: React.FC = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <div style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          width: '100%',
-          maxWidth: '400px',
-          border: '3px solid #f44336'
-        }}>
+      <div className="login-container">
+        <div className="login-box" style={{ border: '3px solid #f44336' }}>
           <h1 style={{ 
             textAlign: 'center', 
             marginBottom: '10px',

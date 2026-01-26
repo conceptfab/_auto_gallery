@@ -14,16 +14,49 @@ body {
   padding-top: 35px;
 }
 
-@media screen and (orientation: landscape) and (max-width: 480px) {
-  html {
-    transform: rotate(90deg);
-    transform-origin: left top;
-    width: 100vh;
-    overflow-x: hidden;
-    position: absolute;
-    top: 100%;
-    left: 0;
-  }
+/* Landscape warning overlay */
+.landscape-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.landscape-warning-content {
+  text-align: center;
+  color: white;
+  padding: 40px;
+}
+
+.landscape-warning-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 20px;
+  animation: rotate-phone 2s ease-in-out infinite;
+}
+
+@keyframes rotate-phone {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+.landscape-warning-content p {
+  font-size: 1.5rem;
+  font-weight: 100;
+  margin-bottom: 10px;
+}
+
+.landscape-warning-content small {
+  font-size: 1rem;
+  font-weight: 100;
+  opacity: 0.7;
 }
 
 a {
@@ -761,11 +794,20 @@ a {
 /* Mobile view adjustments */
 @media (max-width: 480px) {
   body {
-    padding-top: 28px; /* Even smaller padding for mobile */
+    padding-top: 75px;
+  }
+  
+  .top-menu-bar {
+    height: auto !important;
+    min-height: 55px !important;
+    overflow: visible !important;
   }
   
   .menu-container {
-    height: 28px; /* Compact menu height */
+    height: auto !important;
+    min-height: 55px !important;
+    flex-wrap: wrap !important;
+    padding: 5px 15px !important;
   }
   
   /* Hide menu items on mobile to save space */
@@ -773,15 +815,47 @@ a {
     display: none;
   }
   
+  .menu-left {
+    order: 1;
+    width: 100%;
+    text-align: center;
+  }
+  
   /* Compact logo text for mobile */
   .menu-left .logo h1 {
     font-size: 0.9rem;
   }
   
-  /* Very compact refresh button for mobile */
-  .menu-right .refresh-button {
-    font-size: 0.65rem;
-    padding: 3px 6px;
+  .menu-right {
+    order: 2;
+    width: 100%;
+    display: flex !important;
+    visibility: visible !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px;
+    padding: 5px 0;
+    flex-wrap: nowrap;
+    overflow: visible !important;
+  }
+  
+  .menu-right span {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 0.75rem;
+    color: #666;
+    white-space: nowrap;
+  }
+  
+  .menu-right button {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 22px !important;
   }
 }
 
@@ -1704,4 +1778,39 @@ a {
   width: auto;
   height: auto;
   object-fit: contain;
+}
+
+/* ========================================
+   LOGIN PAGE STYLES
+   ======================================== */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Mobile portrait - ekran logowania wyżej */
+@media (max-width: 480px) and (orientation: portrait) {
+  .login-container {
+    align-items: flex-start;
+    padding-top: 0;
+  }
+  
+  .login-box {
+    padding: 30px 20px;
+  }
 }

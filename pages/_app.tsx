@@ -1,7 +1,7 @@
 import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 
@@ -21,10 +21,46 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
   const [clientName, setClientName] = useState<string | undefined>(undefined);
+  const [showLandscapeWarning, setShowLandscapeWarning] = useState(false);
   
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
   };
+
+  // Funkcja do blokowania orientacji (wymaga fullscreen)
+  const lockPortrait = useCallback(async () => {
+    try {
+      if (screen.orientation && 'lock' in screen.orientation) {
+        await screen.orientation.lock('portrait');
+      }
+    } catch (err) {
+      // Blokowanie orientacji nie jest wspierane lub wymaga fullscreen
+    }
+  }, []);
+
+  // Sprawdzanie orientacji tylko na smartfonach (bez tabletów)
+  useEffect(() => {
+    const checkOrientation = () => {
+      const userAgent = navigator.userAgent;
+      // Wykryj tylko telefony - wyklucz tablety (iPad, tablet Android)
+      const isPhone = /iPhone|iPod/i.test(userAgent) || 
+        (/Android/i.test(userAgent) && /Mobile/i.test(userAgent));
+      const isLandscape = window.innerWidth > window.innerHeight && window.innerWidth < 900;
+      setShowLandscapeWarning(isPhone && isLandscape);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    // Próba zablokowania orientacji
+    lockPortrait();
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, [lockPortrait]);
 
   // Pobierz nazwę klienta gdy admin podgląda grupę
   useEffect(() => {
@@ -50,6 +86,15 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <>
+      {showLandscapeWarning && (
+        <div className="landscape-warning">
+          <div className="landscape-warning-content">
+            <span className="landscape-warning-icon">📱</span>
+            <p>Obróć urządzenie do pozycji pionowej</p>
+            <small>Aplikacja działa najlepiej w trybie portrait</small>
+          </div>
+        </div>
+      )}
       <DynamicTopMenuBar onRefresh={handleRefresh} clientName={clientName} />
       <Component {...pageProps} refreshKey={refreshKey} />
     </>
