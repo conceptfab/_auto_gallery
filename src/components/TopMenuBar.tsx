@@ -32,7 +32,13 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('/api/auth/status');
+      // Wyłącz cache - zawsze pobierz aktualny status
+      const response = await fetch('/api/auth/status', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -59,7 +65,26 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   useEffect(() => {
     checkAuthStatus();
     loadVersionInfo();
-  }, []);
+    
+    // Odświeżaj status przy zmianie route (np. po zalogowaniu)
+    const handleRouteChange = () => {
+      checkAuthStatus();
+    };
+    
+    router.events.on('routeChangeComplete', handleRouteChange);
+    
+    // Odświeżaj status przy focusie okna (użytkownik mógł się zalogować w innym oknie)
+    const handleFocus = () => {
+      checkAuthStatus();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [router]);
   
   if (isLoginPage) {
     return null;

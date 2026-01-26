@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { loginUser as storageLogin, logoutUser as storageLogout, isUserLoggedIn as storageIsLoggedIn } from './storage';
+import { ADMIN_EMAIL } from '../config/constants';
 
 export function loginUser(email: string): void {
   storageLogin(email);
@@ -48,4 +49,29 @@ export function getEmailFromCookie(req: NextApiRequest): string | null {
   }
   
   return null;
+}
+
+/**
+ * Pobiera email admina z ciasteczka (jeśli zalogowany jako admin)
+ */
+export function getAdminEmailFromCookie(req: NextApiRequest): string | null {
+  const cookies = req.headers.cookie;
+  if (!cookies) return null;
+  
+  const emailMatch = cookies.match(/admin_email=([^;]*)/);
+  const loggedMatch = cookies.match(/admin_logged=([^;]*)/);
+  
+  if (emailMatch && loggedMatch && loggedMatch[1] === 'true' && emailMatch[1] === ADMIN_EMAIL) {
+    return emailMatch[1];
+  }
+  
+  return null;
+}
+
+/**
+ * Sprawdza czy request pochodzi od zalogowanego admina
+ */
+export function isAdminRequest(req: NextApiRequest): boolean {
+  const email = getAdminEmailFromCookie(req);
+  return email === ADMIN_EMAIL;
 }

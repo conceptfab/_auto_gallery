@@ -49,7 +49,7 @@ const AdminLoginPage: React.FC = () => {
       if (response.ok) {
         if (result.emergencyMode) {
           setEmergencyMode(true);
-          setMessage('Serwer email niedostępny. Użyj kodu awaryjnego MASTER123');
+          setMessage('Serwer email niedostępny. Skontaktuj się z administratorem systemu lub sprawdź logi serwera.');
         } else {
           setMessage('Kod dostępu został wysłany na Twój email administratora.');
         }

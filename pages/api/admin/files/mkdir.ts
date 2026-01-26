@@ -3,6 +3,8 @@ import { getEmailFromCookie } from '../../../../src/utils/auth';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateMkdirToken } from '../../../../src/utils/fileToken';
 import { clearCachedGallery } from '../../../../src/utils/galleryCache';
+import { logger } from '../../../../src/utils/logger';
+import { logger } from '../../../../src/utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -24,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { token, expires, url } = generateMkdirToken(parentFolder, folderName);
     
-    console.log('Mkdir request:', { url, parentFolder, folderName });
+    logger.debug('Mkdir request', { url: url.substring(0, 100), parentFolder, folderName });
 
     const response = await fetch(url, {
       method: 'POST',
@@ -35,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const text = await response.text();
-    console.log('Mkdir PHP response:', response.status, text);
+    logger.debug('Mkdir PHP response', { status: response.status, responseLength: text.length });
     
     let data;
     try {
@@ -58,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json(data);
   } catch (error) {
-    console.error('Error creating folder:', error);
+    logger.error('Error creating folder', error);
     res.status(500).json({ error: 'Failed to create folder: ' + (error as Error).message });
   }
 }

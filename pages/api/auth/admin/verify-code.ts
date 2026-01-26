@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { LoginRequest } from '../../../../src/types/auth';
 import { getAdminCode, removeAdminCode, cleanupExpiredAdminCodes, loginAdmin } from '../../../../src/utils/storage';
-
+import { logger } from '../../../../src/utils/logger';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
+import { withRateLimit } from '../../../../src/utils/rateLimiter';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isEmergencyCode = emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
 
     if (isEmergencyCode) {
-      console.log('🆘 Używa kodu awaryjnego do logowania administratora');
+      logger.warn('Emergency code used for admin login');
       loginAdmin(email);
     } else {
       // Standardowa weryfikacja kodu
@@ -63,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict`
     ]);
 
-    console.log('👑 Administrator zalogowany:', email);
+    logger.info('Administrator zalogowany', { email });
 
     res.status(200).json({ 
       message: 'Admin login successful',
@@ -72,7 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    console.error('Error verifying admin code:', error);
+    logger.error('Error verifying admin code', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// 5 prób na minutę na weryfikację kodu admina
+export default withRateLimit(5, 60000)(handler);
