@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { logger } from '../utils/logger';
+import { useNotification } from './GlobalNotification';
 
 interface TopMenuBarProps {
   onRefresh?: () => void;
@@ -24,6 +25,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const { showError, showSuccess, showInfo } = useNotification();
   
   // Hide on login pages
   const isLoginPage = router.pathname === '/login' || router.pathname === '/admin-login';
@@ -31,10 +33,14 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const checkAuthStatus = async () => {
     try {
       const response = await fetch('/api/auth/status');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
       const status: AuthStatus = await response.json();
       setAuthStatus(status);
     } catch (error) {
       logger.error('Error checking auth status', error);
+      // Nie pokazuj błędu - to normalne sprawdzenie przy ładowaniu
     }
   };
 
@@ -62,16 +68,19 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const handleLogout = async () => {
     try {
       if (authStatus?.isAdmin) {
-        // Admin logout - czyści admin cookies
-        await fetch('/api/auth/admin/logout', { method: 'POST' });
+        const response = await fetch('/api/auth/admin/logout', { method: 'POST' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        showSuccess('Wylogowano pomyślnie');
         router.push('/admin-login');
       } else {
-        // Zwykły user logout
-        await fetch('/api/auth/logout', { method: 'POST' });
+        const response = await fetch('/api/auth/logout', { method: 'POST' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        showSuccess('Wylogowano pomyślnie');
         router.push('/login');
       }
     } catch (error) {
       logger.error('Error logging out', error);
+      showError('Błąd podczas wylogowywania', 'Błąd');
     }
   };
 

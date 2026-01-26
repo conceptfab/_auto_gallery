@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import sharp from 'sharp';
 import axios from 'axios';
 import { logger } from '@/src/utils/logger';
-import { generateUploadToken, generateDeleteToken } from '@/src/utils/fileToken';
+import { generateUploadToken, generateDeleteToken, generateListUrl } from '@/src/utils/fileToken';
 import { getEmailFromCookie } from '@/src/utils/auth';
 import { ADMIN_EMAIL } from '@/src/config/constants';
 
@@ -21,14 +21,79 @@ interface ConvertProgress {
 }
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const ALLOWED_HOSTS = ['conceptfab.com'];
+
+// Rate limiting map (in production use Redis/database)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = 5; // max 5 requests per minute
+
+function validateFolderPath(path: string): boolean {
+  // Block path traversal attempts
+  if (path.includes('..') || path.includes('./') || path.includes('~')) {
+    return false;
+  }
+  
+  // Only allow alphanumeric, dash, underscore, forward slash
+  if (!/^[a-zA-Z0-9\/_-]+$/.test(path)) {
+    return false;
+  }
+  
+  // No double slashes or leading/trailing slashes after cleaning
+  const normalized = path.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+  if (normalized !== path.replace(/^\/|\/$/g, '')) {
+    return false;
+  }
+  
+  // Max depth of 5 levels
+  if (normalized.split('/').length > 5) {
+    return false;
+  }
+  
+  return true;
+}
+
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(identifier);
+  
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  userLimit.count++;
+  return true;
+}
+
+function validateImageUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return ALLOWED_HOSTS.includes(parsedUrl.hostname);
+  } catch {
+    return false;
+  }
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Rate limiting
+  const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  if (!checkRateLimit(clientIp as string)) {
+    return res.status(429).json({ error: 'Rate limit exceeded' });
+  }
+  
   // Sprawdź czy to admin
   const email = getEmailFromCookie(req);
+  
   if (email !== ADMIN_EMAIL) {
     return res.status(403).json({ error: 'Admin access required' });
   }
@@ -39,24 +104,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!folderUrl || typeof folderUrl !== 'string') {
       return res.status(400).json({ error: 'Folder URL is required' });
     }
-
-    // Walidacja URL - tylko conceptfab.com
-    if (!validateFolderUrl(folderUrl)) {
-      return res.status(400).json({ 
-        error: 'Invalid URL. Only HTTPS URLs from conceptfab.com are allowed' 
-      });
+    
+    // Clean and validate folder path
+    const folderPath = folderUrl.replace(/^\/+|\/+$/g, '').replace(/\/+/g, '/');
+    
+    if (!validateFolderPath(folderPath)) {
+      logger.warn(`Invalid folder path attempted: ${folderPath}`);
+      return res.status(400).json({ error: 'Invalid folder path' });
     }
 
-    // Uruchom proces konwersji w tle z SSE
-    await processFolderConversion(res, folderUrl, deleteOriginals);
+    await processFolderConversion(res, folderPath, deleteOriginals);
 
   } catch (error) {
     logger.error('Folder conversion API error', error);
-    res.status(500).json({ error: 'Folder conversion failed' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-async function processFolderConversion(res: NextApiResponse, folderUrl: string, deleteOriginals: boolean) {
+async function processFolderConversion(res: NextApiResponse, folderPath: string, deleteOriginals: boolean) {
   try {
     // Ustaw headers dla SSE
     res.writeHead(200, {
@@ -79,7 +144,7 @@ async function processFolderConversion(res: NextApiResponse, folderUrl: string, 
       errors: []
     });
 
-    const images = await scanFolderForImages(folderUrl);
+    const images = await scanFolderForImages(folderPath);
     
     if (images.length === 0) {
       sendProgress({
@@ -94,7 +159,7 @@ async function processFolderConversion(res: NextApiResponse, folderUrl: string, 
       return;
     }
 
-    logger.info(`Found ${images.length} images to convert in ${folderUrl}`);
+    logger.info(`Found ${images.length} images to convert in ${folderPath}`);
 
     const converted: string[] = [];
     const errors: string[] = [];
@@ -113,8 +178,13 @@ async function processFolderConversion(res: NextApiResponse, folderUrl: string, 
       });
 
       try {
-        const convertedUrl = await convertImageToWebP(image, folderUrl);
-        converted.push(image.name);
+        const convertedUrl = await convertImageToWebP(image, folderPath);
+        if (convertedUrl) {
+          converted.push(image.name);
+        } else {
+          logger.error(`Conversion returned null for: ${image.name}`);
+          errors.push(`Conversion failed: ${image.name}`);
+        }
         
         // Jeśli konwersja się udała i mamy usuwać oryginały
         if (deleteOriginals && convertedUrl) {
@@ -129,16 +199,15 @@ async function processFolderConversion(res: NextApiResponse, folderUrl: string, 
 
           try {
             await deleteOriginalImage(image.url);
-            logger.info(`Deleted original: ${image.name}`);
           } catch (deleteError) {
             logger.error(`Failed to delete original: ${image.name}`, deleteError);
-            errors.push(`Failed to delete original: ${image.name}`);
+            errors.push(`Delete error: ${image.name}`);
           }
         }
 
       } catch (error) {
         logger.error(`Failed to convert ${image.name}`, error);
-        errors.push(`Failed to convert: ${image.name}`);
+        errors.push(`Conversion error: ${image.name}`);
       }
     }
 
@@ -163,96 +232,119 @@ async function processFolderConversion(res: NextApiResponse, folderUrl: string, 
       currentFile: 'Conversion failed',
       stage: 'error',
       converted: [],
-      errors: [`Process error: ${error}`]
+      errors: ['Processing failed']
     })}\n\n`);
     res.end();
   }
 }
 
-async function scanFolderForImages(folderUrl: string): Promise<Array<{name: string, url: string}>> {
+async function scanFolderForImages(folderPath: string): Promise<Array<{name: string, url: string}>> {
   try {
-    const response = await axios.get(folderUrl, {
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
+    const cleanPath = folderPath.replace(/\/$/, '');
+    
+    const listUrl = generateListUrl(cleanPath);
+    
+    const response = await axios.get(listUrl, {
+      timeout: 15000
     });
-
-    const html = response.data;
-    const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
-    let match;
+    
+    if (!response.data || response.data.error) {
+      logger.error(`PHP returned error:`, response.data?.error || 'Unknown error');
+      return [];
+    }
+    
+    const data = response.data;
+    
     const images: Array<{name: string, url: string}> = [];
-
-    while ((match = linkRegex.exec(html)) !== null) {
-      const href = match[1].trim();
-      const text = match[2].replace(/<[^>]*>/g, '').trim();
-      
-      // Sprawdź czy to jest obraz do konwersji (nie WebP/AVIF)
-      const isConvertibleImage = IMAGE_EXTENSIONS.some(ext => 
-        href.toLowerCase().endsWith(ext)
-      ) && !href.toLowerCase().endsWith('.webp') && !href.toLowerCase().endsWith('.avif');
-      
-      if (isConvertibleImage) {
-        let fullUrl: string;
-        if (href.startsWith('/')) {
-          fullUrl = `https://conceptfab.com${href}`;
-        } else {
-          fullUrl = new URL(href, folderUrl).href;
+    
+    // Przetwórz pliki z odpowiedzi PHP
+    if (data.files && Array.isArray(data.files)) {
+      for (const file of data.files) {
+        // Validate file object
+        if (!file || typeof file !== 'object') continue;
+        
+        const fileName = (file.name && typeof file.name === 'string') 
+          ? file.name.replace(/[^a-zA-Z0-9._-]/g, '') // Sanitize filename
+          : '';
+        
+        if (!fileName) continue;
+        
+        const filePath = (file.path && typeof file.path === 'string')
+          ? file.path
+          : `${folderPath}/${fileName}`;
+          
+        // Validate file path
+        if (!validateFolderPath(filePath.replace(/\/[^/]*$/, ''))) continue;
+        
+        // Sprawdź czy to jest obraz do konwersji (nie WebP/AVIF)
+        const isConvertibleImage = IMAGE_EXTENSIONS.some(ext => 
+          fileName.toLowerCase().endsWith(ext)
+        ) && !fileName.toLowerCase().endsWith('.webp') && !fileName.toLowerCase().endsWith('.avif');
+        
+        if (isConvertibleImage) {
+          // Użyj file-proxy.php do dostępu do pliku
+          const { generateSignedUrl } = await import('@/src/utils/fileToken');
+          const fullUrl = generateSignedUrl(filePath);
+          
+          images.push({
+            name: fileName,
+            url: fullUrl
+          });
         }
-
-        images.push({
-          name: text || href.split('/').pop() || href,
-          url: fullUrl
-        });
       }
     }
 
     return images;
   } catch (error) {
-    logger.error('Error scanning folder for images', { folderUrl, error });
+    logger.error('Error scanning folder for images', { folderPath, error });
+    if (axios.isAxiosError(error)) {
+      logger.error(`Axios scan error: ${error.response?.status} ${error.response?.statusText}`, error.response?.data);
+    }
     return [];
   }
 }
 
-async function convertImageToWebP(image: {name: string, url: string}, folderUrl: string): Promise<string | null> {
+async function convertImageToWebP(image: {name: string, url: string}, folderPath: string): Promise<string | null> {
   try {
-    // Pobierz oryginalny obraz
+    // Validate image URL
+    if (!validateImageUrl(image.url)) {
+      throw new Error('Invalid image URL');
+    }
+    
     const response = await axios.get(image.url, { 
       responseType: 'arraybuffer',
-      timeout: 30000 
+      timeout: 30000,
+      maxContentLength: MAX_FILE_SIZE,
+      maxBodyLength: MAX_FILE_SIZE
     });
     const imageBuffer = Buffer.from(response.data);
+    
+    // Validate file size
+    if (imageBuffer.length > MAX_FILE_SIZE) {
+      throw new Error('File too large');
+    }
 
-    // Konwertuj do WebP
     const webpBuffer = await sharp(imageBuffer)
       .webp({ quality: 90 })
       .toBuffer();
 
-    // Utwórz nową nazwę pliku z rozszerzeniem .webp
     const originalName = image.name;
     const baseName = originalName.replace(/\.[^.]+$/, '');
     const webpFileName = `${baseName}.webp`;
 
-    // Upload converted file (tutaj trzeba będzie dostosować do systemu uploadowania)
-    const uploadedUrl = await uploadConvertedFile(webpBuffer, webpFileName, folderUrl);
+    const uploadedPath = await uploadConvertedFile(webpBuffer, webpFileName, folderPath);
     
-    logger.info(`Converted ${originalName} to ${webpFileName}`);
-    return uploadedUrl;
+    return uploadedPath;
 
   } catch (error) {
     logger.error(`Error converting image ${image.name}`, error);
-    throw error;
+    throw new Error('Image conversion failed');
   }
 }
 
-async function uploadConvertedFile(buffer: Buffer, fileName: string, folderUrl: string): Promise<string> {
+async function uploadConvertedFile(buffer: Buffer, fileName: string, folderPath: string): Promise<string> {
   try {
-    // Wyciągnij folder z URL (np. "CUBE" z "https://conceptfab.com/__metro/gallery/CUBE/")
-    const folderMatch = folderUrl.match(/gallery\/([^\/]+)\/?$/);
-    const folder = folderMatch ? folderMatch[1] : '';
-    
-    // Generuj token dla uploadu
-    const { token, expires, url } = generateUploadToken(folder);
+    const { token, expires, url } = generateUploadToken(folderPath);
     
     // Przygotuj FormData
     const FormData = (await import('form-data')).default;
@@ -260,13 +352,12 @@ async function uploadConvertedFile(buffer: Buffer, fileName: string, folderUrl: 
     
     formData.append('token', token);
     formData.append('expires', expires.toString());
-    formData.append('folder', folder);
+    formData.append('folder', folderPath);
     formData.append('file', buffer, {
       filename: fileName,
       contentType: 'image/webp'
     });
     
-    // Wyślij do conceptfab.com
     const response = await axios.post(url, formData, {
       headers: {
         ...formData.getHeaders(),
@@ -275,29 +366,55 @@ async function uploadConvertedFile(buffer: Buffer, fileName: string, folderUrl: 
     });
     
     if (response.data.success) {
-      const uploadedUrl = `https://conceptfab.com/__metro/gallery/${folder}/${fileName}`;
-      logger.info(`Uploaded: ${fileName} to ${uploadedUrl}`);
-      return uploadedUrl;
+      const filePath = `${folderPath}/${fileName}`;
+      return filePath;
     } else {
-      throw new Error(response.data.error || 'Upload failed');
+      const errorMsg = 'Upload failed';
+      logger.error(`Upload failed`, response.data);
+      throw new Error(errorMsg);
     }
     
   } catch (error) {
     logger.error(`Upload error for ${fileName}`, error);
-    throw error;
+    if (axios.isAxiosError(error)) {
+      logger.error(`Axios upload error: ${error.response?.status}`);
+    }
+    throw new Error('Upload failed');
   }
 }
 
 async function deleteOriginalImage(imageUrl: string): Promise<void> {
   try {
-    // Wyciągnij ścieżkę pliku z URL
-    // np. "https://conceptfab.com/__metro/gallery/CUBE/image.jpg" -> "CUBE/image.jpg"
-    const pathMatch = imageUrl.match(/gallery\/(.+)$/);
-    if (!pathMatch) {
-      throw new Error('Invalid image URL format');
+    // Validate URL first
+    if (!validateImageUrl(imageUrl)) {
+      throw new Error('Invalid image URL');
     }
     
-    const filePath = pathMatch[1];
+    let filePath: string;
+    
+    // Use safer regex patterns
+    if (imageUrl.includes('/gallery/')) {
+      const urlParts = imageUrl.split('/gallery/');
+      if (urlParts.length === 2) {
+        filePath = urlParts[1];
+      } else {
+        throw new Error('Invalid gallery URL format');
+      }
+    } else if (imageUrl.includes('file-proxy.php')) {
+      const url = new URL(imageUrl);
+      const fileParam = url.searchParams.get('file');
+      if (!fileParam) {
+        throw new Error('Invalid proxy URL format');
+      }
+      filePath = decodeURIComponent(fileParam);
+    } else {
+      throw new Error('Unsupported URL format');
+    }
+    
+    // Validate extracted path
+    if (!validateFolderPath(filePath.replace(/\/[^/]*$/, ''))) {
+      throw new Error('Invalid file path');
+    }
     
     // Generuj token dla usuwania
     const { token, expires, url } = generateDeleteToken(filePath);
@@ -311,25 +428,13 @@ async function deleteOriginalImage(imageUrl: string): Promise<void> {
       timeout: 15000
     });
     
-    if (response.data.success) {
-      logger.info(`Deleted: ${filePath}`);
-    } else {
-      throw new Error(response.data.error || 'Delete failed');
+    if (!response.data.success) {
+      throw new Error('Delete failed');
     }
     
   } catch (error) {
-    logger.error(`Delete error for ${imageUrl}`, error);
-    throw error;
+    logger.error(`Delete error for image`, error);
+    throw new Error('Delete failed');
   }
 }
 
-function validateFolderUrl(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.protocol === 'https:' && 
-           parsedUrl.hostname === 'conceptfab.com' &&
-           parsedUrl.pathname.startsWith('/__metro/gallery/');
-  } catch {
-    return false;
-  }
-}

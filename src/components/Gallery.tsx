@@ -3,6 +3,7 @@ import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
 import CacheProgress from './CacheProgress';
 import ImageMetadata from './ImageMetadata';
+import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
 
 interface FolderSectionProps {
@@ -247,14 +248,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       ? 'Odświeżanie galerii - czyszczenie cache...' 
       : 'Ładowanie galerii...';
     
-    return (
-      <>
-        <div className="loading-progress-bar"></div>
-        <div className="loading">
-          {loadingMessage}
-        </div>
-      </>
-    );
+    return <LoadingOverlay message={loadingMessage} />;
   }
 
   if (error) {

@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
+import { NotificationProvider } from '@/src/components/GlobalNotification';
 
 // Dynamically import TopMenuBar to avoid SSR issues
 const DynamicTopMenuBar = dynamic(() => import('@/src/components/TopMenuBar'), {
@@ -88,7 +89,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, [router.query.groupId]);
 
   return (
-    <>
+    <NotificationProvider>
       {showLandscapeWarning && (
         <div className="landscape-warning">
           <div className="landscape-warning-content">
@@ -100,6 +101,6 @@ export default function App({ Component, pageProps }: AppProps) {
       )}
       <DynamicTopMenuBar onRefresh={handleRefresh} clientName={clientName} />
       <Component {...pageProps} refreshKey={refreshKey} />
-    </>
+    </NotificationProvider>
   );
 }

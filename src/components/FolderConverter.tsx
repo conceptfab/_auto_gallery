@@ -179,25 +179,78 @@ const FolderConverter: React.FC<FolderConverterProps> = ({ folderUrl, folderName
 
           {progress && (
             <>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill"
-                  style={{ width: `${getProgressPercentage()}%` }}
-                ></div>
-                <span className="progress-text">
-                  {progress.current} / {progress.total} ({getProgressPercentage()}%)
-                </span>
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div 
+                    className={`progress-fill ${progress.stage === 'error' ? 'error' : progress.stage === 'complete' ? 'complete' : ''}`}
+                    style={{ 
+                      width: `${getProgressPercentage()}%`,
+                      transition: 'width 0.3s ease-in-out'
+                    }}
+                  ></div>
+                  <span className="progress-text">
+                    {progress.current} / {progress.total} ({getProgressPercentage()}%)
+                  </span>
+                </div>
+                
+                <div className="progress-stats">
+                  <div className="stat">
+                    <span className="stat-icon">📷</span>
+                    <span className="stat-value">{progress.total}</span>
+                    <span className="stat-label">Obrazów</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">✅</span>
+                    <span className="stat-value">{progress.converted.length}</span>
+                    <span className="stat-label">Skonwertowane</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">❌</span>
+                    <span className="stat-value">{progress.errors.length}</span>
+                    <span className="stat-label">Błędy</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-icon">⏱️</span>
+                    <span className="stat-value">{Math.max(0, progress.total - progress.current)}</span>
+                    <span className="stat-label">Pozostało</span>
+                  </div>
+                </div>
               </div>
 
               <div className="current-file">
-                {progress.currentFile}
+                <div className="file-info">
+                  <div className="file-name">
+                    <span className="processing-icon">🔄</span>
+                    {progress.currentFile}
+                  </div>
+                  {progress.stage === 'converting' && (
+                    <div className="conversion-animation">
+                      <span className="format from">PNG/JPG</span>
+                      <span className="arrow">→</span>
+                      <span className="format to">WebP</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {progress.converted.length > 0 && (
                 <div className="progress-summary">
-                  <div className="converted-count">
-                    <i className="las la-check-circle"></i>
-                    Skonwertowane: {progress.converted.length}
+                  <div className="converted-files">
+                    <h5>Ostatnio skonwertowane:</h5>
+                    <div className="converted-list">
+                      {progress.converted.slice(-3).map((fileName, index) => (
+                        <div key={index} className="converted-item">
+                          <span className="success-icon">✓</span>
+                          <span className="filename">{fileName}</span>
+                          <span className="format-badge">WebP</span>
+                        </div>
+                      ))}
+                      {progress.converted.length > 3 && (
+                        <div className="more-files">
+                          +{progress.converted.length - 3} więcej...
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -221,21 +274,59 @@ const FolderConverter: React.FC<FolderConverterProps> = ({ folderUrl, folderName
 
               {progress.stage === 'complete' && (
                 <div className="completion-summary">
-                  <div className="completion-message">
-                    <i className="las la-check-circle"></i>
-                    Konwersja zakończona pomyślnie!
+                  <div className="completion-animation">
+                    <div className="success-checkmark">
+                      <div className="check-icon">
+                        <span className="icon-line line-tip"></span>
+                        <span className="icon-line line-long"></span>
+                        <div className="icon-circle"></div>
+                        <div className="icon-fix"></div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="completion-stats">
-                    Skonwertowane pliki: {progress.converted.length}
-                    {progress.errors.length > 0 && ` | Błędy: ${progress.errors.length}`}
+                  <div className="completion-message">
+                    <h3>🎉 Konwersja zakończona!</h3>
+                    <p>Wszystkie obrazy zostały pomyślnie skonwertowane do formatu WebP</p>
+                  </div>
+                  <div className="completion-details">
+                    <div className="detail-card success">
+                      <div className="card-icon">📈</div>
+                      <div className="card-content">
+                        <div className="card-title">Oszczędność miejsca</div>
+                        <div className="card-value">~60-80%</div>
+                      </div>
+                    </div>
+                    <div className="detail-card">
+                      <div className="card-icon">✅</div>
+                      <div className="card-content">
+                        <div className="card-title">Skonwertowane</div>
+                        <div className="card-value">{progress.converted.length}</div>
+                      </div>
+                    </div>
+                    {progress.errors.length > 0 && (
+                      <div className="detail-card error">
+                        <div className="card-icon">⚠️</div>
+                        <div className="card-content">
+                          <div className="card-title">Błędy</div>
+                          <div className="card-value">{progress.errors.length}</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
               {progress.stage === 'error' && (
-                <div className="error-message">
-                  <i className="las la-times-circle"></i>
-                  Konwersja nie powiodła się
+                <div className="error-summary">
+                  <div className="error-animation">
+                    <div className="error-icon">
+                      <span className="error-x">✕</span>
+                    </div>
+                  </div>
+                  <div className="error-message">
+                    <h3>❌ Konwersja przerwana</h3>
+                    <p>Wystąpił problem podczas przetwarzania plików</p>
+                  </div>
                 </div>
               )}
             </>

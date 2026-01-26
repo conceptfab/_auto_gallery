@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import FileManager from '../src/components/FileManager';
 import FolderConverter from '../src/components/FolderConverter';
+import LoadingOverlay from '../src/components/LoadingOverlay';
 import { logger } from '../src/utils/logger';
 
 interface PendingEmail {
@@ -363,17 +364,7 @@ const AdminPanel: React.FC = () => {
   };
 
   if (checkingAuth) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontFamily: 'Arial, sans-serif' 
-      }}>
-        <div style={{ fontSize: '1.5rem', fontWeight: 100, color: '#666' }}>Sprawdzanie autoryzacji administratora...</div>
-      </div>
-    );
+    return <LoadingOverlay message="Sprawdzanie autoryzacji administratora..." />;
   }
 
   if (!authStatus?.isAdminLoggedIn) {
@@ -381,11 +372,7 @@ const AdminPanel: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <div style={{ fontSize: '1.5rem', fontWeight: 100, color: '#666' }}>Ładowanie...</div>
-      </div>
-    );
+    return <LoadingOverlay message="Ładowanie..." />;
   }
 
   return (

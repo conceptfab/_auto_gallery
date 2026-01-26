@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Gallery from '@/src/components/Gallery';
+import LoadingOverlay from '@/src/components/LoadingOverlay';
 
 interface HomePageProps {
   refreshKey?: number;
@@ -54,17 +55,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
 
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <div style={{ fontSize: '1.5rem', fontWeight: 100, color: '#666' }}>Sprawdzanie autoryzacji...</div>
-      </div>
-    );
+    return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
   }
 
   if (!authStatus?.isLoggedIn) {

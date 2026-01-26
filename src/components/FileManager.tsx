@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, DragEvent } from 'react';
 import { logger } from '../utils/logger';
 import FolderConverter from './FolderConverter';
+import { useNotification } from './GlobalNotification';
 
 interface FileItem {
   name: string;
@@ -27,6 +28,7 @@ const FileManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
+  const { showError, showSuccess, showWarning } = useNotification();
   
   // Upload
   const [uploading, setUploading] = useState(false);
@@ -764,7 +766,7 @@ const FileManager: React.FC = () => {
                     borderBottom: '1px solid #dee2e6'
                   }}>
                     <FolderConverter
-                      folderUrl={`https://conceptfab.com/__metro/gallery/${currentFolder ? currentFolder + '/' : ''}${folder.name}`}
+                      folderUrl={folder.path}
                       folderName={folder.name}
                       onComplete={() => {
                         setConvertingFolder(null);
