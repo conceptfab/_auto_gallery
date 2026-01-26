@@ -108,8 +108,11 @@ async function main() {
 
     console.log(`\n✅ v${ver.trim()}: ${msg.trim()}`);
     console.log(`   Hash: ${finalHash}`);
-    console.log('\n💡 git push\n');
     
+    log('git push...');
+    git('push');
+    
+    console.log('\n🚀 Wypchnięto na GitHub!\n');
     log('KONIEC - sukces');
 
   } catch (error) {
