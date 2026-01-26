@@ -54,7 +54,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName 
                 }}
                 title="Pobierz plik"
               >
-                ⬇
+                <i className="las la-download"></i>
               </button>
             </div>
             <ImageMetadata src={image.url} fileSize={image.fileSize} lastModified={image.lastModified} />

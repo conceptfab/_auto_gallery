@@ -10,9 +10,17 @@ interface AuthStatus {
   email: string | null;
 }
 
+interface VersionInfo {
+  hash: string;
+  date: string;
+  message: string;
+  buildTime: string;
+}
+
 const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   
   // Hide on login pages
   const isLoginPage = router.pathname === '/login' || router.pathname === '/admin-login';
@@ -27,8 +35,21 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
     }
   };
 
+  const loadVersionInfo = async () => {
+    try {
+      const response = await fetch('/version.json');
+      if (response.ok) {
+        const version: VersionInfo = await response.json();
+        setVersionInfo(version);
+      }
+    } catch (error) {
+      console.error('Error loading version info:', error);
+    }
+  };
+
   useEffect(() => {
     checkAuthStatus();
+    loadVersionInfo();
   }, []);
   
   if (isLoginPage) {
@@ -49,7 +70,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
       <div className="menu-container">
         <div className="menu-left">
           <div className="logo">
-            <h1>CONCEPTFAB Content Browser</h1>
+            <h1>CONCEPTFAB Content Browser <span className="version">{versionInfo?.date} {versionInfo?.message}</span></h1>
           </div>
         </div>
         
@@ -58,8 +79,24 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
         
         <div className="menu-right">
           {onRefresh && (
-            <button onClick={onRefresh} className="refresh-button">
-              Odśwież
+            <button 
+              onClick={onRefresh}
+              title="Odśwież"
+              style={{
+                marginLeft: '10px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: '6px',
+                cursor: 'pointer',
+                fontSize: '18px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <i className="las la-sync"></i>
             </button>
           )}
           {authStatus?.isLoggedIn && (
@@ -77,19 +114,18 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
                 style={{
                   marginLeft: '10px',
                   backgroundColor: 'transparent',
-                  border: '1px solid #ccc',
+                  border: 'none',
                   padding: '6px',
-                  borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '14px',
-                  width: '28px',
-                  height: '28px',
+                  fontSize: '18px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
               >
-                🚪
+                <i className="las la-sign-out-alt"></i>
               </button>
             </>
           )}

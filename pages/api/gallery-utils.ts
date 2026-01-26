@@ -66,7 +66,8 @@ async function findSubfolders(url: string): Promise<Array<{name: string, url: st
       // Pomiń linki nadrzędne, puste i specjalne
       if (!href || href === '../' || href === './' || href.startsWith('?') || 
           href.startsWith('#') || href.startsWith('javascript:') || 
-          href.startsWith('mailto:') || href.startsWith('tel:')) {
+          href.startsWith('mailto:') || href.startsWith('tel:') ||
+          text.toLowerCase().includes('parent directory')) {
         continue;
       }
 
@@ -118,129 +119,138 @@ async function findSubfolders(url: string): Promise<Array<{name: string, url: st
 
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export async function scanRemoteDirectory(url: string): Promise<GalleryFolder[]> {
-  console.log(`\n🚀 ROZPOCZĘCIE SKANOWANIA GALERII: ${url}\n`);
+export async function scanRemoteDirectory(url: string, maxDepth: number = 5): Promise<GalleryFolder[]> {
+  console.log(`\n🚀 ROZPOCZĘCIE SKANOWANIA GALERII: ${url} (głębokość: ${maxDepth})\n`);
+  
+  return await scanDirectoryRecursive(url, 0, maxDepth);
+}
+
+async function scanDirectoryRecursive(url: string, currentDepth: number, maxDepth: number): Promise<GalleryFolder[]> {
+  if (currentDepth >= maxDepth) {
+    console.log(`⚠️ Osiągnięto maksymalną głębokość ${maxDepth} dla ${url}`);
+    return [];
+  }
+
+  console.log(`${'  '.repeat(currentDepth)}🔍 POZIOM ${currentDepth + 1}: Skanowanie ${url}`);
   
   try {
     // ETAP 1: Znajdź wszystkie podfoldery
     const subfolders = await findSubfolders(url);
     
     if (subfolders.length === 0) {
-      console.log(`❌ Nie znaleziono podfolderów w ${url}`);
+      console.log(`${'  '.repeat(currentDepth)}❌ Nie znaleziono podfolderów w ${url}`);
       return [];
     }
 
-    // ETAP 2: Policz pliki graficzne w każdym podfolderze
-    console.log(`\n📊 ETAP 2: Liczenie plików graficznych w podfolderach:\n`);
-    
-    const foldersWithCounts = [];
-    for (const folder of subfolders) {
-      console.log(`🔢 Liczenie obrazów w: ${folder.name}...`);
-      const imageCount = await countImagesInDirectory(folder.url);
-      console.log(`   ✅ ${folder.name}: ${imageCount} plików graficznych`);
-      
-      foldersWithCounts.push({
-        ...folder,
-        imageCount
-      });
-    }
-
-    console.log(`\n📋 PODSUMOWANIE WSZYSTKICH PODFOLDERÓW:`);
-    let totalImages = 0;
-    foldersWithCounts.forEach((folder, index) => {
-      console.log(`   ${index + 1}. ${folder.name}: ${folder.imageCount} obrazów`);
-      totalImages += folder.imageCount;
-    });
-    console.log(`📈 RAZEM: ${totalImages} obrazów w ${foldersWithCounts.length} podfolderach\n`);
-
-    // ETAP 3: Generuj pełne dane dla strony
-    console.log(`🏗️  ETAP 3: Generowanie danych dla strony...\n`);
+    // ETAP 2: Dla każdego podfolderu sprawdź czy ma obrazy i/lub podfoldery
+    console.log(`${'  '.repeat(currentDepth)}📊 Analiza ${subfolders.length} podfolderów...`);
     
     const folders: GalleryFolder[] = [];
     
-    for (const folderInfo of foldersWithCounts) {
-      if (folderInfo.imageCount > 0) {
-        console.log(`📁 Skanowanie szczegółowe: ${folderInfo.name} (${folderInfo.imageCount} obrazów)`);
-        
-        const response = await axios.get(folderInfo.url, {
-          timeout: 15000,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-          }
-        });
-
-        const html = response.data;
-        const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
-        let match;
+    for (const folder of subfolders) {
+      console.log(`${'  '.repeat(currentDepth)}🔍 Analizuję: ${folder.name}`);
+      
+      // Sprawdź liczbę obrazów w bieżącym folderze
+      const imageCount = await countImagesInDirectory(folder.url);
+      
+      // Sprawdź czy ma podfoldery (tylko jeśli nie osiągnęliśmy max głębokości)
+      let subFolders: GalleryFolder[] = [];
+      if (currentDepth < maxDepth - 1) {
+        subFolders = await scanDirectoryRecursive(folder.url, currentDepth + 1, maxDepth);
+      }
+      
+      const hasImages = imageCount > 0;
+      const hasSubfolders = subFolders.length > 0;
+      
+      if (hasImages || hasSubfolders) {
+        console.log(`${'  '.repeat(currentDepth)}📁 ${folder.name}: ${imageCount} obrazów, ${subFolders.length} podfolderów`);
         
         const currentFolder: GalleryFolder = {
-          name: folderInfo.name,
-          path: folderInfo.url,
-          images: []
+          name: folder.name,
+          path: folder.url,
+          images: [],
+          subfolders: subFolders.length > 0 ? subFolders : undefined,
+          isCategory: !hasImages && hasSubfolders, // Kategoria jeśli ma tylko podfoldery, bez obrazów
+          level: currentDepth
         };
 
-        while ((match = linkRegex.exec(html)) !== null) {
-          const href = match[1].trim();
-          const fullContent = match[2];
-          const text = fullContent.replace(/<[^>]*>/g, '').trim();
+        // Jeśli folder ma obrazy, pobierz ich szczegóły
+        if (hasImages) {
+          console.log(`${'  '.repeat(currentDepth)}🖼️ Pobieranie szczegółów ${imageCount} obrazów...`);
           
-          const isImage = IMAGE_EXTENSIONS.some(ext => 
-            href.toLowerCase().endsWith(ext)
-          );
-          
-          if (isImage) {
-            let fullUrl: string;
-            if (href.startsWith('/')) {
-              fullUrl = `https://conceptfab.com${href}`;
-            } else {
-              fullUrl = new URL(href, folderInfo.url).href;
+          const response = await axios.get(folder.url, {
+            timeout: 15000,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
             }
+          });
 
-            // Pobierz rozmiar pliku i datę modyfikacji
-            let fileSize: number | undefined;
-            let lastModified: string | undefined;
-            try {
-              const headResponse = await axios.head(fullUrl, {
-                timeout: 5000,
-                headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+          const html = response.data;
+          const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
+          let match;
+
+          while ((match = linkRegex.exec(html)) !== null) {
+            const href = match[1].trim();
+            const fullContent = match[2];
+            const text = fullContent.replace(/<[^>]*>/g, '').trim();
+            
+            const isImage = IMAGE_EXTENSIONS.some(ext => 
+              href.toLowerCase().endsWith(ext)
+            );
+            
+            if (isImage) {
+              let fullUrl: string;
+              if (href.startsWith('/')) {
+                fullUrl = `https://conceptfab.com${href}`;
+              } else {
+                fullUrl = new URL(href, folder.url).href;
+              }
+
+              // Pobierz rozmiar pliku i datę modyfikacji
+              let fileSize: number | undefined;
+              let lastModified: string | undefined;
+              try {
+                const headResponse = await axios.head(fullUrl, {
+                  timeout: 5000,
+                  headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+                  }
+                });
+                const contentLength = headResponse.headers['content-length'];
+                if (contentLength) {
+                  fileSize = parseInt(contentLength, 10);
                 }
-              });
-              const contentLength = headResponse.headers['content-length'];
-              if (contentLength) {
-                fileSize = parseInt(contentLength, 10);
+                
+                const lastModifiedHeader = headResponse.headers['last-modified'];
+                if (lastModifiedHeader) {
+                  lastModified = lastModifiedHeader;
+                }
+              } catch (error) {
+                console.log(`${'  '.repeat(currentDepth)}⚠️ Nie udało się pobrać metadanych pliku ${href}`);
               }
-              
-              const lastModifiedHeader = headResponse.headers['last-modified'];
-              if (lastModifiedHeader) {
-                lastModified = lastModifiedHeader;
-              }
-            } catch (error) {
-              console.log(`⚠️ Nie udało się pobrać metadanych pliku ${href}`);
-            }
 
-            const imageFile: ImageFile = {
-              name: text || href.split('/').pop() || href,
-              path: href,
-              url: fullUrl,
-              fileSize,
-              lastModified
-            };
-            currentFolder.images.push(imageFile);
+              const imageFile: ImageFile = {
+                name: text || href.split('/').pop() || href,
+                path: href,
+                url: fullUrl,
+                fileSize,
+                lastModified
+              };
+              currentFolder.images.push(imageFile);
+            }
           }
         }
 
-        console.log(`   ✅ Dodano ${currentFolder.images.length} obrazów z folderu "${currentFolder.name}"`);
         folders.push(currentFolder);
       }
     }
 
-    console.log(`\n🎉 SKANOWANIE ZAKOŃCZONE! Znaleziono ${folders.length} folderów z obrazami.\n`);
+    console.log(`${'  '.repeat(currentDepth)}✅ POZIOM ${currentDepth + 1}: Znaleziono ${folders.length} folderów`);
     
     return folders;
   } catch (error) {
-    console.error(`❌ Błąd skanowania ${url}:`, error);
-    throw error;
+    console.error(`${'  '.repeat(currentDepth)}❌ Błąd skanowania ${url}:`, error);
+    return [];
   }
 }
 

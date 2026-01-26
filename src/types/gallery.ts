@@ -14,6 +14,8 @@ export interface GalleryFolder {
   path: string;
   images: ImageFile[];
   subfolders?: GalleryFolder[];
+  isCategory?: boolean;
+  level?: number;
 }
 
 export interface GalleryResponse {

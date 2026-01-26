@@ -2,6 +2,7 @@ import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
+import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 
 // Dynamically import TopMenuBar to avoid SSR issues
 const DynamicTopMenuBar = dynamic(() => import('@/src/components/TopMenuBar'), {
