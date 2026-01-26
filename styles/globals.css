@@ -606,10 +606,32 @@ a {
    STATE MESSAGE STYLES
    ======================================== */
 
+/* Loading progress bar - above top menu */
+.loading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 5px;
+  background-color: magenta;
+  z-index: 200;
+  animation: loading-grow 2s ease-out infinite;
+}
+
+@keyframes loading-grow {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
 /* Loading state message */
 .loading {
   text-align: center;
   font-size: 1.5rem;
+  font-weight: 100;
   padding: 60px 20px;
   color: #666;
 }

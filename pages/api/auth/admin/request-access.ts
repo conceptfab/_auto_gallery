@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { sendLoginCode } from '../../../../src/utils/email';
+import { sendAdminLoginCode } from '../../../../src/utils/email';
 import { addAdminCode, cleanupExpiredAdminCodes } from '../../../../src/utils/storage';
 import { LoginCode } from '../../../../src/types/auth';
 
@@ -67,6 +67,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function sendAdminAccessCode(email: string, code: string): Promise<void> {
-  // Używamy istniejącej funkcji sendLoginCode
-  await sendLoginCode(email, code);
+  // Używamy funkcji sendAdminLoginCode z oznaczeniem [ADMIN]
+  await sendAdminLoginCode(email, code);
 }

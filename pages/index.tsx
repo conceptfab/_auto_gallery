@@ -10,6 +10,7 @@ interface HomePageProps {
 interface AuthStatus {
   isLoggedIn: boolean;
   email: string | null;
+  isAdmin: boolean;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
@@ -61,7 +62,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
   return (
     <>
       <Head>
-        <title>CONCEPTFAB Content Browser</title>
+        <title>{authStatus?.isAdmin ? 'ADMIN - ' : ''}CONCEPTFAB Content Browser</title>
         <meta name="description" content="CONCEPTFAB Content Browser" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

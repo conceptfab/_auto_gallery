@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie, isUserLoggedIn } from '../../../src/utils/auth';
+import { ADMIN_EMAIL } from '../../../src/config/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -12,15 +13,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!email) {
       return res.status(200).json({ 
         isLoggedIn: false,
-        email: null
+        email: null,
+        isAdmin: false
       });
     }
 
     const isLoggedIn = isUserLoggedIn(email);
+    const isAdmin = email === ADMIN_EMAIL;
     
     res.status(200).json({ 
       isLoggedIn,
-      email: isLoggedIn ? email : null
+      email: isLoggedIn ? email : null,
+      isAdmin: isLoggedIn ? isAdmin : false
     });
 
   } catch (error) {

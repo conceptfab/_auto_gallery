@@ -98,7 +98,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
                 justifyContent: 'center'
               }}
             >
-              <i className="las la-sync"></i>
+              <i className="las la-sync" style={{ color: '#5c5c5c' }}></i>
             </button>
           )}
           {authStatus?.isLoggedIn && (
@@ -126,7 +126,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
                   justifyContent: 'center'
                 }}
               >
-                <i className="las la-sign-out-alt"></i>
+                <i className="las la-sign-out-alt" style={{ color: '#5c5c5c' }}></i>
               </button>
             </>
           )}

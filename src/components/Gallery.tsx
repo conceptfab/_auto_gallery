@@ -238,9 +238,12 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey }) => {
       : 'Ładowanie galerii...';
     
     return (
-      <div className="loading">
-        {loadingMessage}
-      </div>
+      <>
+        <div className="loading-progress-bar"></div>
+        <div className="loading">
+          {loadingMessage}
+        </div>
+      </>
     );
   }
 

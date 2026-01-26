@@ -39,7 +39,7 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: ADMIN_EMAIL,
-      subject: 'Nowy wniosek o dostęp - Content Browser',
+      subject: '[ADMIN] Nowy wniosek o dostęp - Content Browser',
       html: `
         <h2>Nowy wniosek o dostęp do Content Browser</h2>
         <p><strong>Email:</strong> ${email}</p>
@@ -91,6 +91,38 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
     logger.emailEvent('login code sent successfully', email, result.data?.id);
   } catch (error) {
     logger.error('Failed to send login code to', email, error);
+    throw error;
+  }
+}
+
+export async function sendAdminLoginCode(email: string, code: string): Promise<void> {
+  logger.emailEvent('sending admin login code', email);
+  
+  try {
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: '[ADMIN] Kod dostępu do Content Browser',
+      html: `
+        <h2>Twój kod dostępu administratora do Content Browser</h2>
+        <p>Witaj Administratorze!</p>
+        <p>Oto Twój kod dostępu:</p>
+        
+        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+          <h1 style="color: #333; font-size: 32px; letter-spacing: 8px; margin: 0;">${code}</h1>
+        </div>
+        
+        <p><strong>Ważne:</strong> Ten kod jest ważny przez <strong>15 minut</strong> od momentu otrzymania tej wiadomości.</p>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+          Jeśli nie prosiłeś o dostęp, zignoruj tę wiadomość.
+        </p>
+      `,
+    });
+    
+    logger.emailEvent('admin login code sent successfully', email, result.data?.id);
+  } catch (error) {
+    logger.error('Failed to send admin login code to', email, error);
     throw error;
   }
 }
