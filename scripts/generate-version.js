@@ -7,7 +7,7 @@ try {
   const commitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
   
   // Pobierz datę commita
-  const commitDate = execSync('git log -1 --format="%cd" --date=short', { encoding: 'utf8' }).trim();
+  const commitDate = execSync('git log -1 --format="%cd" --date=short', { encoding: 'utf8' }).trim().replace(/-/g, '');
   
   // Pobierz opis commita
   const commitMessage = execSync('git log -1 --format="%s"', { encoding: 'utf8' }).trim();
@@ -29,7 +29,7 @@ try {
   // Fallback version
   const fallback = {
     hash: 'unknown',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0].replace(/-/g, ''),
     message: 'Version info not available',
     buildTime: new Date().toISOString()
   };

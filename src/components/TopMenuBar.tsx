@@ -70,7 +70,10 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
       <div className="menu-container">
         <div className="menu-left">
           <div className="logo">
-            <h1>CONCEPTFAB Content Browser <span className="version">{versionInfo?.date} {versionInfo?.message}</span></h1>
+            <h1>
+              CONCEPTFAB Content Browser 
+              <span className="version">{versionInfo?.message} {versionInfo?.date}</span>
+            </h1>
           </div>
         </div>
         
@@ -83,14 +86,13 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
               onClick={onRefresh}
               title="Odśwież"
               style={{
-                marginLeft: '10px',
                 backgroundColor: 'transparent',
                 border: 'none',
                 padding: '6px',
                 cursor: 'pointer',
-                fontSize: '18px',
-                width: '32px',
-                height: '32px',
+                fontSize: '27px',
+                width: '48px',
+                height: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -102,9 +104,9 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
           {authStatus?.isLoggedIn && (
             <>
               <span style={{ 
-                marginLeft: '15px', 
                 fontSize: '14px', 
-                color: '#666' 
+                color: '#666',
+                textAlign: 'center'
               }}>
                 {authStatus.email}
               </span>
@@ -112,14 +114,13 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh }) => {
                 onClick={handleLogout}
                 title="Wyloguj"
                 style={{
-                  marginLeft: '10px',
                   backgroundColor: 'transparent',
                   border: 'none',
                   padding: '6px',
                   cursor: 'pointer',
-                  fontSize: '18px',
-                  width: '32px',
-                  height: '32px',
+                  fontSize: '27px',
+                  width: '48px',
+                  height: '48px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
