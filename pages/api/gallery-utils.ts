@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { GalleryFolder, ImageFile } from '@/src/types/gallery';
 import { GALLERY_BASE_URL } from '@/src/config/constants';
+import { logger } from '@/src/utils/logger';
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
 
 // Funkcja do liczenia plików graficznych w folderze
@@ -33,14 +34,14 @@ async function countImagesInDirectory(url: string): Promise<number> {
 
     return imageCount;
   } catch (error) {
-    console.log(`❌ Błąd liczenia obrazów w ${url}`);
+    logger.error('Błąd liczenia obrazów', { url });
     return 0;
   }
 }
 
 // Funkcja do znajdowania wszystkich podfolderów
 async function findSubfolders(url: string): Promise<Array<{name: string, url: string}>> {
-  console.log(`🔍 ETAP 1: Szukanie podfolderów w: ${url}`);
+  logger.debug('ETAP 1: Szukanie podfolderów', { url });
   
   try {
     const response = await axios.get(url, {
@@ -51,7 +52,7 @@ async function findSubfolders(url: string): Promise<Array<{name: string, url: st
     });
 
     const html = response.data;
-    console.log(`📄 Pobrano HTML (${html.length} znaków)`);
+    logger.debug('Pobrano HTML', { length: html.length });
     
     const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
     let match;
@@ -105,14 +106,11 @@ async function findSubfolders(url: string): Promise<Array<{name: string, url: st
       }
     }
 
-    console.log(`📂 ZNALEZIONE PODFOLDERY (${subfolders.length}):`);
-    subfolders.forEach((folder, index) => {
-      console.log(`   ${index + 1}. ${folder.name} -> ${folder.url}`);
-    });
+    logger.debug('ZNALEZIONE PODFOLDERY', { count: subfolders.length, folders: subfolders.map(f => f.name) });
 
     return subfolders;
   } catch (error) {
-    console.error(`❌ Błąd wyszukiwania podfolderów w ${url}:`, error);
+    logger.error('Błąd wyszukiwania podfolderów', { url, error });
     return [];
   }
 }
@@ -120,35 +118,36 @@ async function findSubfolders(url: string): Promise<Array<{name: string, url: st
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export async function scanRemoteDirectory(url: string, maxDepth: number = 5): Promise<GalleryFolder[]> {
-  console.log(`\n🚀 ROZPOCZĘCIE SKANOWANIA GALERII: ${url} (głębokość: ${maxDepth})\n`);
+  logger.galleryStart(url);
+  logger.debug('ROZPOCZĘCIE SKANOWANIA GALERII', { url, maxDepth });
   
   return await scanDirectoryRecursive(url, 0, maxDepth);
 }
 
 async function scanDirectoryRecursive(url: string, currentDepth: number, maxDepth: number): Promise<GalleryFolder[]> {
   if (currentDepth >= maxDepth) {
-    console.log(`⚠️ Osiągnięto maksymalną głębokość ${maxDepth} dla ${url}`);
+    logger.warn('Osiągnięto maksymalną głębokość', { maxDepth, url });
     return [];
   }
 
-  console.log(`${'  '.repeat(currentDepth)}🔍 POZIOM ${currentDepth + 1}: Skanowanie ${url}`);
+  logger.debug('POZIOM skanowania', { level: currentDepth + 1, url });
   
   try {
     // ETAP 1: Znajdź wszystkie podfoldery
     const subfolders = await findSubfolders(url);
     
     if (subfolders.length === 0) {
-      console.log(`${'  '.repeat(currentDepth)}❌ Nie znaleziono podfolderów w ${url}`);
+      logger.debug('Nie znaleziono podfolderów', { url, depth: currentDepth });
       return [];
     }
 
     // ETAP 2: Dla każdego podfolderu sprawdź czy ma obrazy i/lub podfoldery
-    console.log(`${'  '.repeat(currentDepth)}📊 Analiza ${subfolders.length} podfolderów...`);
+    logger.debug('Analiza podfolderów', { count: subfolders.length, depth: currentDepth });
     
     const folders: GalleryFolder[] = [];
     
     for (const folder of subfolders) {
-      console.log(`${'  '.repeat(currentDepth)}🔍 Analizuję: ${folder.name}`);
+      logger.debug('Analizuję folder', { name: folder.name, depth: currentDepth });
       
       // Sprawdź liczbę obrazów w bieżącym folderze
       const imageCount = await countImagesInDirectory(folder.url);
@@ -163,7 +162,12 @@ async function scanDirectoryRecursive(url: string, currentDepth: number, maxDept
       const hasSubfolders = subFolders.length > 0;
       
       if (hasImages || hasSubfolders) {
-        console.log(`${'  '.repeat(currentDepth)}📁 ${folder.name}: ${imageCount} obrazów, ${subFolders.length} podfolderów`);
+        logger.debug('Folder details', { 
+          name: folder.name, 
+          imageCount, 
+          subfoldersCount: subFolders.length,
+          depth: currentDepth 
+        });
         
         const currentFolder: GalleryFolder = {
           name: folder.name,
@@ -176,7 +180,7 @@ async function scanDirectoryRecursive(url: string, currentDepth: number, maxDept
 
         // Jeśli folder ma obrazy, pobierz ich szczegóły
         if (hasImages) {
-          console.log(`${'  '.repeat(currentDepth)}🖼️ Pobieranie szczegółów ${imageCount} obrazów...`);
+          logger.debug('Pobieranie szczegółów obrazów', { imageCount, depth: currentDepth });
           
           const response = await axios.get(folder.url, {
             timeout: 15000,
@@ -226,7 +230,7 @@ async function scanDirectoryRecursive(url: string, currentDepth: number, maxDept
                   lastModified = lastModifiedHeader;
                 }
               } catch (error) {
-                console.log(`${'  '.repeat(currentDepth)}⚠️ Nie udało się pobrać metadanych pliku ${href}`);
+                logger.debug('Nie udało się pobrać metadanych pliku', { href, depth: currentDepth });
               }
 
               const imageFile: ImageFile = {
@@ -245,11 +249,11 @@ async function scanDirectoryRecursive(url: string, currentDepth: number, maxDept
       }
     }
 
-    console.log(`${'  '.repeat(currentDepth)}✅ POZIOM ${currentDepth + 1}: Znaleziono ${folders.length} folderów`);
+    logger.debug('POZIOM zakończony', { level: currentDepth + 1, foldersCount: folders.length });
     
     return folders;
   } catch (error) {
-    console.error(`${'  '.repeat(currentDepth)}❌ Błąd skanowania ${url}:`, error);
+    logger.error('Błąd skanowania', { url, depth: currentDepth, error });
     return [];
   }
 }
@@ -291,7 +295,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const folders = await scanRemoteDirectory(url);
     res.status(200).json({ folders });
   } catch (error) {
-    console.error('Gallery scan error:', error);
+    logger.error('Gallery scan error', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

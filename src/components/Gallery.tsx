@@ -139,7 +139,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
             setIsForceRefreshing(false);
           }
         } catch (clearError) {
-          console.error('❌ Error clearing cache:', clearError);
+          logger.error('Error clearing cache', clearError);
           setIsForceRefreshing(false);
         }
       }
@@ -148,24 +148,24 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       const cacheData = await cacheStatus.json();
       
       if (cacheData.needsRefresh) {
-        console.log('🔄 Cache needs refresh - loading gallery without cache...');
+        logger.info('Cache needs refresh - loading gallery without cache');
         setCacheReady(false);
         await fetchGalleryData();
         return;
       }
       
-      console.log('✅ Cache valid, loading gallery with cache...');
+      logger.info('Cache valid, loading gallery with cache');
       setCacheReady(true);
       await fetchGalleryData();
     } catch (error) {
-      console.error('❌ Cache check error:', error);
-      console.log('📡 Fallback to direct gallery fetch...');
+      logger.error('Cache check error', error);
+      logger.info('Fallback to direct gallery fetch');
       await fetchGalleryData();
     }
   };
 
   useEffect(() => {
-    console.log('🔄 useEffect triggered with refreshKey:', refreshKey);
+    logger.debug('useEffect triggered with refreshKey', { refreshKey });
     // If refreshKey > 0, it means user clicked refresh button
     const isForceRefresh = (refreshKey || 0) > 0;
     checkCacheAndFetch(isForceRefresh);
@@ -179,13 +179,13 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
 
   const fetchGalleryData = async () => {
     try {
-      console.log('📡 Fetching gallery data...');
+      logger.info('Fetching gallery data');
       setLoading(true);
       setError(null);
       
       const controller = new AbortController();
       const timeout = setTimeout(() => {
-        console.error('⏰ Gallery API timeout!');
+        logger.error('Gallery API timeout');
         controller.abort();
       }, 30000); // 30s timeout
       
@@ -197,33 +197,35 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       });
       
       clearTimeout(timeout);
-      console.log('📡 Response status:', response.status);
+      logger.debug('Response status', { status: response.status });
       
       if (!response.ok) {
         throw new Error(`API returned ${response.status}`);
       }
       
       const data: GalleryResponse = await response.json();
-      console.log('📡 Response data length:', JSON.stringify(data).length);
-      console.log('📡 Folders count:', data.data?.length || 0);
+      logger.debug('Response data', { 
+        dataLength: JSON.stringify(data).length,
+        foldersCount: data.data?.length || 0 
+      });
       
       if (data.success && data.data && data.data.length > 0) {
-        console.log('✅ Gallery loaded successfully:', data.data.length, 'folders');
+        logger.info('Gallery loaded successfully', { foldersCount: data.data.length });
         setFolders(data.data);
         setError(null);
       } else {
-        console.error('❌ Gallery API error or empty:', data.error || 'Empty data');
+        logger.error('Gallery API error or empty', { error: data.error || 'Empty data' });
         setError(data.error || 'Brak danych w galerii');
       }
     } catch (err: any) {
-      console.error('❌ Fetch error:', err);
+      logger.error('Fetch error', err);
       if (err.name === 'AbortError') {
         setError('Timeout - API nie odpowiada');
       } else {
         setError(`Błąd połączenia: ${err.message}`);
       }
     } finally {
-      console.log('🔄 Setting loading to false');
+      logger.debug('Setting loading to false');
       setLoading(false);
     }
   };
@@ -234,6 +236,10 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
 
   const closeModal = () => {
     setSelectedImage(null);
+  };
+
+  const getOptimizedImageUrl = (image: ImageFile, size: 'thumb' | 'full' = 'full') => {
+    return `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=${size}`;
   };
 
   if (loading) {
@@ -304,7 +310,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
               <i className="las la-download"></i>
             </button>
             <img 
-              src={selectedImage.url} 
+              src={getOptimizedImageUrl(selectedImage, 'full')} 
               alt={selectedImage.name}
               className="modal-image"
             />

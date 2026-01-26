@@ -27,14 +27,12 @@ function generateVersion() {
     };
     
     fs.writeFileSync(versionPath, JSON.stringify(versionInfo, null, 2));
-    console.log('✅ Version info generated:', versionInfo);
     return versionInfo;
   } else {
     // Spróbuj odczytać istniejący version.json
     try {
       const existing = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       if (existing.hash && existing.hash !== 'unknown') {
-        console.log('ℹ️ Using existing version info:', existing);
         return existing;
       }
     } catch (e) {}
@@ -47,7 +45,6 @@ function generateVersion() {
       buildTime: new Date().toISOString()
     };
     fs.writeFileSync(versionPath, JSON.stringify(fallback, null, 2));
-    console.log('⚠️ Git not available, using fallback:', fallback);
     return fallback;
   }
 }

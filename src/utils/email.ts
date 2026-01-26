@@ -7,25 +7,26 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Test konfiguracji Resend przy starcie
 const testConnection = async () => {
   try {
-    console.log('🔍 Sprawdzanie konfiguracji Resend...');
-    console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
-    console.log('RESEND_API_KEY length:', process.env.RESEND_API_KEY?.length || 0);
-    console.log('RESEND_API_KEY starts with re_:', process.env.RESEND_API_KEY?.startsWith('re_'));
+    logger.debug('Sprawdzanie konfiguracji Resend', {
+      hasKey: !!process.env.RESEND_API_KEY,
+      keyLength: process.env.RESEND_API_KEY?.length || 0,
+      startsWithRe: process.env.RESEND_API_KEY?.startsWith('re_')
+    });
     
     if (!process.env.RESEND_API_KEY) {
-      console.error('❌ Brak klucza API Resend w zmiennych środowiskowych');
-      console.log('💡 Dodaj RESEND_API_KEY do zmiennych środowiskowych');
+      logger.error('Brak klucza API Resend w zmiennych środowiskowych');
+      logger.info('Dodaj RESEND_API_KEY do zmiennych środowiskowych');
       return;
     }
     
     if (!process.env.RESEND_API_KEY.startsWith('re_')) {
-      console.error('❌ Nieprawidłowy format klucza API Resend (powinien zaczynać się od "re_")');
+      logger.error('Nieprawidłowy format klucza API Resend (powinien zaczynać się od "re_")');
       return;
     }
     
-    console.log('✅ Resend API jest skonfigurowany');
+    logger.info('Resend API jest skonfigurowany');
   } catch (error) {
-    console.error('❌ Błąd konfiguracji Resend:', error);
+    logger.error('Błąd konfiguracji Resend', error);
   }
 };
 

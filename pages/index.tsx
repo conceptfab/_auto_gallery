@@ -62,7 +62,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
         height: '100vh',
         fontFamily: 'Arial, sans-serif'
       }}>
-        <div>Sprawdzanie autoryzacji...</div>
+        <div style={{ fontSize: '1.5rem', fontWeight: 100, color: '#666' }}>Sprawdzanie autoryzacji...</div>
       </div>
     );
   }

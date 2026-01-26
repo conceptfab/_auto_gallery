@@ -20,6 +20,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName 
   const handleImageLoad = (image: ImageFile) => {
     console.log('✅ Image loaded:', image.name);
   };
+
+  const getOptimizedImageUrl = (image: ImageFile, size: 'thumb' | 'full' = 'thumb') => {
+    return `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=${size}`;
+  };
   return (
     <div className="image-grid">
       {images.map((image, index) => (
@@ -32,7 +36,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName 
             onClick={() => onImageClick?.(image)}
           >
             <img
-              src={image.url}
+              src={getOptimizedImageUrl(image, 'thumb')}
               alt={image.name}
               className="gallery-image"
               loading="lazy"

@@ -110,18 +110,31 @@ async function processCacheGeneration(res: NextApiResponse) {
           stage: 'converting'
         });
 
-        // Generuj miniaturkę WebP (300px width)
-        const thumbnailPath = path.join(folderCacheDir, `${baseName}_thumb.webp`);
+        // Generuj miniaturkę AVIF (300px width) - najwyższa kompresja
+        const thumbnailAvifPath = path.join(folderCacheDir, `${baseName}_thumb.avif`);
+        await sharp(imageBuffer)
+          .resize(300, null, { withoutEnlargement: true })
+          .avif({ quality: 80 })
+          .toFile(thumbnailAvifPath);
+
+        // Generuj miniaturkę WebP (300px width) - fallback
+        const thumbnailWebpPath = path.join(folderCacheDir, `${baseName}_thumb.webp`);
         await sharp(imageBuffer)
           .resize(300, null, { withoutEnlargement: true })
           .webp({ quality: 85 })
-          .toFile(thumbnailPath);
+          .toFile(thumbnailWebpPath);
 
-        // Generuj pełny rozmiar WebP
-        const fullPath = path.join(folderCacheDir, `${baseName}_full.webp`);
+        // Generuj pełny rozmiar AVIF - najwyższa kompresja
+        const fullAvifPath = path.join(folderCacheDir, `${baseName}_full.avif`);
+        await sharp(imageBuffer)
+          .avif({ quality: 85 })
+          .toFile(fullAvifPath);
+
+        // Generuj pełny rozmiar WebP - fallback
+        const fullWebpPath = path.join(folderCacheDir, `${baseName}_full.webp`);
         await sharp(imageBuffer)
           .webp({ quality: 90 })
-          .toFile(fullPath);
+          .toFile(fullWebpPath);
 
       } catch (error) {
         console.error(`Error processing ${image.name}:`, error);

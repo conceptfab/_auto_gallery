@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, DragEvent } from 'react';
+import { logger } from '../utils/logger';
+import FolderConverter from './FolderConverter';
 
 interface FileItem {
   name: string;
@@ -42,6 +44,9 @@ const FileManager: React.FC = () => {
   const [renamingItem, setRenamingItem] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   
+  // Konwersja folderu
+  const [convertingFolder, setConvertingFolder] = useState<string | null>(null);
+  
   // Zaznaczanie
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   
@@ -66,7 +71,7 @@ const FileManager: React.FC = () => {
       }
     } catch (err) {
       setError('Błąd ładowania plików');
-      console.error(err);
+      logger.error('Error loading files', err);
     } finally {
       setLoading(false);
       setSelectedItems(new Set());
@@ -175,7 +180,7 @@ const FileManager: React.FC = () => {
         
         setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
       } catch (err) {
-        console.error('Upload error:', err);
+        logger.error('Upload error', { file: file.name, error: err });
         alert(`Błąd uploadu ${file.name}`);
       }
     }
@@ -215,7 +220,7 @@ const FileManager: React.FC = () => {
         fetchFiles(currentFolder);
       }
     } catch (err) {
-      console.error('Delete error:', err);
+      logger.error('Delete error', { path, error: err });
       alert('Błąd usuwania');
     } finally {
       setProcessing(null);
@@ -235,7 +240,7 @@ const FileManager: React.FC = () => {
           body: JSON.stringify({ path }),
         });
       } catch (err) {
-        console.error('Delete error:', err);
+        logger.error('Delete error (batch)', { path, error: err });
       }
     }
     setProcessing(null);
@@ -270,7 +275,7 @@ const FileManager: React.FC = () => {
         fetchFiles(currentFolder);
       }
     } catch (err) {
-      console.error('Rename error:', err);
+      logger.error('Rename error', { oldPath, newName, error: err });
       alert('Błąd zmiany nazwy');
     } finally {
       setProcessing(null);
@@ -305,7 +310,7 @@ const FileManager: React.FC = () => {
         fetchFiles(currentFolder);
       }
     } catch (err) {
-      console.error('Mkdir error:', err);
+      logger.error('Mkdir error', { folder: newFolderName.trim(), error: err });
       alert('Błąd tworzenia folderu');
     } finally {
       setProcessing(null);
@@ -367,7 +372,7 @@ const FileManager: React.FC = () => {
           alert(`Błąd przenoszenia ${path}: ${result.error}`);
         }
       } catch (err) {
-        console.error('Move error:', err);
+        logger.error('Move error', { path, targetFolder, error: err });
       }
     }
     setProcessing(null);
@@ -396,7 +401,7 @@ const FileManager: React.FC = () => {
           body: JSON.stringify({ sourcePath: path, targetFolder }),
         });
       } catch (err) {
-        console.error('Move error:', err);
+        logger.error('Move error (breadcrumb)', { path, targetFolder, error: err });
       }
     }
     setProcessing(null);
@@ -605,11 +610,11 @@ const FileManager: React.FC = () => {
         }}
       >
         {loading ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+          <div style={{ padding: '40px 20px', textAlign: 'center', color: '#666', fontSize: '1.5rem', fontWeight: 100 }}>
             Ładowanie...
           </div>
         ) : error ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#f44336' }}>
+          <div style={{ padding: '40px 20px', textAlign: 'center', color: '#e53e3e', fontSize: '1.5rem', fontWeight: 100 }}>
             {error}
           </div>
         ) : (
@@ -728,6 +733,12 @@ const FileManager: React.FC = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       <button
+                        onClick={() => setConvertingFolder(convertingFolder === folder.path ? null : folder.path)}
+                        style={{ background: '#FF9800', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                        Konwertuj →WebP
+                      </button>
+                      <button
                         onClick={() => startRename(folder.path, folder.name)}
                         style={{ background: '#2196F3', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                       >
@@ -742,6 +753,25 @@ const FileManager: React.FC = () => {
                       </button>
                     </div>
                   </>
+                )}
+                
+                {/* Konwerter folderu */}
+                {convertingFolder === folder.path && (
+                  <div style={{ 
+                    padding: '15px',
+                    background: '#f8f9fa',
+                    borderTop: '1px solid #dee2e6',
+                    borderBottom: '1px solid #dee2e6'
+                  }}>
+                    <FolderConverter
+                      folderUrl={`https://conceptfab.com/__metro/gallery/${currentFolder ? currentFolder + '/' : ''}${folder.name}`}
+                      folderName={folder.name}
+                      onComplete={() => {
+                        setConvertingFolder(null);
+                        fetchFiles(currentFolder); // Odśwież listę plików
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             ))}

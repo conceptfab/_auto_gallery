@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import FileManager from '../src/components/FileManager';
+import FolderConverter from '../src/components/FolderConverter';
+import { logger } from '../src/utils/logger';
 
 interface PendingEmail {
   email: string;
@@ -79,7 +81,7 @@ const AdminPanel: React.FC = () => {
       const result = await response.json();
       setData(result);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data', error);
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,7 @@ const AdminPanel: React.FC = () => {
         checkFoldersStatus(result.groups);
       }
     } catch (error) {
-      console.error('Error fetching groups:', error);
+      logger.error('Error fetching groups', error);
     }
   };
 
@@ -142,7 +144,7 @@ const AdminPanel: React.FC = () => {
         return;
       }
     } catch (error) {
-      console.error('Error checking admin auth status:', error);
+      logger.error('Error checking admin auth status', error);
       router.push('/admin-login');
     } finally {
       setCheckingAuth(false);
@@ -154,7 +156,7 @@ const AdminPanel: React.FC = () => {
       await fetch('/api/auth/admin/logout', { method: 'POST' });
       router.push('/admin-login');
     } catch (error) {
-      console.error('Error logging out admin:', error);
+      logger.error('Error logging out admin', error);
     }
   };
 
@@ -186,7 +188,7 @@ const AdminPanel: React.FC = () => {
         alert(`Błąd: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error creating group:', error);
+      logger.error('Error creating group', error);
       alert('Błąd tworzenia grupy');
     } finally {
       setProcessing(null);
@@ -211,7 +213,7 @@ const AdminPanel: React.FC = () => {
         alert(`Błąd: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error deleting group:', error);
+      logger.error('Error deleting group', error);
       alert('Błąd usuwania grupy');
     } finally {
       setProcessing(null);
@@ -247,7 +249,7 @@ const AdminPanel: React.FC = () => {
         alert(`Błąd: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error updating group:', error);
+      logger.error('Error updating group', error);
       alert('Błąd aktualizacji grupy');
     } finally {
       setProcessing(null);
@@ -270,7 +272,7 @@ const AdminPanel: React.FC = () => {
         alert(`Błąd: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error assigning user:', error);
+      logger.error('Error assigning user', error);
       alert('Błąd przypisywania użytkownika');
     } finally {
       setProcessing(null);
@@ -293,7 +295,7 @@ const AdminPanel: React.FC = () => {
         alert(`Błąd: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error removing user from group:', error);
+      logger.error('Error removing user from group', error);
       alert('Błąd usuwania użytkownika z grupy');
     } finally {
       setProcessing(null);
@@ -324,7 +326,7 @@ const AdminPanel: React.FC = () => {
         alert(`Error: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error processing action:', error);
+      logger.error('Error processing action', error);
       alert('Error processing request');
     } finally {
       setProcessing(null);
@@ -353,7 +355,7 @@ const AdminPanel: React.FC = () => {
         alert(`Error: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error removing email from list:', error);
+      logger.error('Error removing email from list', error);
       alert('Error removing email');
     } finally {
       setProcessing(null);
@@ -369,7 +371,7 @@ const AdminPanel: React.FC = () => {
         height: '100vh',
         fontFamily: 'Arial, sans-serif' 
       }}>
-        <div>Sprawdzanie autoryzacji administratora...</div>
+        <div style={{ fontSize: '1.5rem', fontWeight: 100, color: '#666' }}>Sprawdzanie autoryzacji administratora...</div>
       </div>
     );
   }
@@ -380,8 +382,8 @@ const AdminPanel: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div>Ładowanie...</div>
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <div style={{ fontSize: '1.5rem', fontWeight: 100, color: '#666' }}>Ładowanie...</div>
       </div>
     );
   }

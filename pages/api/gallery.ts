@@ -51,8 +51,6 @@ async function galleryHandler(
     const { groupId } = req.query;
     const usePrivateScanning = isFileProtectionEnabled();
     
-    console.log(`📁 File protection enabled: ${usePrivateScanning}`);
-    
     // Funkcja pomocnicza do skanowania (wybiera metodę)
     const scanFolder = async (folder: string): Promise<GalleryFolder[]> => {
       if (usePrivateScanning) {
@@ -87,11 +85,7 @@ async function galleryHandler(
       }
       
       const folder = group.galleryFolder || '';
-      console.log(`📁 Admin preview for group "${group.name}", folder: "${folder}"`);
-      
       const folders = await scanFolder(folder);
-      
-      console.log(`📁 Found ${folders.length} folders`);
       
       if (folders.length === 0) {
         return res.status(200).json({
@@ -127,9 +121,6 @@ async function galleryHandler(
     
     // Użyj folderu z grupy użytkownika
     const folder = userGroup.galleryFolder || '';
-    
-    console.log(`📁 User ${email} (group: ${userGroup.name}) loading gallery from folder: "${folder}"`);
-    
     const folders = await scanFolder(folder);
     
     if (folders.length === 0) {
@@ -144,7 +135,6 @@ async function galleryHandler(
       data: folders
     });
   } catch (error) {
-    console.error('Błąd API:', error);
     res.status(500).json({
       success: false,
       error: 'Błąd podczas skanowania galerii'
@@ -152,5 +142,5 @@ async function galleryHandler(
   }
 }
 
-// Apply rate limiting: 5 requests per minute
-export default withRateLimit(5, 60000)(galleryHandler);
+// Apply rate limiting: 30 requests per minute
+export default withRateLimit(30, 60000)(galleryHandler);

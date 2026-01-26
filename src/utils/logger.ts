@@ -6,7 +6,7 @@ class Logger {
   
   constructor() {
     this.isDev = process.env.NODE_ENV !== 'production';
-    this.level = this.isDev ? 'debug' : 'warn';
+    this.level = this.isDev ? 'warn' : 'error';
   }
   
   private shouldLog(level: LogLevel): boolean {
@@ -22,6 +22,8 @@ class Logger {
   }
   
   private getEmoji(level: LogLevel): string {
+    if (!this.isDev) return ''; // Brak emoji w produkcji
+    
     switch (level) {
       case 'debug': return '🔍';
       case 'info': return 'ℹ️';
@@ -86,9 +88,3 @@ class Logger {
 }
 
 export const logger = new Logger();
-
-// Legacy compatibility functions for gradual migration
-export const logInfo = (message: string, ...args: any[]) => logger.info(message, ...args);
-export const logError = (message: string, ...args: any[]) => logger.error(message, ...args);
-export const logDebug = (message: string, ...args: any[]) => logger.debug(message, ...args);
-export const logWarn = (message: string, ...args: any[]) => logger.warn(message, ...args);

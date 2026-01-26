@@ -11,7 +11,7 @@ const pkgPath = path.join(__dirname, '..', 'package.json');
 const verPath = path.join(__dirname, '..', 'public', 'version.json');
 
 function log(msg) {
-  console.log(`[${new Date().toISOString().substr(11, 8)}] ${msg}`);
+  // Logging disabled for production
 }
 
 function git(cmd) {

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '@/src/utils/logger';
 
 interface CacheClearResponse {
   success: boolean;
@@ -20,7 +21,7 @@ export default async function handler(
   }
 
   try {
-    console.log('🧹 Starting cache clear...');
+    logger.info('Starting cache clear');
     
     const cacheDir = path.join(process.cwd(), 'public', 'cache');
     let filesRemoved = 0;
@@ -40,22 +41,22 @@ export default async function handler(
             const subItemPath = path.join(itemPath, subItem);
             fs.unlinkSync(subItemPath);
             filesRemoved++;
-            console.log(`🗑️ Removed file: ${subItem}`);
+            logger.debug('Removed file', { file: subItem });
           }
           
           // Usuń pusty podfolder
           fs.rmdirSync(itemPath);
-          console.log(`🗑️ Removed directory: ${item}`);
+          logger.debug('Removed directory', { directory: item });
         } else {
           // Usuń plik (manifest, cache-ready.json, etc.)
           fs.unlinkSync(itemPath);
           filesRemoved++;
-          console.log(`🗑️ Removed file: ${item}`);
+          logger.debug('Removed file', { file: item });
         }
       }
     }
 
-    console.log(`✅ Cache cleared successfully. Removed ${filesRemoved} files.`);
+    logger.info('Cache cleared successfully', { filesRemoved });
     
     res.status(200).json({
       success: true,
@@ -64,7 +65,7 @@ export default async function handler(
     });
 
   } catch (error) {
-    console.error('❌ Cache clear error:', error);
+    logger.error('Cache clear error', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
       success: false,

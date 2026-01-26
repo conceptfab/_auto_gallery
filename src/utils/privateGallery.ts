@@ -1,5 +1,6 @@
 import { GalleryFolder, ImageFile } from '@/src/types/gallery';
 import { generateListUrl, generateSignedUrl, isFileProtectionEnabled } from './fileToken';
+import { logger } from './logger';
 
 interface PHPListResponse {
   folders: { name: string; path: string }[];
@@ -13,28 +14,31 @@ interface PHPListResponse {
 async function fetchFolderContents(folder: string): Promise<PHPListResponse | null> {
   try {
     const listUrl = generateListUrl(folder);
-    console.log(`📁 PHP list request: "${folder}"`);
-    console.log(`📁 URL: ${listUrl.substring(0, 100)}...`);
+    logger.debug('PHP list request', { folder, url: listUrl.substring(0, 100) });
     
     const response = await fetch(listUrl);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ PHP error ${response.status}:`, errorText);
+      logger.error('PHP error', { status: response.status, error: errorText });
       return null;
     }
     
     const data: PHPListResponse = await response.json();
-    console.log(`📁 PHP response for "${folder}": ${data.folders?.length || 0} folders, ${data.files?.length || 0} files`);
+    logger.debug('PHP response', { 
+      folder, 
+      foldersCount: data.folders?.length || 0, 
+      filesCount: data.files?.length || 0 
+    });
     
     if (data.error) {
-      console.error(`❌ PHP returned error:`, data.error);
+      logger.error('PHP returned error', { folder, error: data.error });
       return null;
     }
     
     return data;
   } catch (error) {
-    console.error(`❌ Fetch error for "${folder}":`, error);
+    logger.error('Fetch error', { folder, error });
     return null;
   }
 }
@@ -43,10 +47,10 @@ async function fetchFolderContents(folder: string): Promise<PHPListResponse | nu
  * Skanuje prywatny folder galerii przez PHP endpoint
  */
 export async function scanPrivateDirectory(folder: string = '', depth: number = 0): Promise<GalleryFolder[]> {
-  console.log(`📁 scanPrivateDirectory("${folder}", depth=${depth})`);
+  logger.debug('scanPrivateDirectory', { folder, depth });
   
   if (depth > 10) {
-    console.warn(`⚠️ Max depth reached for "${folder}"`);
+    logger.warn('Max depth reached', { folder });
     return [];
   }
   
@@ -66,7 +70,7 @@ export async function scanPrivateDirectory(folder: string = '', depth: number = 
     }));
     
     const folderName = folder ? folder.split('/').pop() || folder : 'Galeria';
-    console.log(`📁 Found ${images.length} images in "${folderName}"`);
+    logger.debug('Found images in folder', { folderName, imagesCount: images.length });
     
     results.push({
       name: folderName,
@@ -80,7 +84,7 @@ export async function scanPrivateDirectory(folder: string = '', depth: number = 
   // Rekurencyjnie skanuj podfoldery
   if (data.folders && data.folders.length > 0) {
     for (const subfolder of data.folders) {
-      console.log(`📁 Scanning subfolder: "${subfolder.path}"`);
+      logger.debug('Scanning subfolder', { path: subfolder.path });
       
       const subResults = await scanPrivateDirectory(subfolder.path, depth + 1);
       
@@ -106,6 +110,6 @@ export async function scanPrivateDirectory(folder: string = '', depth: number = 
     }
   }
   
-  console.log(`📁 scanPrivateDirectory("${folder}") returning ${results.length} results`);
+  logger.debug('scanPrivateDirectory returning results', { folder, resultsCount: results.length });
   return results;
 }

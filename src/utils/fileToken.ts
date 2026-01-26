@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
 // Sekret do generowania tokenów (musi być taki sam jak w PHP)
+// WAŻNE: Ustaw FILE_PROXY_SECRET w env vars!
 const SECRET_KEY = process.env.FILE_PROXY_SECRET || '';
 
 // URL do skryptu proxy na serwerze PHP

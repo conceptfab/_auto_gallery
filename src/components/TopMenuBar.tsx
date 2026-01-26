@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { logger } from '../utils/logger';
 
 interface TopMenuBarProps {
   onRefresh?: () => void;
@@ -33,7 +34,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
       const status: AuthStatus = await response.json();
       setAuthStatus(status);
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      logger.error('Error checking auth status', error);
     }
   };
 
@@ -45,7 +46,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
         setVersionInfo(version);
       }
     } catch (error) {
-      console.error('Error loading version info:', error);
+      logger.error('Error loading version info', error);
     }
   };
 
@@ -70,7 +71,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
         router.push('/login');
       }
     } catch (error) {
-      console.error('Error logging out:', error);
+      logger.error('Error logging out', error);
     }
   };
 

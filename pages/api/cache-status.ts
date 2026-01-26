@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { GALLERY_BASE_URL } from '@/src/config/constants';
+import { logger } from '@/src/utils/logger';
 
 interface CacheManifest {
   generated: string;
@@ -39,7 +40,7 @@ export default async function handler(
   }
 
   try {
-    console.log('🔍 Checking cache status...');
+    logger.debug('Checking cache status');
     
     // Sprawdź czy cache manifest istnieje
     const cacheDir = path.join(process.cwd(), 'public', 'cache');
@@ -51,16 +52,16 @@ export default async function handler(
       try {
         const manifestContent = fs.readFileSync(manifestPath, 'utf8');
         currentCache = JSON.parse(manifestContent);
-        console.log('📄 Found existing cache manifest:', currentCache);
+        logger.debug('Found existing cache manifest', { generated: currentCache.generated, version: currentCache.version });
       } catch (error) {
-        console.error('❌ Error reading cache manifest:', error);
+        logger.error('Error reading cache manifest', error);
         return res.status(200).json({
           needsRefresh: true,
           reason: 'Cache manifest corrupted'
         });
       }
     } else {
-      console.log('❌ No cache manifest found');
+      logger.debug('No cache manifest found');
       return res.status(200).json({
         needsRefresh: true,
         reason: 'No cache exists'
@@ -68,7 +69,7 @@ export default async function handler(
     }
 
     // Skanuj aktualną galerię
-    console.log('🔍 Scanning current gallery structure...');
+    logger.debug('Scanning current gallery structure');
     const currentFolders = await scanRemoteDirectory(GALLERY_BASE_URL);
     
     // Oblicz statystyki aktualnej galerii
@@ -84,7 +85,7 @@ export default async function handler(
     // Generuj hash dla porównania
     const currentHash = generateGalleryHash(currentStats.folderData);
     
-    console.log('📊 Current gallery stats:', {
+    logger.debug('Current gallery stats', {
       folders: currentStats.folders,
       totalImages: currentStats.totalImages,
       hash: currentHash
@@ -92,7 +93,7 @@ export default async function handler(
 
     // Porównaj z cache
     if (currentCache) {
-      console.log('🔍 Comparing with cache...');
+      logger.debug('Comparing with cache');
       
       // Sprawdź hash
       if (currentCache.hash !== currentHash) {
@@ -125,7 +126,7 @@ export default async function handler(
         });
       }
       
-      console.log('✅ Cache is up to date');
+      logger.info('Cache is up to date');
       return res.status(200).json({
         needsRefresh: false,
         reason: 'Cache is up to date',
@@ -145,7 +146,7 @@ export default async function handler(
     });
 
   } catch (error) {
-    console.error('❌ Cache status check error:', error);
+    logger.error('Cache status check error', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       needsRefresh: true,
