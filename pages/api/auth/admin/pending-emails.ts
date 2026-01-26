@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getPendingEmails, getWhitelist, getBlacklist } from '../../../../src/utils/storage';
 import { logger } from '../../../../src/utils/logger';
-import { logger } from '../../../../src/utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
