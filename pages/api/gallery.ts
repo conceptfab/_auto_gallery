@@ -7,6 +7,7 @@ import { getEmailFromCookie } from '@/src/utils/auth';
 import { getUserGroup, getGroupById } from '@/src/utils/storage';
 import { generateSignedUrl, isFileProtectionEnabled } from '@/src/utils/fileToken';
 import { scanPrivateDirectory } from '@/src/utils/privateGallery';
+import { getCachedGallery, setCachedGallery, generateETag } from '@/src/utils/galleryCache';
 
 /**
  * Konwertuje URL-e obrazków na podpisane URL-e (jeśli ochrona jest włączona)
@@ -52,11 +53,21 @@ async function galleryHandler(
     const usePrivateScanning = isFileProtectionEnabled();
     
     // Funkcja pomocnicza do skanowania (wybiera metodę)
-    const scanFolder = async (folder: string): Promise<GalleryFolder[]> => {
+    const scanFolder = async (folder: string, useCache: boolean = true): Promise<GalleryFolder[]> => {
+      // Sprawdź cache tylko dla publicznych galerii (nie dla private scanning)
+      if (useCache && !usePrivateScanning) {
+        const cached = await getCachedGallery(folder, groupId as string | undefined);
+        if (cached) {
+          return cached;
+        }
+      }
+
+      let folders: GalleryFolder[];
+      
       if (usePrivateScanning) {
         // Skanuj przez PHP (prywatne pliki)
         const cleanFolder = folder.replace(/^\//, '').replace(/\/$/, '');
-        return scanPrivateDirectory(cleanFolder);
+        folders = await scanPrivateDirectory(cleanFolder);
       } else {
         // Skanuj przez HTTP (publiczne pliki)
         let galleryUrl: string;
@@ -69,11 +80,21 @@ async function galleryHandler(
           const folderPath = folder.startsWith('/') ? folder.slice(1) : folder;
           galleryUrl = baseUrl + folderPath;
         }
-        const folders = await scanRemoteDirectory(galleryUrl);
-        return convertFolderUrls(folders, galleryUrl);
+        folders = await scanRemoteDirectory(galleryUrl);
+        folders = convertFolderUrls(folders, galleryUrl);
       }
+
+      // Zapisz do cache (tylko dla publicznych galerii)
+      if (!usePrivateScanning) {
+        await setCachedGallery(folder, folders, groupId as string | undefined);
+      }
+
+      return folders;
     };
     
+    let folders: GalleryFolder[];
+    let targetFolder = '';
+
     // Admin może podglądać galerię konkretnej grupy
     if (isAdmin && groupId && typeof groupId === 'string') {
       const group = getGroupById(groupId);
@@ -84,51 +105,56 @@ async function galleryHandler(
         });
       }
       
-      const folder = group.galleryFolder || '';
-      const folders = await scanFolder(folder);
+      targetFolder = group.galleryFolder || '';
+      folders = await scanFolder(targetFolder);
       
       if (folders.length === 0) {
         return res.status(200).json({
           success: false,
-          error: `Brak danych w folderze: ${folder || '/'}`
+          error: `Brak danych w folderze: ${targetFolder || '/'}`
+        });
+      }
+    } else if (isAdmin) {
+      // Admin bez groupId widzi całą galerię
+      targetFolder = '';
+      folders = await scanFolder(targetFolder);
+    } else {
+      // Sprawdź grupę użytkownika
+      const userGroup = email ? getUserGroup(email) : null;
+      
+      if (!userGroup) {
+        return res.status(200).json({
+          success: false,
+          error: 'Nie masz przypisanej grupy. Skontaktuj się z administratorem.'
         });
       }
       
-      return res.status(200).json({
-        success: true,
-        data: folders
-      });
+      // Użyj folderu z grupy użytkownika
+      targetFolder = userGroup.galleryFolder || '';
+      folders = await scanFolder(targetFolder);
+      
+      if (folders.length === 0) {
+        return res.status(200).json({
+          success: false,
+          error: `Brak danych w folderze: ${targetFolder || '/'}`
+        });
+      }
     }
+
+    // Generuj ETag dla cache validation
+    const etag = generateETag(folders);
     
-    // Admin bez groupId widzi całą galerię
-    if (isAdmin) {
-      const folders = await scanFolder('');
-      return res.status(200).json({
-        success: true,
-        data: folders
-      });
+    // Sprawdź If-None-Match header (304 Not Modified)
+    const ifNoneMatch = req.headers['if-none-match'];
+    if (ifNoneMatch === etag || ifNoneMatch === `"${etag}"`) {
+      res.status(304).end();
+      return;
     }
-    
-    // Sprawdź grupę użytkownika
-    const userGroup = email ? getUserGroup(email) : null;
-    
-    if (!userGroup) {
-      return res.status(200).json({
-        success: false,
-        error: 'Nie masz przypisanej grupy. Skontaktuj się z administratorem.'
-      });
-    }
-    
-    // Użyj folderu z grupy użytkownika
-    const folder = userGroup.galleryFolder || '';
-    const folders = await scanFolder(folder);
-    
-    if (folders.length === 0) {
-      return res.status(200).json({
-        success: false,
-        error: `Brak danych w folderze: ${folder || '/'}`
-      });
-    }
+
+    // Ustaw HTTP cache headers
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('ETag', etag);
+    res.setHeader('Vary', 'Cookie'); // Cache różni się w zależności od użytkownika/grupy
     
     res.status(200).json({
       success: true,

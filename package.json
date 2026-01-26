@@ -1,6 +1,6 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "0.37d",
+  "version": "0.37e",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -16,6 +16,7 @@
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@types/nodemailer": "^7.0.5",
     "@types/uuid": "^10.0.0",
+    "@upstash/redis": "^1.36.1",
     "axios": "^1.7.9",
     "form-data": "^4.0.5",
     "line-awesome": "^1.3.0",

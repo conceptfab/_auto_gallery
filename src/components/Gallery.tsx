@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
-import CacheProgress from './CacheProgress';
 import ImageMetadata from './ImageMetadata';
 import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
@@ -107,76 +106,13 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<ImageFile | null>(null);
-  const [showCacheProgress, setShowCacheProgress] = useState(false);
-  const [cacheReady, setCacheReady] = useState(false);
-  const [isForceRefreshing, setIsForceRefreshing] = useState(false);
 
   logger.debug('Gallery component render', { loading, folderCount: folders.length, error });
 
-  const checkCacheAndFetch = async (forceClearCache = false) => {
-    logger.galleryStart('gallery load');
-    setCacheReady(false);
-    
-    try {
-      // If force refresh is requested, clear cache first
-      if (forceClearCache) {
-        logger.cacheStatus('Force refresh - clearing cache');
-        setIsForceRefreshing(true);
-        setLoading(true);
-        setError(null);
-        
-        try {
-          const clearResponse = await fetch('/api/cache-clear', { method: 'POST' });
-          const clearData = await clearResponse.json();
-          
-          if (clearData.success) {
-            logger.cacheStatus('Cache cleared successfully');
-            setIsForceRefreshing(false);
-            // Po wyczyszczeniu cache, pobierz galerię od nowa
-            await fetchGalleryData();
-            return;
-          } else {
-            logger.error('Failed to clear cache', clearData.message);
-            setIsForceRefreshing(false);
-          }
-        } catch (clearError) {
-          logger.error('Error clearing cache', clearError);
-          setIsForceRefreshing(false);
-        }
-      }
-
-      const cacheStatus = await fetch('/api/cache-status');
-      const cacheData = await cacheStatus.json();
-      
-      if (cacheData.needsRefresh) {
-        logger.info('Cache needs refresh - loading gallery without cache');
-        setCacheReady(false);
-        await fetchGalleryData();
-        return;
-      }
-      
-      logger.info('Cache valid, loading gallery with cache');
-      setCacheReady(true);
-      await fetchGalleryData();
-    } catch (error) {
-      logger.error('Cache check error', error);
-      logger.info('Fallback to direct gallery fetch');
-      await fetchGalleryData();
-    }
-  };
-
   useEffect(() => {
     logger.debug('useEffect triggered with refreshKey', { refreshKey });
-    // If refreshKey > 0, it means user clicked refresh button
-    const isForceRefresh = (refreshKey || 0) > 0;
-    checkCacheAndFetch(isForceRefresh);
-  }, [refreshKey]);
-
-  const handleCacheComplete = () => {
-    setCacheReady(true);
-    setShowCacheProgress(false);
     fetchGalleryData();
-  };
+  }, [refreshKey]);
 
   const fetchGalleryData = async () => {
     try {
@@ -199,6 +135,13 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       
       clearTimeout(timeout);
       logger.debug('Response status', { status: response.status });
+      
+      // Obsługa 304 Not Modified
+      if (response.status === 304) {
+        logger.info('Gallery not modified - using cached data');
+        setLoading(false);
+        return;
+      }
       
       if (!response.ok) {
         throw new Error(`API returned ${response.status}`);
@@ -244,11 +187,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   };
 
   if (loading) {
-    const loadingMessage = isForceRefreshing 
-      ? 'Odświeżanie galerii - czyszczenie cache...' 
-      : 'Ładowanie galerii...';
-    
-    return <LoadingOverlay message={loadingMessage} />;
+    return <LoadingOverlay message="Ładowanie galerii..." />;
   }
 
   if (error) {
@@ -264,10 +203,6 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
 
   return (
     <>
-      {showCacheProgress && (
-        <CacheProgress onComplete={handleCacheComplete} />
-      )}
-
       {folders.length === 0 ? (
         <div className="no-images">
           <p>Nie znaleziono obrazów w galerii</p>
