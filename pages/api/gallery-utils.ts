@@ -235,59 +235,14 @@ async function scanDirectoryRecursive(url: string, currentDepth: number, maxDept
   }
 }
 
-/**
- * Waliduje URL galerii - tylko dozwolone ścieżki
- */
+// URL validation function
 function validateGalleryUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
-    
-    // Sprawdź protokół - tylko HTTPS
-    if (parsedUrl.protocol !== 'https:') {
-      return false;
-    }
-    
-    // Sprawdź host - tylko conceptfab.com
-    if (parsedUrl.hostname !== 'conceptfab.com') {
-      return false;
-    }
-    
-    // Sprawdź ścieżkę - musi zaczynać się od /__metro/gallery/
-    if (!parsedUrl.pathname.startsWith('/__metro/gallery/')) {
-      return false;
-    }
-    
-    // Blokuj path traversal
-    if (parsedUrl.pathname.includes('..')) {
-      return false;
-    }
-    
-    // Blokuj podwójne slashe (mogą być użyte do obejścia walidacji)
-    if (parsedUrl.pathname.includes('//')) {
-      return false;
-    }
-    
-    // Blokuj niebezpieczne znaki w ścieżce
-    if (/[<>"|?*]/.test(parsedUrl.pathname)) {
-      return false;
-    }
-    
-    // Blokuj query params (mogą być użyte do injection)
-    if (parsedUrl.search.length > 0) {
-      return false;
-    }
-    
-    // Blokuj fragmenty
-    if (parsedUrl.hash.length > 0) {
-      return false;
-    }
-    
-    // Maksymalna długość ścieżki
-    if (parsedUrl.pathname.length > 500) {
-      return false;
-    }
-    
-    return true;
+    // Only allow HTTPS and specific conceptfab.com domain
+    return parsedUrl.protocol === 'https:' && 
+           parsedUrl.hostname === 'conceptfab.com' &&
+           parsedUrl.pathname.startsWith('/__metro/gallery/');
   } catch {
     return false;
   }

@@ -9,8 +9,6 @@ import {
   addActiveCode,
   cleanupExpiredCodes
 } from '../../../src/utils/storage';
-import { logger } from '../../../src/utils/logger';
-import { LOGIN_CODE_EXPIRY_MINUTES } from '../../../src/config/constants';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -42,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (whitelist.includes(email)) {
       // Email jest na białej liście - wygeneruj i wyślij kod od razu
       const code = generateCode();
-      const expiresAt = new Date(Date.now() + LOGIN_CODE_EXPIRY_MINUTES * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minut
       
       const loginCode: LoginCode = {
         email,
@@ -56,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Wyślij kod na email
       try {
         await sendLoginCode(email, code);
-        logger.info('Kod wysłany do użytkownika z białej listy', { email });
+        console.log('✅ Kod wysłany automatycznie do użytkownika z białej listy:', email);
         
         res.status(200).json({ 
           message: 'Code sent to your email',
@@ -64,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         return;
       } catch (emailError) {
-        logger.error('Błąd wysyłania kodu do użytkownika', emailError);
+        console.error('❌ Błąd wysyłania kodu do użytkownika:', emailError);
         return res.status(500).json({ error: 'Failed to send code' });
       }
     }
@@ -84,14 +82,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     addPendingEmail(email, ipString);
     
     const updatedPendingEmails = getPendingEmails();
-    logger.debug('Dodano pending email', { email, totalPending: updatedPendingEmails.length });
+    console.log('📧 Dodano pending email:', email, 'Total pending:', updatedPendingEmails.length);
 
     // Wyślij powiadomienie do admina
     try {
       await sendAdminNotification(email, ipString);
-      logger.info('Email do admina wysłany');
+      console.log('✅ Email do admina wysłany pomyślnie');
     } catch (emailError) {
-      logger.error('Błąd wysyłania emaila do admina', { error: emailError, email });
+      console.error('❌ Błąd wysyłania emaila do admina:', emailError);
       // Nie przerywaj procesu - pending email został już dodany
     }
 
@@ -101,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    logger.error('Error processing login request', error);
+    console.error('Error processing login request:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

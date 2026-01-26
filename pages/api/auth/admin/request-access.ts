@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { sendAdminLoginCode } from '../../../../src/utils/email';
 import { addAdminCode, cleanupExpiredAdminCodes } from '../../../../src/utils/storage';
 import { LoginCode } from '../../../../src/types/auth';
-import { logger } from '../../../../src/utils/logger';
-import { ADMIN_EMAIL, LOGIN_CODE_EXPIRY_MINUTES } from '../../../../src/config/constants';
+
+import { ADMIN_EMAIL } from '../../../../src/config/constants';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Wygeneruj kod dla administratora
     const code = generateCode();
-    const expiresAt = new Date(Date.now() + LOGIN_CODE_EXPIRY_MINUTES * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minut
     
     const adminCode: LoginCode = {
       email,
@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Próbuj wysłać kod na email administratora
     try {
       await sendAdminAccessCode(email, code);
-      logger.info('Kod administratora wysłany na email', { email });
+      console.log('✅ Kod administratora wysłany na email:', email);
       
       res.status(200).json({ 
         message: 'Admin access code sent to email',
@@ -49,12 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         expiresAt 
       });
     } catch (emailError) {
-      logger.error('Błąd wysyłania kodu administratora', { error: emailError });
-      // Nie loguj kodu awaryjnego - zapisz go tylko w bezpiecznym miejscu
-      logger.warn('Email server unavailable - emergency mode activated');
+      console.error('❌ Błąd wysyłania kodu administratora:', emailError);
+      console.log('🆘 Używaj kodu awaryjnego:', process.env.ADMIN_EMERGENCY_CODE);
       
       res.status(200).json({ 
-        message: 'Email server unavailable. Contact system administrator.',
+        message: 'Email server unavailable. Use emergency code.',
         email,
         expiresAt,
         emergencyMode: true
@@ -62,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
   } catch (error) {
-    logger.error('Error generating admin code', error);
+    console.error('Error generating admin code:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

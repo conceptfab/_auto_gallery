@@ -2,10 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { LoginRequest } from '../../../src/types/auth';
 import { getActiveCode, removeActiveCode, cleanupExpiredCodes } from '../../../src/utils/storage';
 import { loginUser, setAuthCookie } from '../../../src/utils/auth';
-import { withRateLimit } from '../../../src/utils/rateLimiter';
-import { logger } from '../../../src/utils/logger';
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -51,10 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
   } catch (error) {
-    logger.error('Error verifying code', error);
+    console.error('Error verifying code:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
-
-// 10 prób na minutę na weryfikację kodu użytkownika
-export default withRateLimit(10, 60000)(handler);

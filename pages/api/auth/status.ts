@@ -8,11 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Wyłącz cache dla statusu autoryzacji - musi być zawsze aktualny
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-
   const email = getEmailFromCookie(req);
   
   if (!email) {

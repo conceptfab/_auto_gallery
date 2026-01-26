@@ -54,10 +54,11 @@ async function galleryHandler(
     
     // Funkcja pomocnicza do skanowania (wybiera metodę)
     const scanFolder = async (folder: string, useCache: boolean = true): Promise<GalleryFolder[]> => {
+      // TYMCZASOWO WYŁĄCZONY CACHE - sprawdzamy czy to nie jest problem
       // Sprawdź cache ZAWSZE (dla obu trybów - publicznych i prywatnych)
-      if (useCache) {
+      if (useCache && false) { // TYMCZASOWO WYŁĄCZONE
         const cached = await getCachedGallery(folder, groupId as string | undefined);
-        if (cached) {
+        if (cached && cached.length > 0) { // Tylko jeśli cache ma dane
           return cached;
         }
       }
@@ -84,8 +85,10 @@ async function galleryHandler(
         folders = convertFolderUrls(folders, galleryUrl);
       }
 
-      // Zapisz do cache ZAWSZE (dla obu trybów)
-      await setCachedGallery(folder, folders, groupId as string | undefined);
+      // Zapisz do cache ZAWSZE (dla obu trybów) - tylko jeśli są dane
+      if (folders && folders.length > 0) {
+        await setCachedGallery(folder, folders, groupId as string | undefined);
+      }
 
       return folders;
     };
@@ -131,12 +134,21 @@ async function galleryHandler(
       targetFolder = userGroup.galleryFolder || '';
       folders = await scanFolder(targetFolder);
       
+      // Dla zwykłego użytkownika, jeśli brak danych, zwróć błąd
       if (folders.length === 0) {
         return res.status(200).json({
           success: false,
           error: `Brak danych w folderze: ${targetFolder || '/'}`
         });
       }
+    }
+    
+    // Sprawdź czy są jakieś dane - jeśli nie, zwróć błąd
+    if (!folders || folders.length === 0) {
+      return res.status(200).json({
+        success: false,
+        error: 'Brak danych w galerii'
+      });
     }
 
     // Generuj ETag dla cache validation

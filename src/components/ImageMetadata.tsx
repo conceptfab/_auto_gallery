@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 
 interface ImageMetadataProps {
   src: string;
@@ -13,23 +14,53 @@ const ImageMetadata: React.FC<ImageMetadataProps> = ({ src, fileSize, lastModifi
     height?: number;
     fileSize?: number;
   }>({ fileSize });
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    // Jeśli nie ma src lub jest to URL file-proxy.php, pomiń ładowanie metadanych
+    if (!src || src.includes('file-proxy.php')) {
+      return;
+    }
+
     const img = new Image();
+    let isMounted = true;
     
     img.onload = () => {
+      if (!isMounted) return;
+      
       const width = img.naturalWidth;
       const height = img.naturalHeight;
       
-      setMetadata(prev => ({ ...prev, width, height }));
-      onMetadataLoaded?.(width, height, fileSize);
+      // Sprawdź czy obraz faktycznie się załadował (nie jest 0x0)
+      if (width > 0 && height > 0) {
+        setMetadata(prev => ({ ...prev, width, height }));
+        onMetadataLoaded?.(width, height, fileSize);
+        setLoadError(false);
+      }
     };
     
     img.onerror = () => {
-      console.warn('Failed to load image metadata for:', src);
+      if (!isMounted) return;
+      setLoadError(true);
+      logger.debug('Failed to load image metadata', { src: src.substring(0, 100) });
     };
     
+    // Ustaw timeout - jeśli obraz nie załaduje się w 5 sekund, przerwij
+    const timeout = setTimeout(() => {
+      if (!isMounted) return;
+      setLoadError(true);
+      logger.debug('Image metadata load timeout', { src: src.substring(0, 100) });
+    }, 5000);
+    
     img.src = src;
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+    };
   }, [src, fileSize, onMetadataLoaded]);
 
   const formatFileSize = (bytes: number): string => {

@@ -3,48 +3,6 @@ import path from 'path';
 
 // Trwałe przechowywanie danych w plikach JSON
 
-// ==================== WALIDACJA I SANITYZACJA ====================
-
-const LIMITS = {
-  MAX_PENDING_EMAILS: 1000,
-  MAX_WHITELIST: 10000,
-  MAX_BLACKLIST: 10000,
-  MAX_GROUPS: 500,
-  MAX_USERS_PER_GROUP: 1000,
-  MAX_ACTIVE_CODES: 5000,
-  MAX_LOGGED_IN_USERS: 10000
-};
-
-function isValidEmail(email: string): boolean {
-  if (!email || typeof email !== 'string') return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
-}
-
-function sanitizeEmail(email: string): string {
-  if (!email || typeof email !== 'string') return '';
-  return email.toLowerCase().trim().substring(0, 254);
-}
-
-function sanitizeIp(ip: string): string {
-  if (!ip || typeof ip !== 'string') return 'unknown';
-  // Tylko dozwolone znaki w IP (IPv4, IPv6, forwarded)
-  return ip.replace(/[^a-fA-F0-9.:,\s]/g, '').substring(0, 100);
-}
-
-function sanitizeGroupId(id: string): string {
-  if (!id || typeof id !== 'string') return '';
-  return id.trim().replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
-}
-
-function sanitizeFolderPath(path: string): string {
-  if (!path || typeof path !== 'string') return '';
-  return path.trim()
-    .replace(/\.\./g, '')  // Blokuj path traversal
-    .replace(/[^a-zA-Z0-9/_-]/g, '')
-    .substring(0, 200);
-}
-
 export interface PendingEmail {
   email: string;
   timestamp: Date;
@@ -139,29 +97,8 @@ function updateData(updater: (data: StorageData) => void): void {
 
 // Funkcje pomocnicze
 export function addPendingEmail(email: string, ip: string): void {
-  const sanitizedEmail = sanitizeEmail(email);
-  if (!isValidEmail(sanitizedEmail)) {
-    throw new Error('Invalid email format');
-  }
-  
-  const sanitizedIp = sanitizeIp(ip);
-  
   updateData((data) => {
-    // Sprawdź limit
-    const pendingCount = Object.keys(data.pendingEmails).length;
-    if (pendingCount >= LIMITS.MAX_PENDING_EMAILS) {
-      // Usuń najstarszy wpis
-      const entries = Object.entries(data.pendingEmails)
-        .sort(([,a], [,b]) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-      if (entries.length > 0) {
-        delete data.pendingEmails[entries[0][0]];
-      }
-    }
-    
-    data.pendingEmails[sanitizedEmail] = { 
-      timestamp: new Date().toISOString(), 
-      ip: sanitizedIp 
-    };
+    data.pendingEmails[email] = { timestamp: new Date().toISOString(), ip };
   });
 }
 
@@ -181,33 +118,17 @@ export function getPendingEmails(): PendingEmail[] {
 }
 
 export function addToWhitelist(email: string): void {
-  const sanitizedEmail = sanitizeEmail(email);
-  if (!isValidEmail(sanitizedEmail)) {
-    throw new Error('Invalid email format');
-  }
-  
   updateData((data) => {
-    if (data.whitelist.length >= LIMITS.MAX_WHITELIST) {
-      throw new Error('Whitelist limit reached');
-    }
-    if (!data.whitelist.includes(sanitizedEmail)) {
-      data.whitelist.push(sanitizedEmail);
+    if (!data.whitelist.includes(email)) {
+      data.whitelist.push(email);
     }
   });
 }
 
 export function addToBlacklist(email: string): void {
-  const sanitizedEmail = sanitizeEmail(email);
-  if (!isValidEmail(sanitizedEmail)) {
-    throw new Error('Invalid email format');
-  }
-  
   updateData((data) => {
-    if (data.blacklist.length >= LIMITS.MAX_BLACKLIST) {
-      throw new Error('Blacklist limit reached');
-    }
-    if (!data.blacklist.includes(sanitizedEmail)) {
-      data.blacklist.push(sanitizedEmail);
+    if (!data.blacklist.includes(email)) {
+      data.blacklist.push(email);
     }
   });
 }
@@ -366,32 +287,16 @@ export function getGroupById(id: string): UserGroup | undefined {
 }
 
 export function createGroup(name: string, clientName: string, galleryFolder: string): UserGroup {
-  // Walidacja
-  if (!name || typeof name !== 'string' || name.trim().length === 0) {
-    throw new Error('Group name is required');
-  }
-  if (!clientName || typeof clientName !== 'string' || clientName.trim().length === 0) {
-    throw new Error('Client name is required');
-  }
-  if (!galleryFolder || typeof galleryFolder !== 'string') {
-    throw new Error('Gallery folder is required');
-  }
-  
   const newGroup: UserGroup = {
     id: generateGroupId(),
-    name: name.trim().substring(0, 100),
-    clientName: clientName.trim().substring(0, 100),
-    galleryFolder: sanitizeFolderPath(galleryFolder),
+    name,
+    clientName,
+    galleryFolder,
     users: []
   };
   
   updateData((data) => {
     if (!data.groups) data.groups = [];
-    
-    if (data.groups.length >= LIMITS.MAX_GROUPS) {
-      throw new Error('Groups limit reached');
-    }
-    
     data.groups.push(newGroup);
   });
   
@@ -429,34 +334,19 @@ export function deleteGroup(id: string): boolean {
 }
 
 export function addUserToGroup(groupId: string, email: string): boolean {
-  const sanitizedGroupId = sanitizeGroupId(groupId);
-  const sanitizedEmail = sanitizeEmail(email);
-  
-  if (!sanitizedGroupId) {
-    throw new Error('Invalid group ID');
-  }
-  if (!isValidEmail(sanitizedEmail)) {
-    throw new Error('Invalid email format');
-  }
-  
   let added = false;
   
   updateData((data) => {
     // Usuń użytkownika z innych grup
     data.groups?.forEach(g => {
-      g.users = g.users.filter(u => u !== sanitizedEmail);
+      g.users = g.users.filter(u => u !== email);
     });
     
     // Dodaj do wybranej grupy
-    const group = data.groups?.find(g => g.id === sanitizedGroupId);
-    if (group) {
-      if (group.users.length >= LIMITS.MAX_USERS_PER_GROUP) {
-        throw new Error('Group users limit reached');
-      }
-      if (!group.users.includes(sanitizedEmail)) {
-        group.users.push(sanitizedEmail);
-        added = true;
-      }
+    const group = data.groups?.find(g => g.id === groupId);
+    if (group && !group.users.includes(email)) {
+      group.users.push(email);
+      added = true;
     }
   });
   

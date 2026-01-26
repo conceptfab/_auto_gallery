@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getPendingEmails, getWhitelist, getBlacklist } from '../../../../src/utils/storage';
-import { logger } from '../../../../src/utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -12,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const whitelist = getWhitelist();
     const blacklist = getBlacklist();
     
-    logger.debug('Pobieranie pending emails', { count: pending.length });
+    console.log('📋 Pobieranie pending emails:', pending.length, 'wniosków');
 
     res.status(200).json({
       pending,
@@ -21,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    logger.error('Error fetching pending emails', error);
+    console.error('Error fetching pending emails:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

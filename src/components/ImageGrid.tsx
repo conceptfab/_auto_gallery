@@ -62,7 +62,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, folderName 
                 <i className="las la-download"></i>
               </button>
             </div>
-            <ImageMetadata src={image.url} fileSize={image.fileSize} lastModified={image.lastModified} />
+            <ImageMetadata 
+              src={getOptimizedImageUrl(image, 'thumb')} 
+              fileSize={image.fileSize} 
+              lastModified={image.lastModified} 
+            />
           </div>
         </div>
       ))}

@@ -1,7 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { logoutAdmin } from '../../../../src/utils/storage';
-import { getAdminEmailFromCookie } from '../../../../src/utils/auth';
-import { logger } from '../../../../src/utils/logger';
+import { ADMIN_EMAIL } from '../../../../src/config/constants';
+
+function getAdminEmailFromCookie(req: NextApiRequest): string | null {
+  const cookies = req.headers.cookie;
+  if (!cookies) return null;
+  
+  const emailMatch = cookies.match(/admin_email=([^;]*)/);
+  const loggedMatch = cookies.match(/admin_logged=([^;]*)/);
+  
+  if (emailMatch && loggedMatch && loggedMatch[1] === 'true' && emailMatch[1] === ADMIN_EMAIL) {
+    return emailMatch[1];
+  }
+  
+  return null;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -13,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (email) {
       logoutAdmin(email);
-      logger.info('Administrator wylogowany', { email });
+      console.log('👑 Administrator wylogowany:', email);
     }
     
     // Wyczyść admin cookies
@@ -28,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    logger.error('Error during admin logout', error);
+    console.error('Error during admin logout:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
