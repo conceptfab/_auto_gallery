@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Persistent data storage
 /data/*.json
+
+# PHP files with secrets (deploy manually to server)
+/public/*.php

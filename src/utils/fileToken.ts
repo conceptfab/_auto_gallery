@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 // Sekret do generowania tokenów (musi być taki sam jak w PHP)
-const SECRET_KEY = process.env.FILE_PROXY_SECRET || 'ZMIEN_NA_BEZPIECZNY_SEKRET_MIN_32_ZNAKI';
+const SECRET_KEY = process.env.FILE_PROXY_SECRET || '';
 
 // URL do skryptu proxy na serwerze PHP
 const FILE_PROXY_URL = process.env.FILE_PROXY_URL || 'https://conceptfab.com/file-proxy.php';

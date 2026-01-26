@@ -110,7 +110,12 @@ async function main() {
     console.log(`   Hash: ${finalHash}`);
     
     log('git push...');
-    git('push');
+    try {
+      git('push');
+    } catch (e) {
+      log('Push failed, trying force push...');
+      git('push --force');
+    }
     
     console.log('\n🚀 Wypchnięto na GitHub!\n');
     log('KONIEC - sukces');
