@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import path from 'path';
 
 // Trwałe przechowywanie danych w plikach JSON
@@ -99,6 +100,53 @@ export function updateData(updater: (data: StorageData) => void): void {
   updater(data);
   cachedData = data;
   saveData(data);
+}
+
+// Asynchroniczna wersja z lockiem - zapobiega race condition
+let writeLock = false;
+const writeQueue: (() => void)[] = [];
+
+async function processWriteQueue() {
+  if (writeLock || writeQueue.length === 0) return;
+
+  writeLock = true;
+  const task = writeQueue.shift();
+  if (task) {
+    await task();
+  }
+  writeLock = false;
+  processWriteQueue();
+}
+
+export async function updateDataAsync(
+  updater: (data: StorageData) => void,
+): Promise<void> {
+  return new Promise((resolve) => {
+    writeQueue.push(async () => {
+      const data = getData();
+      updater(data);
+      cachedData = data;
+      await saveDataAsync(data);
+      resolve();
+    });
+    processWriteQueue();
+  });
+}
+
+async function saveDataAsync(data: StorageData): Promise<void> {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      await fsPromises.mkdir(dir, { recursive: true });
+    }
+    // Zapisz do pliku tymczasowego i zamień atomowo
+    const tempFile = DATA_FILE + '.tmp';
+    await fsPromises.writeFile(tempFile, JSON.stringify(data, null, 2));
+    await fsPromises.rename(tempFile, DATA_FILE);
+  } catch (error) {
+    console.error('❌ Błąd zapisywania danych:', error);
+    throw error;
+  }
 }
 
 // Funkcje pomocnicze

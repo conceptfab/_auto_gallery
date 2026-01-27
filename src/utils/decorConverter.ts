@@ -1,4 +1,5 @@
 import { ImageFile } from '@/src/types/gallery';
+import { logger } from '@/src/utils/logger';
 
 interface DecorMap {
   stelaż: {
@@ -22,22 +23,27 @@ class DecorConverter {
 
     try {
       const response = await fetch('/decor-conversion.json?t=' + Date.now());
-      this.table = await response.json();
-      return this.table!;
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Walidacja struktury
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid JSON structure');
+      }
+
+      this.table = data;
+      return this.table;
     } catch (error) {
-      console.error('Błąd ładowania tabeli:', error);
-      // Fallback
+      logger.error('Błąd ładowania tabeli dekorów', error);
+
+      // Zwróć pusty fallback zamiast hardcoded danych
       this.table = {
-        stelaż: {
-          white: 'white_RAL9003.webp',
-          grey: 'grey_RAL9006.webp',
-          black: 'black_RAL9005.webp',
-        },
-        blat: {
-          W210: 'W210.webp',
-          W240: 'W240.webp',
-          W250: 'W250.webp',
-        },
+        stelaż: {},
+        blat: {},
       };
       return this.table;
     }
@@ -243,7 +249,7 @@ class DecorConverter {
       position: number;
     }> = [];
 
-    console.log(`🔍 findAllKeywordImages dla "${imageName}"`, {
+    logger.debug('findAllKeywordImages', imageName, {
       kolorystykaImagesCount: kolorystykaImages.length,
       stelażKeywords: table.stelaż ? Object.keys(table.stelaż) : [],
       blatKeywords: table.blat ? Object.keys(table.blat) : [],
@@ -286,8 +292,12 @@ class DecorConverter {
       if (match) {
         const position = match.index;
         foundKeywords.push({ keyword, fileName, position });
-        console.log(
-          `  ✅ Znaleziono słowo kluczowe "${keyword}" w "${imageName}" na pozycji ${position} -> szukam pliku "${fileName}"`,
+        logger.debug(
+          'Znaleziono słowo kluczowe',
+          keyword,
+          imageName,
+          position,
+          fileName,
         );
       }
     }
@@ -300,20 +310,22 @@ class DecorConverter {
     for (const { keyword, fileName } of foundKeywords) {
       const image = kolorystykaImages.find((img) => img.name === fileName);
       if (image) {
-        console.log(
-          `    ✅ Znaleziono obraz: ${image.name} dla słowa "${keyword}"`,
-        );
+        logger.debug('Znaleziono obraz dla słowa', image.name, keyword);
         results.push({ keyword, image });
       } else {
-        console.log(
-          `    ❌ Nie znaleziono obrazu "${fileName}" w kolorystykaImages. Dostępne pliki:`,
+        logger.debug(
+          'Nie znaleziono obrazu w kolorystykaImages',
+          fileName,
           kolorystykaImages.map((img) => img.name),
         );
       }
     }
 
-    console.log(
-      `📊 findAllKeywordImages zwraca ${results.length} wyników dla "${imageName}" w kolejności:`,
+    logger.debug(
+      'findAllKeywordImages zwraca',
+      results.length,
+      'wyników dla',
+      imageName,
       results.map((r) => r.keyword),
     );
     return results;
@@ -357,18 +369,23 @@ class DecorConverter {
 
       if (found) {
         foundKeywords.push(keyword);
-        console.log(
-          `  ✅ findKeywordsInName: znaleziono "${keyword}" w "${imageName}"`,
-        );
+        logger.debug('findKeywordsInName: znaleziono', keyword, 'w', imageName);
       } else {
-        console.log(
-          `  ❌ findKeywordsInName: NIE znaleziono "${keyword}" w "${imageName}"`,
+        logger.debug(
+          'findKeywordsInName: NIE znaleziono',
+          keyword,
+          'w',
+          imageName,
         );
       }
     }
 
-    console.log(
-      `📊 findKeywordsInName dla "${imageName}": znaleziono ${foundKeywords.length} słów:`,
+    logger.debug(
+      'findKeywordsInName dla',
+      imageName,
+      'znaleziono',
+      foundKeywords.length,
+      'słów:',
       foundKeywords,
     );
     return foundKeywords;

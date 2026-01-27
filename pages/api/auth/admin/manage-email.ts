@@ -1,22 +1,34 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { sendLoginCode } from '../../../../src/utils/email';
 import { AdminAction, LoginCode } from '../../../../src/types/auth';
-import { 
-  removePendingEmail, 
-  addToWhitelist, 
-  addToBlacklist, 
+import {
+  removePendingEmail,
+  addToWhitelist,
+  addToBlacklist,
   addActiveCode,
   cleanupExpiredCodes,
-  getPendingEmails
+  getPendingEmails,
 } from '../../../../src/utils/storage';
+import { getEmailFromCookie } from '../../../../src/utils/auth';
+import { ADMIN_EMAIL } from '../../../../src/config/constants';
+import { isAdminLoggedIn } from '../../../../src/utils/storage';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Sprawdź autoryzację admina
+  const email = getEmailFromCookie(req);
+  if (email !== ADMIN_EMAIL || !isAdminLoggedIn(email)) {
+    return res.status(403).json({ error: 'Admin access required' });
   }
 
   try {
@@ -30,23 +42,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const pendingEmails = getPendingEmails();
-    if (!pendingEmails.some(p => p.email === email)) {
-      return res.status(404).json({ error: 'Email not found in pending requests' });
+    if (!pendingEmails.some((p) => p.email === email)) {
+      return res
+        .status(404)
+        .json({ error: 'Email not found in pending requests' });
     }
 
     if (action === 'approve') {
       // Dodaj do whitelist
       addToWhitelist(email);
-      
+
       // Wygeneruj kod
       const code = generateCode();
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minut
-      
+
       const loginCode: LoginCode = {
         email,
         code,
         expiresAt,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       addActiveCode(email, loginCode);
@@ -57,28 +71,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Usuń z pending
       removePendingEmail(email);
 
-      res.status(200).json({ 
+      res.status(200).json({
         message: 'Email approved and code sent',
         email,
-        expiresAt 
+        expiresAt,
       });
-
     } else if (action === 'reject') {
       // Dodaj do blacklist
       addToBlacklist(email);
-      
+
       // Usuń z pending
       removePendingEmail(email);
 
-      res.status(200).json({ 
+      res.status(200).json({
         message: 'Email rejected and added to blacklist',
-        email 
+        email,
       });
-
     } else {
       res.status(400).json({ error: 'Invalid action' });
     }
-
   } catch (error) {
     console.error('Error managing email:', error);
     res.status(500).json({ error: 'Internal server error' });

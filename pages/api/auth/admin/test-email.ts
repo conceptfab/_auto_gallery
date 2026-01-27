@@ -1,23 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { sendLoginCode } from '../../../../src/utils/email';
+import { getAdminEmailFromCookie } from '../../../../src/utils/auth';
+import { logger } from '../../../../src/utils/logger';
 
-import { ADMIN_EMAIL } from '../../../../src/config/constants';
-
-function getAdminEmailFromCookie(req: NextApiRequest): string | null {
-  const cookies = req.headers.cookie;
-  if (!cookies) return null;
-  
-  const emailMatch = cookies.match(/admin_email=([^;]*)/);
-  const loggedMatch = cookies.match(/admin_logged=([^;]*)/);
-  
-  if (emailMatch && loggedMatch && loggedMatch[1] === 'true' && emailMatch[1] === ADMIN_EMAIL) {
-    return emailMatch[1];
-  }
-  
-  return null;
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -32,25 +21,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { testEmail } = req.body;
     const emailToTest = testEmail || adminEmail;
 
-    console.log('🧪 Test emaila na adres:', emailToTest);
+    logger.debug('Test emaila na adres:', emailToTest);
 
     // Wyślij testowy email
     const testCode = 'TEST123';
     await sendLoginCode(emailToTest, testCode);
 
-    console.log('✅ Email testowy wysłany pomyślnie');
+    logger.info('Email testowy wysłany pomyślnie');
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Test email sent successfully',
       sentTo: emailToTest,
-      testCode: testCode
+      testCode: testCode,
     });
-
   } catch (error) {
-    console.error('❌ Błąd wysyłania testu emaila:', error);
-    res.status(500).json({ 
+    logger.error('Błąd wysyłania testu emaila', error);
+    res.status(500).json({
       error: 'Failed to send test email',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }

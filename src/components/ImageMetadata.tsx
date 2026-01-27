@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '@/src/utils/logger';
 
 interface ImageMetadataProps {
   src: string;
@@ -7,7 +8,12 @@ interface ImageMetadataProps {
   onMetadataLoaded?: (width: number, height: number, fileSize?: number) => void;
 }
 
-const ImageMetadata: React.FC<ImageMetadataProps> = ({ src, fileSize, lastModified, onMetadataLoaded }) => {
+const ImageMetadata: React.FC<ImageMetadataProps> = ({
+  src,
+  fileSize,
+  lastModified,
+  onMetadataLoaded,
+}) => {
   const [metadata, setMetadata] = useState<{
     width?: number;
     height?: number;
@@ -16,19 +22,19 @@ const ImageMetadata: React.FC<ImageMetadataProps> = ({ src, fileSize, lastModifi
 
   useEffect(() => {
     const img = new Image();
-    
+
     img.onload = () => {
       const width = img.naturalWidth;
       const height = img.naturalHeight;
-      
-      setMetadata(prev => ({ ...prev, width, height }));
+
+      setMetadata((prev) => ({ ...prev, width, height }));
       onMetadataLoaded?.(width, height, fileSize);
     };
-    
+
     img.onerror = () => {
-      console.warn('Failed to load image metadata for:', src);
+      logger.warn('Failed to load image metadata for:', src);
     };
-    
+
     img.src = src;
   }, [src, fileSize, onMetadataLoaded]);
 
@@ -50,21 +56,28 @@ const ImageMetadata: React.FC<ImageMetadataProps> = ({ src, fileSize, lastModifi
       return date.toLocaleDateString('pl-PL', {
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit'
+        day: '2-digit',
       });
     } catch (error) {
       return '';
     }
   };
 
-  if (!metadata.width && !metadata.height && !metadata.fileSize && !lastModified) {
+  if (
+    !metadata.width &&
+    !metadata.height &&
+    !metadata.fileSize &&
+    !lastModified
+  ) {
     return null;
   }
 
   return (
     <span className="image-metadata">
       {metadata.width && metadata.height && (
-        <span className="resolution">{formatResolution(metadata.width, metadata.height)}</span>
+        <span className="resolution">
+          {formatResolution(metadata.width, metadata.height)}
+        </span>
       )}
       {metadata.fileSize && (
         <span className="file-size">{formatFileSize(metadata.fileSize)}</span>

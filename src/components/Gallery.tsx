@@ -38,12 +38,14 @@ const FolderSection: React.FC<FolderSectionProps> = ({
     const kolorystykaImages = kolorystykaFolder?.images || [];
 
     if (kolorystykaImages.length > 0) {
-      console.log(
-        `🎨 Gallery - Znaleziono folder Kolorystyka z ${kolorystykaImages.length} obrazami`,
+      logger.debug(
+        'Gallery - Znaleziono folder Kolorystyka z',
+        kolorystykaImages.length,
+        'obrazami',
       );
     } else {
-      console.log(
-        `⚠️ Gallery - Brak folderu Kolorystyka lub jest pusty. Dostępne foldery:`,
+      logger.debug(
+        'Gallery - Brak folderu Kolorystyka lub jest pusty. Dostępne foldery:',
         allFolders.map((f) => f.name),
       );
     }
@@ -250,11 +252,20 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   };
 
   const showAdjacentImage = (direction: 1 | -1) => {
-    if (!currentImageList.length || currentImageIndex === null) return;
+    if (currentImageList.length === 0 || currentImageIndex === null) return;
+
     const count = currentImageList.length;
-    const newIndex = (currentImageIndex + direction + count) % count; // pętla
-    setCurrentImageIndex(newIndex);
-    setSelectedImage(currentImageList[newIndex]);
+    let newIndex = currentImageIndex + direction;
+
+    // Obsługa pętli
+    if (newIndex < 0) newIndex = count - 1;
+    if (newIndex >= count) newIndex = 0;
+
+    const newImage = currentImageList[newIndex];
+    if (newImage) {
+      setCurrentImageIndex(newIndex);
+      setSelectedImage(newImage);
+    }
   };
 
   const closeModal = () => {

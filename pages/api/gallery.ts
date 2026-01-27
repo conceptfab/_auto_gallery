@@ -15,6 +15,7 @@ import {
   setCachedGallery,
   generateETag,
 } from '@/src/utils/galleryCache';
+import { logger } from '@/src/utils/logger';
 
 /**
  * Konwertuje URL-e obrazków na podpisane URL-e (jeśli ochrona jest włączona)
@@ -50,24 +51,29 @@ function convertFolderUrls(
  */
 function collectDecorsImages(folders: GalleryFolder[]): ImageFile[] {
   const decorsImages: ImageFile[] = [];
-  
+
   const search = (folderList: GalleryFolder[]) => {
     for (const folder of folderList) {
-      console.log(`🔍 Sprawdzam folder: ${folder.name} (${folder.path})`);
-      
+      logger.debug('Sprawdzam folder:', folder.name, folder.path);
+
       if (folder.name.toLowerCase() === 'decors') {
-        console.log(`✅ Znaleziono folder 'decors': ${folder.name}! Obrazów: ${folder.images.length}`);
+        logger.debug(
+          'Znaleziono folder decors:',
+          folder.name,
+          'Obrazów:',
+          folder.images.length,
+        );
         // Dodaj wszystkie obrazy z folderu decors bezpośrednio do kategorii Kolorystyka
         decorsImages.push(...folder.images);
       }
-      
+
       // Rekurencyjnie sprawdź podfoldery
       if (folder.subfolders && folder.subfolders.length > 0) {
         search(folder.subfolders);
       }
     }
   };
-  
+
   search(folders);
   return decorsImages;
 }
@@ -76,7 +82,9 @@ function collectDecorsImages(folders: GalleryFolder[]): ImageFile[] {
  * Folder _folders NIE MOŻE być wyświetlany w galerii pod żadnym pozorem.
  * Usuwa rekurencyjnie z drzewa każdy folder o nazwie _folders lub ścieżce zawierającej _folders.
  */
-function removeFoldersHiddenFromGallery(folders: GalleryFolder[]): GalleryFolder[] {
+function removeFoldersHiddenFromGallery(
+  folders: GalleryFolder[],
+): GalleryFolder[] {
   return folders
     .filter(
       (f) =>
@@ -96,10 +104,12 @@ function removeFoldersHiddenFromGallery(folders: GalleryFolder[]): GalleryFolder
  */
 function removeDecorsFolders(folders: GalleryFolder[]): GalleryFolder[] {
   return folders
-    .filter(folder => folder.name.toLowerCase() !== 'decors')
-    .map(folder => ({
+    .filter((folder) => folder.name.toLowerCase() !== 'decors')
+    .map((folder) => ({
       ...folder,
-      subfolders: folder.subfolders ? removeDecorsFolders(folder.subfolders) : undefined
+      subfolders: folder.subfolders
+        ? removeDecorsFolders(folder.subfolders)
+        : undefined,
     }));
 }
 
@@ -109,8 +119,15 @@ function removeDecorsFolders(folders: GalleryFolder[]): GalleryFolder[] {
  * Sam podfolder "decors" jest usuwany z miejsca, w którym był pierwotnie.
  */
 function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
-  console.log('🔍 attachDecorsAsKolorystyka - otrzymane foldery:', folders.map(f => ({ name: f.name, path: f.path, subfolders: f.subfolders?.map(s => s.name) })));
-  
+  logger.debug(
+    'attachDecorsAsKolorystyka - otrzymane foldery:',
+    folders.map((f) => ({
+      name: f.name,
+      path: f.path,
+      subfolders: f.subfolders?.map((s) => s.name),
+    })),
+  );
+
   // Jeśli "Kolorystyka" już istnieje (np. zapisane w cache), potraktuj jej podfoldery
   // jako już zebrane "decors", żeby funkcja była idempotentna.
   const existingKolorystyka = folders.find(
@@ -122,16 +139,18 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
 
   // Usuń wszystkie foldery "decors" z oryginalnych miejsc i wyklucz "Kolorystykę"
   let processedRoots = removeDecorsFolders(
-    folders.filter((f) => f.name.toLowerCase() !== 'kolorystyka')
+    folders.filter((f) => f.name.toLowerCase() !== 'kolorystyka'),
   );
 
-  console.log(`🎨 Zebrane obrazy z folderów decors: ${decorsImages.length}`);
+  logger.debug('Zebrane obrazy z folderów decors:', decorsImages.length);
   decorsImages.forEach((img, idx) => {
-    console.log(`  ${idx + 1}. ${img.name}`);
+    logger.debug(idx + 1, img.name);
   });
 
   if (decorsImages.length === 0) {
-    console.log('❌ Brak obrazów w folderach decors - nie tworzę kategorii Kolorystyka');
+    logger.debug(
+      'Brak obrazów w folderach decors - nie tworzę kategorii Kolorystyka',
+    );
     return processedRoots;
   }
 
@@ -143,7 +162,10 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
     level: 0,
   };
 
-  console.log('🎨 Tworzę galerię Kolorystyka z obrazami:', kolorystykaFolder.images.length);
+  logger.debug(
+    'Tworzę galerię Kolorystyka z obrazami:',
+    kolorystykaFolder.images.length,
+  );
 
   // "Kolorystyka" zawsze na samym dole
   return [...processedRoots, kolorystykaFolder];
@@ -179,7 +201,9 @@ async function galleryHandler(
         );
         if (cached) {
           // _folders nigdy z cache do galerii; potem Kolorystyka
-          return attachDecorsAsKolorystyka(removeFoldersHiddenFromGallery(cached));
+          return attachDecorsAsKolorystyka(
+            removeFoldersHiddenFromGallery(cached),
+          );
         }
       }
 

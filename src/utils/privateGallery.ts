@@ -119,9 +119,6 @@ export async function scanPrivateDirectory(
         path: subfolder.path,
         name: subfolder.name,
       });
-      console.log(
-        `🔍 SKANUJE PODFOLDER: ${subfolder.name} (${subfolder.path})`,
-      );
 
       const subResults = await scanPrivateDirectory(subfolder.path, depth + 1);
 
@@ -153,12 +150,17 @@ export async function scanPrivateDirectory(
     folder,
     resultsCount: results.length,
   });
-  console.log(
-    `🏁 ZWRACAM WYNIKI dla folderu "${folder}": ${results.length} elementów`,
-  );
   results.forEach((result, idx) => {
-    console.log(
-      `  ${idx + 1}. ${result.name} (${result.path}) - isCategory: ${result.isCategory}, images: ${result.images.length}, subfolders: ${result.subfolders?.length || 0}`,
+    logger.debug(
+      idx + 1,
+      result.name,
+      result.path,
+      'isCategory:',
+      result.isCategory,
+      'images:',
+      result.images.length,
+      'subfolders:',
+      result.subfolders?.length || 0,
     );
   });
   return results;

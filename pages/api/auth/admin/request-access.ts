@@ -1,15 +1,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { sendAdminLoginCode } from '../../../../src/utils/email';
-import { addAdminCode, cleanupExpiredAdminCodes } from '../../../../src/utils/storage';
+import {
+  addAdminCode,
+  cleanupExpiredAdminCodes,
+} from '../../../../src/utils/storage';
 import { LoginCode } from '../../../../src/types/auth';
-
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
+import { logger } from '../../../../src/utils/logger';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -20,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Zawsze używaj skonfigurowanego emaila administratora
     const email = ADMIN_EMAIL;
-    
+
     if (!email) {
       return res.status(500).json({ error: 'Admin email not configured' });
     }
@@ -28,12 +34,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Wygeneruj kod dla administratora
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minut
-    
+
     const adminCode: LoginCode = {
       email,
       code,
       expiresAt,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     addAdminCode(email, adminCode);
@@ -41,27 +47,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Próbuj wysłać kod na email administratora
     try {
       await sendAdminAccessCode(email, code);
-      console.log('✅ Kod administratora wysłany na email:', email);
-      
-      res.status(200).json({ 
+      logger.info('Kod administratora wysłany na email:', email);
+
+      res.status(200).json({
         message: 'Admin access code sent to email',
         email,
-        expiresAt 
+        expiresAt,
       });
     } catch (emailError) {
-      console.error('❌ Błąd wysyłania kodu administratora:', emailError);
-      console.log('🆘 Używaj kodu awaryjnego:', process.env.ADMIN_EMERGENCY_CODE);
-      
-      res.status(200).json({ 
+      logger.error('Błąd wysyłania kodu administratora', emailError);
+      logger.info('Tryb awaryjny - serwer email niedostępny');
+
+      res.status(200).json({
         message: 'Email server unavailable. Use emergency code.',
         email,
         expiresAt,
-        emergencyMode: true
+        emergencyMode: true,
       });
     }
-
   } catch (error) {
-    console.error('Error generating admin code:', error);
+    logger.error('Error generating admin code', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

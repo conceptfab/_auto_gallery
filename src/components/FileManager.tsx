@@ -170,20 +170,53 @@ const FileManager: React.FC = () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(`/api/admin/files/upload?folder=${encodeURIComponent(currentFolder)}`, {
-          method: 'POST',
-          body: formData,
+        // Utwórz XMLHttpRequest dla monitorowania postępu
+        const xhr = new XMLHttpRequest();
+        
+        // Promise wrapper dla XMLHttpRequest
+        const uploadPromise = new Promise((resolve, reject) => {
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              // Oblicz postęp dla bieżącego pliku + postęp poprzednich plików
+              const currentFileProgress = (event.loaded / event.total) * 100;
+              const overallProgress = (i / filesToUpload.length) * 100 + (currentFileProgress / filesToUpload.length);
+              setUploadProgress(Math.round(overallProgress));
+            }
+          });
+
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const result = JSON.parse(xhr.responseText);
+                resolve(result);
+              } catch {
+                resolve({ success: true });
+              }
+            } else {
+              try {
+                const result = JSON.parse(xhr.responseText);
+                reject(new Error(result.error || `HTTP ${xhr.status}`));
+              } catch {
+                reject(new Error(`HTTP ${xhr.status}`));
+              }
+            }
+          });
+
+          xhr.addEventListener('error', () => {
+            reject(new Error('Network error'));
+          });
+
+          xhr.open('POST', `/api/admin/files/upload?folder=${encodeURIComponent(currentFolder)}`);
+          xhr.send(formData);
         });
 
-        const result = await response.json();
-        if (!response.ok) {
-          alert(`Błąd uploadu ${file.name}: ${result.error}`);
-        }
+        await uploadPromise;
         
+        // Ustaw pełny postęp dla tego pliku
         setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
-      } catch (err) {
+      } catch (err: any) {
         logger.error('Upload error', { file: file.name, error: err });
-        alert(`Błąd uploadu ${file.name}`);
+        alert(`Błąd uploadu ${file.name}: ${err.message}`);
       }
     }
 
