@@ -100,7 +100,8 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
             <h1>
               CONCEPTFAB Content Browser
               <span className="version">
-                {versionInfo?.message} {versionInfo?.date}
+                ver: {versionInfo?.message?.split(':')[0] ?? versionInfo?.message ?? ''}
+                {versionInfo?.date ? ` ${versionInfo.date}` : ''}
               </span>
             </h1>
           </div>
