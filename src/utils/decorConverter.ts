@@ -1,5 +1,5 @@
 import { ImageFile } from '@/src/types/gallery';
-import * as decorConversion from '@/data/decor-conversion.json';
+import decorConversion from '../../data/decor-conversion.json';
 
 interface DecorMap {
   stelaż: {
