@@ -3,6 +3,9 @@ import { ImageFile } from '@/src/types/gallery';
 import decorConverter from '@/src/utils/decorConverter';
 import DOMPurify from 'dompurify';
 import { logger } from '@/src/utils/logger';
+import { useSettings } from '@/src/contexts/SettingsContext';
+import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
+import { downloadFile } from '@/src/utils/downloadUtils';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -33,6 +36,7 @@ interface ImageItemProps {
   getDisplayName: (name: string) => string;
   onHoverPreview: (img: ImageFile, x: number, y: number) => void;
   onHoverPreviewClear: () => void;
+  onDownload: (url: string, name: string) => void;
 }
 
 const ImageItem = memo(function ImageItem({
@@ -49,6 +53,7 @@ const ImageItem = memo(function ImageItem({
   getDisplayName,
   onHoverPreview,
   onHoverPreviewClear,
+  onDownload,
 }: ImageItemProps) {
   const handleImageError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -122,10 +127,7 @@ const ImageItem = memo(function ImageItem({
               className="image-action-button download-button"
               onClick={(e) => {
                 e.stopPropagation();
-                const link = document.createElement('a');
-                link.href = image.url;
-                link.download = image.name;
-                link.click();
+                onDownload(image.url, image.name);
               }}
               title="Pobierz plik"
             >
@@ -155,12 +157,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     [],
   );
 
-  const getOptimizedImageUrl = useCallback(
-    (image: ImageFile, size: 'thumb' | 'full' = 'thumb') =>
-      `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=${size}`,
-    [],
-  );
-
   const handleHoverPreview = useCallback(
     (img: ImageFile, x: number, y: number) =>
       setHoveredPreview({ image: img, x, y }),
@@ -181,31 +177,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     [key: string]: Array<{ keyword: string; image: ImageFile }>;
   }>({});
 
-  // Stan dla ustawień kolorowania - null oznacza że jeszcze się nie załadowały
-  const [highlightKeywordsEnabled, setHighlightKeywordsEnabled] =
-    React.useState<boolean | null>(null);
-
-  React.useEffect(() => {
-    // Wczytaj ustawienia
-    const loadSettings = async () => {
-      try {
-        const response = await fetch('/api/admin/settings');
-        const result = await response.json();
-        if (result.success && result.settings) {
-          setHighlightKeywordsEnabled(
-            result.settings.highlightKeywords !== false,
-          );
-        } else {
-          // Domyślnie włączone jeśli brak ustawień
-          setHighlightKeywordsEnabled(true);
-        }
-      } catch (error) {
-        logger.error('Błąd ładowania ustawień', error);
-        setHighlightKeywordsEnabled(true);
-      }
-    };
-    loadSettings();
-  }, []);
+  const { highlightKeywords: highlightKeywordsEnabled } = useSettings();
 
   React.useEffect(() => {
     const loadHighlightedNames = async () => {
@@ -267,6 +239,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           getDisplayName={getDisplayName}
           onHoverPreview={handleHoverPreview}
           onHoverPreviewClear={handleHoverPreviewClear}
+          onDownload={downloadFile}
         />
       ))}
 

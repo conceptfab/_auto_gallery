@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
 import ImageMetadata from './ImageMetadata';
 import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
+import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
+import { downloadFile } from '@/src/utils/downloadUtils';
 
 interface FolderSectionProps {
   folder: GalleryFolder;
@@ -13,13 +15,13 @@ interface FolderSectionProps {
   allFolders: GalleryFolder[];
 }
 
-const FolderSection: React.FC<FolderSectionProps> = ({
+function FolderSectionInner({
   folder,
   onImageClick,
   globalCollapsedFolders,
   setGlobalCollapsedFolders,
   allFolders,
-}) => {
+}: FolderSectionProps) {
   const toggleFolder = (folderPath: string) => {
     const newCollapsed = new Set(globalCollapsedFolders);
     if (newCollapsed.has(folderPath)) {
@@ -128,7 +130,19 @@ const FolderSection: React.FC<FolderSectionProps> = ({
   };
 
   return renderFolder(folder);
-};
+}
+
+const FolderSection = memo(
+  FolderSectionInner,
+  (prev, next) =>
+    prev.folder.path === next.folder.path &&
+    prev.folder === next.folder &&
+    prev.allFolders === next.allFolders &&
+    prev.onImageClick === next.onImageClick &&
+    prev.setGlobalCollapsedFolders === next.setGlobalCollapsedFolders &&
+    prev.globalCollapsedFolders.has(prev.folder.path) ===
+      next.globalCollapsedFolders.has(next.folder.path),
+);
 
 interface GalleryProps {
   refreshKey?: number;
@@ -243,13 +257,16 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     }
   };
 
-  const handleImageClick = (image: ImageFile, imagesInFolder: ImageFile[]) => {
-    const index = imagesInFolder.findIndex((img) => img.path === image.path);
-    const safeIndex = index >= 0 ? index : 0;
-    setCurrentImageList(imagesInFolder);
-    setCurrentImageIndex(safeIndex);
-    setSelectedImage(imagesInFolder[safeIndex] || image);
-  };
+  const handleImageClick = useCallback(
+    (image: ImageFile, imagesInFolder: ImageFile[]) => {
+      const index = imagesInFolder.findIndex((img) => img.path === image.path);
+      const safeIndex = index >= 0 ? index : 0;
+      setCurrentImageList(imagesInFolder);
+      setCurrentImageIndex(safeIndex);
+      setSelectedImage(imagesInFolder[safeIndex] || image);
+    },
+    [],
+  );
 
   const showAdjacentImage = (direction: 1 | -1) => {
     if (currentImageList.length === 0 || currentImageIndex === null) return;
@@ -270,13 +287,6 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
 
   const closeModal = () => {
     setSelectedImage(null);
-  };
-
-  const getOptimizedImageUrl = (
-    image: ImageFile,
-    size: 'thumb' | 'full' = 'full',
-  ) => {
-    return `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=${size}`;
   };
 
   if (loading) {
@@ -350,10 +360,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
               className="modal-download-button"
               onClick={(e) => {
                 e.stopPropagation();
-                const link = document.createElement('a');
-                link.href = selectedImage.url;
-                link.download = selectedImage.name;
-                link.click();
+                downloadFile(selectedImage.url, selectedImage.name);
               }}
               title="Pobierz plik"
             >

@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 import { NotificationProvider } from '@/src/components/GlobalNotification';
+import { SettingsProvider } from '@/src/contexts/SettingsContext';
 
 // Dynamically import TopMenuBar to avoid SSR issues
 const DynamicTopMenuBar = dynamic(() => import('@/src/components/TopMenuBar'), {
@@ -105,19 +106,24 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <NotificationProvider>
-      {showLandscapeWarning && (
-        <div className="landscape-warning">
-          <div className="landscape-warning-content">
-            <span className="landscape-warning-icon">📱</span>
-            <p>Obróć urządzenie do pozycji pionowej</p>
-            <small>Aplikacja działa najlepiej w trybie portrait</small>
+      <SettingsProvider>
+        {showLandscapeWarning && (
+          <div className="landscape-warning">
+            <div className="landscape-warning-content">
+              <span className="landscape-warning-icon">📱</span>
+              <p>Obróć urządzenie do pozycji pionowej</p>
+              <small>Aplikacja działa najlepiej w trybie portrait</small>
+            </div>
           </div>
-        </div>
-      )}
-      {router.pathname !== '/folders' && (
-        <DynamicTopMenuBar onRefresh={handleRefresh} clientName={clientName} />
-      )}
-      <Component {...pageProps} refreshKey={refreshKey} />
+        )}
+        {router.pathname !== '/folders' && (
+          <DynamicTopMenuBar
+            onRefresh={handleRefresh}
+            clientName={clientName}
+          />
+        )}
+        <Component {...pageProps} refreshKey={refreshKey} />
+      </SettingsProvider>
     </NotificationProvider>
   );
 }

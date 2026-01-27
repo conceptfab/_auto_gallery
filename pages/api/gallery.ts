@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GalleryResponse, GalleryFolder, ImageFile } from '@/src/types/gallery';
-import { scanRemoteDirectory } from './gallery-utils';
+import { scanRemoteDirectory } from '@/src/utils/galleryUtils';
 import { withRateLimit } from '@/src/utils/rateLimiter';
 import { GALLERY_BASE_URL, ADMIN_EMAIL } from '@/src/config/constants';
 import { getEmailFromCookie } from '@/src/utils/auth';

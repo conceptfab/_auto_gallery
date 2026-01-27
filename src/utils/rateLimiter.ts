@@ -1,128 +1,60 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
+const requests = new Map<string, { count: number; reset: number }>();
+
+function getClientId(req: NextApiRequest): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const realIp = req.headers['x-real-ip'];
+  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+  if (typeof realIp === 'string') return realIp;
+  return req.socket.remoteAddress || 'unknown';
 }
 
-class RateLimiter {
-  private requests = new Map<string, RateLimitEntry>();
-  private cleanupInterval: NodeJS.Timeout | null = null;
+/**
+ * Sprawdza limit żądań. Zwraca true jeśli dozwolone, false jeśli przekroczono.
+ * Wywołanie czyści wygasłe wpisy (lazy cleanup).
+ */
+export function checkRateLimit(
+  req: NextApiRequest,
+  maxRequests: number,
+  windowMs: number,
+): boolean {
+  const clientId = getClientId(req);
+  const now = Date.now();
 
-  constructor() {
-    this.startCleanup();
-  }
+  // Lazy cleanup: usuń wygasłe wpisy przy okazji
+  requests.forEach((entry, key) => {
+    if (now > entry.reset) requests.delete(key);
+  });
 
-  private startCleanup() {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-    }
-    // Cleanup expired entries every minute
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 60000);
-  }
+  const entry = requests.get(clientId);
 
-  private cleanup() {
-    const now = Date.now();
-    const keysToDelete: string[] = [];
-
-    this.requests.forEach((entry, key) => {
-      if (now > entry.resetTime) {
-        keysToDelete.push(key);
-      }
-    });
-
-    keysToDelete.forEach((key) => {
-      this.requests.delete(key);
-    });
-  }
-
-  private getClientId(req: NextApiRequest): string {
-    // Try to get real IP from headers (for proxied requests)
-    const forwarded = req.headers['x-forwarded-for'];
-    const realIp = req.headers['x-real-ip'];
-
-    if (typeof forwarded === 'string') {
-      return forwarded.split(',')[0].trim();
-    }
-
-    if (typeof realIp === 'string') {
-      return realIp;
-    }
-
-    return req.socket.remoteAddress || 'unknown';
-  }
-
-  checkLimit(
-    req: NextApiRequest,
-    maxRequests: number,
-    windowMs: number,
-  ): boolean {
-    const clientId = this.getClientId(req);
-    const now = Date.now();
-    const resetTime = now + windowMs;
-
-    const existing = this.requests.get(clientId);
-
-    if (!existing || now > existing.resetTime) {
-      // First request in window or window expired
-      this.requests.set(clientId, {
-        count: 1,
-        resetTime,
-      });
-      return true;
-    }
-
-    if (existing.count >= maxRequests) {
-      return false;
-    }
-
-    // Increment counter
-    existing.count++;
+  if (!entry || now > entry.reset) {
+    requests.set(clientId, { count: 1, reset: now + windowMs });
     return true;
   }
 
-  getRemainingRequests(req: NextApiRequest, maxRequests: number): number {
-    const clientId = this.getClientId(req);
-    const existing = this.requests.get(clientId);
-
-    if (!existing) {
-      return maxRequests;
-    }
-
-    return Math.max(0, maxRequests - existing.count);
-  }
-
-  getResetTime(req: NextApiRequest): number | null {
-    const clientId = this.getClientId(req);
-    const existing = this.requests.get(clientId);
-
-    return existing ? existing.resetTime : null;
-  }
-
-  destroy() {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
-  }
+  if (entry.count >= maxRequests) return false;
+  entry.count++;
+  return true;
 }
 
-// Singleton z obsługą hot reload
-declare global {
-  var rateLimiter: RateLimiter | undefined;
+function getRemaining(req: NextApiRequest, maxRequests: number): number {
+  const clientId = getClientId(req);
+  const entry = requests.get(clientId);
+  if (!entry) return maxRequests;
+  return Math.max(0, maxRequests - entry.count);
 }
 
-const globalRateLimiter = global.rateLimiter ?? new RateLimiter();
-
-if (process.env.NODE_ENV !== 'production') {
-  global.rateLimiter = globalRateLimiter;
+function getResetTime(req: NextApiRequest, windowMs: number): number {
+  const clientId = getClientId(req);
+  const entry = requests.get(clientId);
+  return entry ? entry.reset : Date.now() + windowMs;
 }
 
 export function withRateLimit(
   maxRequests: number = 10,
-  windowMs: number = 60000, // 1 minute
+  windowMs: number = 60000,
 ) {
   return function rateLimitMiddleware(
     handler: (
@@ -131,22 +63,16 @@ export function withRateLimit(
     ) => Promise<void> | void,
   ) {
     return async function (req: NextApiRequest, res: NextApiResponse) {
-      const isAllowed = globalRateLimiter.checkLimit(
-        req,
-        maxRequests,
-        windowMs,
-      );
+      const isAllowed = checkRateLimit(req, maxRequests, windowMs);
 
       if (!isAllowed) {
-        const resetTime = globalRateLimiter.getResetTime(req);
-        const retryAfter = resetTime
-          ? Math.ceil((resetTime - Date.now()) / 1000)
-          : 60;
+        const resetTime = getResetTime(req, windowMs);
+        const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
 
-        res.setHeader('X-RateLimit-Limit', maxRequests);
-        res.setHeader('X-RateLimit-Remaining', 0);
-        res.setHeader('X-RateLimit-Reset', resetTime || Date.now() + windowMs);
-        res.setHeader('Retry-After', retryAfter);
+        res.setHeader('X-RateLimit-Limit', String(maxRequests));
+        res.setHeader('X-RateLimit-Remaining', '0');
+        res.setHeader('X-RateLimit-Reset', String(resetTime));
+        res.setHeader('Retry-After', String(retryAfter));
 
         return res.status(429).json({
           error: 'Too many requests',
@@ -155,21 +81,14 @@ export function withRateLimit(
         });
       }
 
-      const remaining = globalRateLimiter.getRemainingRequests(
-        req,
-        maxRequests,
-      );
-      const resetTime = globalRateLimiter.getResetTime(req);
+      const remaining = getRemaining(req, maxRequests);
+      const resetTime = getResetTime(req, windowMs);
 
-      res.setHeader('X-RateLimit-Limit', maxRequests);
-      res.setHeader('X-RateLimit-Remaining', remaining);
-      if (resetTime) {
-        res.setHeader('X-RateLimit-Reset', resetTime);
-      }
+      res.setHeader('X-RateLimit-Limit', String(maxRequests));
+      res.setHeader('X-RateLimit-Remaining', String(remaining));
+      res.setHeader('X-RateLimit-Reset', String(resetTime));
 
       return handler(req, res);
     };
   };
 }
-
-export default globalRateLimiter;

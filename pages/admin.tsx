@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import FileManager from '../src/components/FileManager';
 import FolderConverter from '../src/components/FolderConverter';
 import LoadingOverlay from '../src/components/LoadingOverlay';
+import { PendingRequestsSection } from '../src/components/admin/PendingRequestsSection';
 import { logger } from '../src/utils/logger';
 
 interface PendingEmail {
@@ -122,33 +123,31 @@ const AdminPanel: React.FC = () => {
   };
 
   const checkFoldersStatus = async (groupsList: UserGroup[]) => {
-    const statuses: Record<
-      string,
-      {
-        exists: boolean;
-        foldersCount?: number;
-        filesCount?: number;
-        error?: string;
-      }
-    > = {};
-
-    for (const group of groupsList) {
-      if (group.galleryFolder) {
-        try {
-          const response = await fetch(
-            `/api/admin/files/check-folder?folder=${encodeURIComponent(group.galleryFolder)}`,
-          );
-          const result = await response.json();
-          statuses[group.id] = result;
-        } catch (error) {
-          statuses[group.id] = { exists: false, error: 'Błąd sprawdzania' };
-        }
-      } else {
-        statuses[group.id] = { exists: false, error: 'Brak folderu' };
-      }
+    if (groupsList.length === 0) {
+      setFolderStatus({});
+      return;
     }
-
-    setFolderStatus(statuses);
+    try {
+      const response = await fetch('/api/admin/files/check-folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: groupsList.map((g) => ({
+            id: g.id,
+            path: g.galleryFolder || '',
+          })),
+        }),
+      });
+      const data = await response.json();
+      setFolderStatus(data.statuses ?? {});
+    } catch (error) {
+      logger.error('Error checking folders', error);
+      const fallback: Record<string, { exists: boolean; error?: string }> = {};
+      for (const g of groupsList) {
+        fallback[g.id] = { exists: false, error: 'Błąd sprawdzania' };
+      }
+      setFolderStatus(fallback);
+    }
   };
 
   useEffect(() => {
@@ -370,7 +369,10 @@ const AdminPanel: React.FC = () => {
     return data.whitelist.filter((email) => !assignedUsers.has(email));
   };
 
-  const handleAction = async (email: string, action: 'approve' | 'reject') => {
+  const handlePendingEmailAction = async (
+    email: string,
+    action: 'approve' | 'reject',
+  ) => {
     setProcessing(email);
     try {
       const response = await fetch('/api/auth/admin/manage-email', {
@@ -452,177 +454,50 @@ const AdminPanel: React.FC = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px',
-            borderBottom: '2px solid #f44336',
-            paddingBottom: '10px',
-          }}
-        >
-          <h1 style={{ margin: 0, color: '#f44336' }}>
-            👑 Panel Administracyjny
-          </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <span style={{ fontSize: '14px', color: '#666' }}>
+      <div className="admin-page">
+        <div className="admin-header">
+          <h1 className="admin-header-title">👑 Panel Administracyjny</h1>
+          <div className="admin-header-actions">
+            <span className="admin-header-user">
               Zalogowany: <strong>{authStatus.email}</strong>
             </span>
             <button
               onClick={handleAdminLogout}
-              style={{
-                backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
-                padding: '8px 15px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-              }}
+              type="button"
+              className="admin-btn admin-btn--danger"
             >
               Wyloguj admina
             </button>
           </div>
         </div>
 
-        {/* Oczekujące wnioski */}
-        <section style={{ marginBottom: '40px' }}>
-          <h2
-            style={{
-              color: '#333',
-              borderBottom: '2px solid #ddd',
-              paddingBottom: '10px',
-            }}
-          >
-            Oczekujące wnioski ({data.pending.length})
-          </h2>
-
-          {data.pending.length === 0 ? (
-            <p style={{ color: '#666', fontStyle: 'italic' }}>
-              Brak oczekujących wniosków
-            </p>
-          ) : (
-            <div style={{ display: 'grid', gap: '15px' }}>
-              {data.pending.map((request) => (
-                <div
-                  key={request.email}
-                  style={{
-                    background: '#f9f9f9',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: '1px solid #ddd',
-                  }}
-                >
-                  <div style={{ marginBottom: '10px' }}>
-                    <strong>Email:</strong> {request.email}
-                  </div>
-                  <div
-                    style={{
-                      marginBottom: '10px',
-                      fontSize: '14px',
-                      color: '#666',
-                    }}
-                  >
-                    <strong>IP:</strong> {request.ip} |<strong> Data:</strong>{' '}
-                    {new Date(request.timestamp).toLocaleString('pl-PL')}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button
-                      onClick={() => handleAction(request.email, 'approve')}
-                      disabled={processing === request.email}
-                      style={{
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '4px',
-                        cursor:
-                          processing === request.email
-                            ? 'not-allowed'
-                            : 'pointer',
-                        opacity: processing === request.email ? 0.6 : 1,
-                      }}
-                    >
-                      {processing === request.email
-                        ? 'Przetwarzanie...'
-                        : 'Zatwierdź'}
-                    </button>
-
-                    <button
-                      onClick={() => handleAction(request.email, 'reject')}
-                      disabled={processing === request.email}
-                      style={{
-                        backgroundColor: '#f44336',
-                        color: 'white',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '4px',
-                        cursor:
-                          processing === request.email
-                            ? 'not-allowed'
-                            : 'pointer',
-                        opacity: processing === request.email ? 0.6 : 1,
-                      }}
-                    >
-                      {processing === request.email
-                        ? 'Przetwarzanie...'
-                        : 'Odrzuć'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <PendingRequestsSection
+          pending={data.pending}
+          processing={processing}
+          onAction={handlePendingEmailAction}
+        />
 
         {/* Biała lista */}
-        <section style={{ marginBottom: '40px' }}>
-          <h2
-            style={{
-              color: '#4CAF50',
-              borderBottom: '2px solid #ddd',
-              paddingBottom: '10px',
-            }}
-          >
+        <section className="admin-section">
+          <h2 className="admin-section-title admin-section-title--success">
             Biała lista ({data.whitelist.length})
           </h2>
 
           {data.whitelist.length === 0 ? (
-            <p style={{ color: '#666', fontStyle: 'italic' }}>
-              Brak emaili na białej liście
-            </p>
+            <p className="admin-empty-msg">Brak emaili na białej liście</p>
           ) : (
-            <div style={{ display: 'grid', gap: '5px' }}>
+            <div className="admin-list-grid">
               {data.whitelist.map((email) => (
                 <div
                   key={email}
-                  style={{
-                    background: '#e8f5e8',
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    border: '1px solid #4CAF50',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
+                  className="admin-list-item admin-list-item--success"
                 >
                   <span>{email}</span>
                   <button
                     onClick={() => handleRemoveFromList(email, 'whitelist')}
                     disabled={processing === email}
-                    style={{
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      padding: '4px 10px',
-                      borderRadius: '4px',
-                      cursor: processing === email ? 'not-allowed' : 'pointer',
-                      fontSize: '12px',
-                      opacity: processing === email ? 0.6 : 1,
-                    }}
+                    type="button"
+                    className="admin-btn admin-btn--danger-sm"
                   >
                     Usuń
                   </button>
@@ -633,50 +508,26 @@ const AdminPanel: React.FC = () => {
         </section>
 
         {/* Czarna lista */}
-        <section style={{ marginBottom: '40px' }}>
-          <h2
-            style={{
-              color: '#f44336',
-              borderBottom: '2px solid #ddd',
-              paddingBottom: '10px',
-            }}
-          >
+        <section className="admin-section">
+          <h2 className="admin-section-title admin-section-title--danger">
             Czarna lista ({data.blacklist.length})
           </h2>
 
           {data.blacklist.length === 0 ? (
-            <p style={{ color: '#666', fontStyle: 'italic' }}>
-              Brak emaili na czarnej liście
-            </p>
+            <p className="admin-empty-msg">Brak emaili na czarnej liście</p>
           ) : (
-            <div style={{ display: 'grid', gap: '5px' }}>
+            <div className="admin-list-grid">
               {data.blacklist.map((email) => (
                 <div
                   key={email}
-                  style={{
-                    background: '#fdeaea',
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    border: '1px solid #f44336',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
+                  className="admin-list-item admin-list-item--danger"
                 >
                   <span>{email}</span>
                   <button
                     onClick={() => handleRemoveFromList(email, 'blacklist')}
                     disabled={processing === email}
-                    style={{
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      padding: '4px 10px',
-                      borderRadius: '4px',
-                      cursor: processing === email ? 'not-allowed' : 'pointer',
-                      fontSize: '12px',
-                      opacity: processing === email ? 0.6 : 1,
-                    }}
+                    type="button"
+                    className="admin-btn admin-btn--danger-sm"
                   >
                     Usuń
                   </button>
@@ -687,86 +538,41 @@ const AdminPanel: React.FC = () => {
         </section>
 
         {/* Grupy użytkowników */}
-        <section style={{ marginBottom: '40px' }}>
-          <h2
-            style={{
-              color: '#9C27B0',
-              borderBottom: '2px solid #ddd',
-              paddingBottom: '10px',
-            }}
-          >
+        <section className="admin-section">
+          <h2 className="admin-section-title admin-section-title--purple">
             Grupy użytkowników ({groups.length})
           </h2>
 
           {/* Formularz nowej grupy */}
-          <div
-            style={{
-              background: '#f3e5f5',
-              padding: '15px',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #9C27B0',
-            }}
-          >
-            <h3 style={{ margin: '0 0 15px 0', color: '#9C27B0' }}>
-              Utwórz nową grupę
-            </h3>
-            <div
-              style={{
-                display: 'grid',
-                gap: '10px',
-                gridTemplateColumns: '1fr 1fr 1fr auto',
-              }}
-            >
+          <div className="admin-form-box">
+            <h3>Utwórz nową grupę</h3>
+            <div className="admin-form-grid">
               <input
                 type="text"
                 placeholder="Nazwa grupy"
                 value={newGroupName}
                 onChange={(e) => handleGroupNameChange(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '4px',
-                  border: '1px solid #ddd',
-                  fontSize: '14px',
-                }}
+                className="admin-input"
               />
               <input
                 type="text"
                 placeholder="Nazwa klienta"
                 value={newGroupClient}
                 onChange={(e) => setNewGroupClient(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '4px',
-                  border: '1px solid #ddd',
-                  fontSize: '14px',
-                }}
+                className="admin-input"
               />
               <input
                 type="text"
                 placeholder="Folder galerii (np. klient1/)"
                 value={newGroupFolder}
                 onChange={(e) => handleFolderChange(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '4px',
-                  border: '1px solid #ddd',
-                  fontSize: '14px',
-                }}
+                className="admin-input"
               />
               <button
                 onClick={handleCreateGroup}
                 disabled={processing === 'create-group'}
-                style={{
-                  backgroundColor: '#9C27B0',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
-                  cursor:
-                    processing === 'create-group' ? 'not-allowed' : 'pointer',
-                  opacity: processing === 'create-group' ? 0.6 : 1,
-                }}
+                type="button"
+                className="admin-btn admin-btn--purple"
               >
                 {processing === 'create-group' ? 'Tworzenie...' : 'Utwórz'}
               </button>

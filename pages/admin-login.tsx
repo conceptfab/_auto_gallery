@@ -107,41 +107,18 @@ const AdminLoginPage: React.FC = () => {
       </Head>
 
       <div className="login-container">
-        <div className="login-box" style={{ border: '3px solid #f44336' }}>
-          <h1
-            style={{
-              textAlign: 'center',
-              marginBottom: '10px',
-              color: '#f44336',
-            }}
-          >
-            👑 Panel Administratora
-          </h1>
+        <div className="login-box admin-login-box">
+          <h1 className="admin-login-title">👑 Panel Administratora</h1>
 
-          <p
-            style={{
-              textAlign: 'center',
-              marginBottom: '30px',
-              fontSize: '14px',
-              color: '#666',
-            }}
-          >
-            Dostęp tylko dla administratora
-          </p>
+          <p className="login-msg">Dostęp tylko dla administratora</p>
 
           {step === 'email' ? (
             <form onSubmit={handleEmailSubmit}>
-              <h2 style={{ marginBottom: '20px', color: '#555' }}>
-                Autoryzacja administratora
-              </h2>
+              <h2 className="login-form-title">Autoryzacja administratora</h2>
 
               <p
-                style={{
-                  marginBottom: '30px',
-                  color: '#666',
-                  textAlign: 'center',
-                  fontSize: '14px',
-                }}
+                className="login-msg"
+                style={{ marginBottom: '30px', textAlign: 'center' }}
               >
                 Kliknij aby otrzymać kod dostępu na email administratora.
               </p>
@@ -149,53 +126,25 @@ const AdminLoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '15px',
-                  backgroundColor: '#f44336',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '16px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                  fontWeight: 'bold',
-                }}
+                className="login-btn login-btn--danger"
+                style={{ padding: '15px' }}
               >
                 {loading ? 'Wysyłanie...' : 'Wyślij kod dostępu'}
               </button>
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit}>
-              <h2 style={{ marginBottom: '20px', color: '#555' }}>
-                Wprowadź kod z emaila
-              </h2>
+              <h2 className="login-form-title">Wprowadź kod z emaila</h2>
 
               {emergencyMode && (
-                <div
-                  style={{
-                    marginBottom: '15px',
-                    padding: '10px',
-                    backgroundColor: '#fff3cd',
-                    border: '1px solid #ffeaa7',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    color: '#856404',
-                  }}
-                >
+                <div className="login-msg--warning">
                   <strong>⚠️ Tryb awaryjny:</strong> Skontaktuj się z
                   administratorem systemu w celu uzyskania kodu dostępu.
                 </div>
               )}
 
-              <div style={{ marginBottom: '20px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    marginBottom: '5px',
-                    color: '#666',
-                  }}
-                >
+              <div className="login-field">
+                <label className="login-label">
                   Kod dostępu administratora:
                 </label>
                 <input
@@ -204,17 +153,7 @@ const AdminLoginPage: React.FC = () => {
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   required
                   maxLength={9}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '20px',
-                    letterSpacing: '4px',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    boxSizing: 'border-box',
-                  }}
+                  className="login-input login-input--code"
                   placeholder="ABC123"
                 />
               </div>
@@ -222,18 +161,7 @@ const AdminLoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading || code.length < 6}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  backgroundColor: '#f44336',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '16px',
-                  cursor:
-                    loading || code.length < 6 ? 'not-allowed' : 'pointer',
-                  opacity: loading || code.length < 6 ? 0.6 : 1,
-                }}
+                className="login-btn login-btn--danger"
               >
                 {loading ? 'Weryfikacja...' : 'Zaloguj jako admin'}
               </button>
@@ -246,17 +174,8 @@ const AdminLoginPage: React.FC = () => {
                   setError('');
                   setMessage('');
                 }}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  backgroundColor: 'transparent',
-                  color: '#666',
-                  border: 'none',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  marginTop: '10px',
-                  textDecoration: 'underline',
-                }}
+                className="login-btn login-btn--secondary"
+                style={{ marginTop: '10px', textDecoration: 'underline' }}
               >
                 Wyślij kod ponownie
               </button>
