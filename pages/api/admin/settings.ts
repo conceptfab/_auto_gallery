@@ -9,7 +9,7 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       // GET jest publiczne - każdy może sprawdzić ustawienia
-      const data = getData();
+      const data = await getData();
       const settings = data.settings || {
         highlightKeywords: true,
       };
@@ -28,7 +28,7 @@ export default async function handler(
         return res.status(401).json({ error: 'Brak autoryzacji' });
       }
 
-      if (!isAdminLoggedIn(adminEmail)) {
+      if (!(await isAdminLoggedIn(adminEmail))) {
         return res.status(403).json({ error: 'Brak uprawnień administratora' });
       }
 
@@ -38,14 +38,14 @@ export default async function handler(
         return res.status(400).json({ error: 'Nieprawidłowa wartość' });
       }
 
-      updateData((data) => {
+      await updateData((data) => {
         if (!data.settings) {
           data.settings = {};
         }
         data.settings.highlightKeywords = highlightKeywords;
       });
 
-      const updatedData = getData();
+      const updatedData = await getData();
       return res
         .status(200)
         .json({ success: true, settings: updatedData.settings });

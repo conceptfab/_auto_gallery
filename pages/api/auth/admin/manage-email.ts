@@ -18,7 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
   try {
     // Oczyść wygasłe kody przed przetwarzaniem
-    cleanupExpiredCodes();
+    await cleanupExpiredCodes();
 
     const { email, action }: AdminAction = req.body;
 
@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Email and action required' });
     }
 
-    const pendingEmails = getPendingEmails();
+    const pendingEmails = await getPendingEmails();
     if (!pendingEmails.some((p) => p.email === email)) {
       return res
         .status(404)
@@ -35,7 +35,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (action === 'approve') {
       // Dodaj do whitelist
-      addToWhitelist(email);
+      await addToWhitelist(email);
 
       // Wygeneruj kod
       const code = generateCode();
@@ -48,13 +48,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         createdAt: new Date(),
       };
 
-      addActiveCode(email, loginCode);
+      await addActiveCode(email, loginCode);
 
       // Wyślij kod na email
       await sendLoginCode(email, code);
 
       // Usuń z pending
-      removePendingEmail(email);
+      await removePendingEmail(email);
 
       res.status(200).json({
         message: 'Email approved and code sent',
@@ -63,10 +63,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     } else if (action === 'reject') {
       // Dodaj do blacklist
-      addToBlacklist(email);
+      await addToBlacklist(email);
 
       // Usuń z pending
-      removePendingEmail(email);
+      await removePendingEmail(email);
 
       res.status(200).json({
         message: 'Email rejected and added to blacklist',

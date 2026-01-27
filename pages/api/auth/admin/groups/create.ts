@@ -15,7 +15,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    const group = createGroup(name, clientName, galleryFolder);
+    const group = await createGroup(name, clientName, galleryFolder);
     res.status(200).json({ success: true, group });
   } catch (error) {
     console.error('Error creating group:', error);

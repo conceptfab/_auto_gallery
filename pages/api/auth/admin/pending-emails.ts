@@ -12,9 +12,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const pending = getPendingEmails();
-    const whitelist = getWhitelist();
-    const blacklist = getBlacklist();
+    const pending = await getPendingEmails();
+    const whitelist = await getWhitelist();
+    const blacklist = await getBlacklist();
 
     logger.debug('Pobieranie pending emails:', pending.length, 'wniosków');
 

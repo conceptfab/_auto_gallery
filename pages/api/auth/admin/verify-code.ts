@@ -18,7 +18,7 @@ export default async function handler(
 
   try {
     // Oczyść wygasłe kody
-    cleanupExpiredAdminCodes();
+    await cleanupExpiredAdminCodes();
 
     const { code }: { code: string } = req.body;
 
@@ -40,10 +40,10 @@ export default async function handler(
 
     if (isEmergencyCode) {
       console.log('🆘 Używa kodu awaryjnego do logowania administratora');
-      loginAdmin(email);
+      await loginAdmin(email);
     } else {
       // Standardowa weryfikacja kodu
-      const adminCode = getAdminCode(email);
+      const adminCode = await getAdminCode(email);
 
       if (!adminCode) {
         return res
@@ -53,7 +53,7 @@ export default async function handler(
 
       // Sprawdź czy kod nie wygasł
       if (new Date() > adminCode.expiresAt) {
-        removeAdminCode(email);
+        await removeAdminCode(email);
         return res.status(410).json({ error: 'Admin code has expired' });
       }
 
@@ -63,8 +63,8 @@ export default async function handler(
       }
 
       // Kod poprawny - usuń z aktywnych i zaloguj admina
-      removeAdminCode(email);
-      loginAdmin(email);
+      await removeAdminCode(email);
+      await loginAdmin(email);
     }
 
     // Ustaw admin cookie

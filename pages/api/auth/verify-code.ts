@@ -11,7 +11,7 @@ import { withRateLimit } from '../../../src/utils/rateLimiter';
 async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Oczyść wygasłe kody przed weryfikacją
-    cleanupExpiredCodes();
+    await cleanupExpiredCodes();
 
     const { email, code }: LoginRequest = req.body;
 
@@ -19,7 +19,7 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Email and code required' });
     }
 
-    const loginCode = getActiveCode(email);
+    const loginCode = await getActiveCode(email);
 
     if (!loginCode) {
       return res.status(404).json({ error: 'No active code for this email' });
@@ -27,7 +27,7 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
 
     // Sprawdź czy kod nie wygasł
     if (new Date() > loginCode.expiresAt) {
-      removeActiveCode(email);
+      await removeActiveCode(email);
       return res.status(410).json({ error: 'Code has expired' });
     }
 
@@ -37,10 +37,10 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Kod poprawny - usuń z aktywnych
-    removeActiveCode(email);
+    await removeActiveCode(email);
 
     // Zaloguj użytkownika i ustaw ciasteczka
-    loginUser(email);
+    await loginUser(email);
     setAuthCookie(res, email);
 
     res.status(200).json({

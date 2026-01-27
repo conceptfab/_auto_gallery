@@ -7,7 +7,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const groups = getGroups();
+    const groups = await getGroups();
     res.status(200).json({ success: true, groups });
   } catch (error) {
     console.error('Error fetching groups:', error);

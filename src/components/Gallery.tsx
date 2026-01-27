@@ -140,8 +140,7 @@ const FolderSection = memo(
     prev.allFolders === next.allFolders &&
     prev.onImageClick === next.onImageClick &&
     prev.setGlobalCollapsedFolders === next.setGlobalCollapsedFolders &&
-    prev.globalCollapsedFolders.has(prev.folder.path) ===
-      next.globalCollapsedFolders.has(next.folder.path),
+    prev.globalCollapsedFolders === next.globalCollapsedFolders,
 );
 
 interface GalleryProps {

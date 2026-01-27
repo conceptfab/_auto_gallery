@@ -22,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           .status(400)
           .json({ error: 'ID grupy jest wymagane do usunięcia' });
       }
-      const removed = removeUserFromGroup(groupId, userEmail);
+      const removed = await removeUserFromGroup(groupId, userEmail);
       if (!removed) {
         return res
           .status(404)
@@ -38,7 +38,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'ID grupy jest wymagane' });
     }
 
-    const added = addUserToGroup(groupId, userEmail);
+    const added = await addUserToGroup(groupId, userEmail);
     if (!added) {
       return res.status(404).json({ error: 'Grupa nie została znaleziona' });
     }

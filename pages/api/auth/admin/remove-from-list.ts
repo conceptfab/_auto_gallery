@@ -33,18 +33,18 @@ export default async function handler(
     }
 
     if (listType === 'whitelist') {
-      const whitelist = getWhitelist();
+      const whitelist = await getWhitelist();
       if (!whitelist.includes(email)) {
         return res.status(404).json({ error: 'Email not found in whitelist' });
       }
-      removeFromWhitelist(email);
+      await removeFromWhitelist(email);
       logger.debug('Usunięto email z białej listy:', email);
     } else if (listType === 'blacklist') {
-      const blacklist = getBlacklist();
+      const blacklist = await getBlacklist();
       if (!blacklist.includes(email)) {
         return res.status(404).json({ error: 'Email not found in blacklist' });
       }
-      removeFromBlacklist(email);
+      await removeFromBlacklist(email);
       logger.debug('Usunięto email z czarnej listy:', email);
     } else {
       return res

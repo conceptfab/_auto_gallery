@@ -10,7 +10,7 @@ import { ADMIN_EMAIL } from '../config/constants';
 export function withAdminAuth(handler: NextApiHandler): NextApiHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const email = getEmailFromCookie(req);
-    if (email !== ADMIN_EMAIL || !isAdminLoggedIn(email)) {
+    if (email !== ADMIN_EMAIL || !(await isAdminLoggedIn(email))) {
       return res.status(403).json({ error: 'Admin access required' });
     }
     return handler(req, res);

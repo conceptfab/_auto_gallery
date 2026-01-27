@@ -241,7 +241,7 @@ export default async function handler(
 
     // Określ folder i nazwę klienta
     if (isAdmin && groupId && typeof groupId === 'string') {
-      const group = getGroupById(groupId);
+      const group = await getGroupById(groupId);
       if (!group) {
         return res.status(404).json({ error: 'Grupa nie została znaleziona' });
       }
@@ -252,7 +252,7 @@ export default async function handler(
         .status(400)
         .json({ error: 'groupId jest wymagany dla admina' });
     } else {
-      const userGroup = email ? getUserGroup(email) : null;
+      const userGroup = email ? await getUserGroup(email) : null;
       if (!userGroup) {
         return res.status(403).json({
           error:

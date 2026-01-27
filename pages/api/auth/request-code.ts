@@ -22,7 +22,7 @@ export default async function handler(
 
   try {
     // Oczyść wygasłe kody przed przetwarzaniem
-    cleanupExpiredCodes();
+    await cleanupExpiredCodes();
 
     const { email }: EmailRequest = req.body;
 
@@ -38,13 +38,13 @@ export default async function handler(
     }
 
     // Sprawdź czy email jest na czarnej liście
-    const blacklist = getBlacklist();
+    const blacklist = await getBlacklist();
     if (blacklist.includes(email)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
     // Sprawdź czy email jest na białej liście
-    const whitelist = getWhitelist();
+    const whitelist = await getWhitelist();
     if (whitelist.includes(email)) {
       // Email jest na białej liście - wygeneruj i wyślij kod od razu
       const code = generateCode();
@@ -57,7 +57,7 @@ export default async function handler(
         createdAt: new Date(),
       };
 
-      addActiveCode(email, loginCode);
+      await addActiveCode(email, loginCode);
 
       // Wyślij kod na email
       try {
@@ -80,7 +80,7 @@ export default async function handler(
 
     // Email nie jest na białej liście - standardowy proces (pending + powiadomienie do admina)
     // Sprawdź czy email nie został już wysłany w ostatnich 5 minutach
-    const pendingEmails = getPendingEmails();
+    const pendingEmails = await getPendingEmails();
     const existing = pendingEmails.find((pe) => pe.email === email);
     if (existing && Date.now() - existing.timestamp.getTime() < 5 * 60 * 1000) {
       return res
@@ -94,9 +94,9 @@ export default async function handler(
     const ipString =
       typeof clientIp === 'string' ? clientIp : clientIp?.[0] || 'unknown';
 
-    addPendingEmail(email, ipString);
+    await addPendingEmail(email, ipString);
 
-    const updatedPendingEmails = getPendingEmails();
+    const updatedPendingEmails = await getPendingEmails();
     logger.debug(
       'Dodano pending email:',
       email,

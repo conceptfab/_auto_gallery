@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import fsp from 'fs/promises';
 
 // Trwałe przechowywanie danych w plikach JSON
 
@@ -58,64 +59,75 @@ const defaultData: StorageData = {
   },
 };
 
-// Załaduj dane z pliku
-function loadData(): StorageData {
+// Załaduj dane z pliku (async)
+async function loadData(): Promise<StorageData> {
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-      return { ...defaultData, ...data };
+    const raw = await fsp.readFile(DATA_FILE, 'utf8');
+    const data = JSON.parse(raw);
+    return { ...defaultData, ...data };
+  } catch (err: unknown) {
+    if (
+      err &&
+      typeof err === 'object' &&
+      'code' in err &&
+      (err as NodeJS.ErrnoException).code === 'ENOENT'
+    ) {
+      return { ...defaultData };
     }
-  } catch (error) {
-    console.error('❌ Błąd ładowania danych:', error);
+    console.error('❌ Błąd ładowania danych:', err);
+    return { ...defaultData };
   }
-  return defaultData;
 }
 
-// Zapisz dane do pliku
-function saveData(data: StorageData): void {
+// Zapisz dane do pliku (async)
+async function saveData(data: StorageData): Promise<void> {
   try {
     const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    await fsp.mkdir(dir, { recursive: true });
+    await fsp.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
   } catch (error) {
     console.error('❌ Błąd zapisywania danych:', error);
+    throw error;
   }
 }
 
 // Cache danych w pamięci
 let cachedData: StorageData | null = null;
 
-export function getData(): StorageData {
+export async function getData(): Promise<StorageData> {
   if (!cachedData) {
-    cachedData = loadData();
+    cachedData = await loadData();
   }
   return cachedData;
 }
 
-export function updateData(updater: (data: StorageData) => void): void {
-  const data = getData();
+export async function updateData(
+  updater: (data: StorageData) => void,
+): Promise<void> {
+  const data = await getData();
   updater(data);
   cachedData = data;
-  saveData(data);
+  await saveData(data);
 }
 
 // Funkcje pomocnicze
-export function addPendingEmail(email: string, ip: string): void {
-  updateData((data) => {
+export async function addPendingEmail(
+  email: string,
+  ip: string,
+): Promise<void> {
+  await updateData((data) => {
     data.pendingEmails[email] = { timestamp: new Date().toISOString(), ip };
   });
 }
 
-export function removePendingEmail(email: string): void {
-  updateData((data) => {
+export async function removePendingEmail(email: string): Promise<void> {
+  await updateData((data) => {
     delete data.pendingEmails[email];
   });
 }
 
-export function getPendingEmails(): PendingEmail[] {
-  const data = getData();
+export async function getPendingEmails(): Promise<PendingEmail[]> {
+  const data = await getData();
   return Object.entries(data.pendingEmails).map(([email, item]) => ({
     email,
     timestamp: new Date(item.timestamp),
@@ -123,81 +135,90 @@ export function getPendingEmails(): PendingEmail[] {
   }));
 }
 
-export function addToWhitelist(email: string): void {
-  updateData((data) => {
+export async function addToWhitelist(email: string): Promise<void> {
+  await updateData((data) => {
     if (!data.whitelist.includes(email)) {
       data.whitelist.push(email);
     }
   });
 }
 
-export function addToBlacklist(email: string): void {
-  updateData((data) => {
+export async function addToBlacklist(email: string): Promise<void> {
+  await updateData((data) => {
     if (!data.blacklist.includes(email)) {
       data.blacklist.push(email);
     }
   });
 }
 
-export function getWhitelist(): string[] {
-  return getData().whitelist;
+export async function getWhitelist(): Promise<string[]> {
+  const data = await getData();
+  return data.whitelist;
 }
 
-export function removeFromWhitelist(email: string): void {
-  updateData((data) => {
+export async function removeFromWhitelist(email: string): Promise<void> {
+  await updateData((data) => {
     data.whitelist = data.whitelist.filter((e) => e !== email);
   });
 }
 
-export function getBlacklist(): string[] {
-  return getData().blacklist;
+export async function getBlacklist(): Promise<string[]> {
+  const data = await getData();
+  return data.blacklist;
 }
 
-export function removeFromBlacklist(email: string): void {
-  updateData((data) => {
+export async function removeFromBlacklist(email: string): Promise<void> {
+  await updateData((data) => {
     data.blacklist = data.blacklist.filter((e) => e !== email);
   });
 }
 
-export function addActiveCode(email: string, loginCode: LoginCode): void {
-  updateData((data) => {
+export async function addActiveCode(
+  email: string,
+  loginCode: LoginCode,
+): Promise<void> {
+  await updateData((data) => {
     data.activeCodes[email] = loginCode;
   });
 }
 
-export function getActiveCode(email: string): LoginCode | undefined {
-  return getData().activeCodes[email];
+export async function getActiveCode(
+  email: string,
+): Promise<LoginCode | undefined> {
+  const data = await getData();
+  return data.activeCodes[email];
 }
 
-export function removeActiveCode(email: string): void {
-  updateData((data) => {
+export async function removeActiveCode(email: string): Promise<void> {
+  await updateData((data) => {
     delete data.activeCodes[email];
   });
 }
 
-export function loginUser(email: string): void {
-  updateData((data) => {
+export async function loginUser(email: string): Promise<void> {
+  await updateData((data) => {
     if (!data.loggedInUsers.includes(email)) {
       data.loggedInUsers.push(email);
     }
   });
 }
 
-export function logoutUser(email: string): void {
-  updateData((data) => {
+export async function logoutUser(email: string): Promise<void> {
+  await updateData((data) => {
     data.loggedInUsers = data.loggedInUsers.filter((u) => u !== email);
   });
 }
 
-export function isUserLoggedIn(email: string): boolean {
-  return getData().loggedInUsers.includes(email);
+export async function isUserLoggedIn(email: string): Promise<boolean> {
+  const data = await getData();
+  return data.loggedInUsers.includes(email);
 }
 
-export function cleanupExpiredCodes(): number {
+export async function cleanupExpiredCodes(): Promise<number> {
   const now = new Date();
   let expiredCount = 0;
 
-  updateData((data) => {
+  await updateData((data) => {
     Object.keys(data.activeCodes).forEach((email) => {
       const loginCode = data.activeCodes[email];
       if (now > new Date(loginCode.expiresAt)) {
@@ -210,11 +231,11 @@ export function cleanupExpiredCodes(): number {
   return expiredCount;
 }
 
-export function cleanupOldRequests(): number {
+export async function cleanupOldRequests(): Promise<number> {
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   let cleanedCount = 0;
 
-  updateData((data) => {
+  await updateData((data) => {
     Object.keys(data.pendingEmails).forEach((email) => {
       const item = data.pendingEmails[email];
       if (new Date(item.timestamp) < dayAgo) {
@@ -227,45 +248,52 @@ export function cleanupOldRequests(): number {
   return cleanedCount;
 }
 
-export function addAdminCode(email: string, loginCode: LoginCode): void {
-  updateData((data) => {
+export async function addAdminCode(
+  email: string,
+  loginCode: LoginCode,
+): Promise<void> {
+  await updateData((data) => {
     data.adminCodes[email] = loginCode;
   });
 }
 
-export function getAdminCode(email: string): LoginCode | undefined {
-  return getData().adminCodes[email];
+export async function getAdminCode(
+  email: string,
+): Promise<LoginCode | undefined> {
+  const data = await getData();
+  return data.adminCodes[email];
 }
 
-export function removeAdminCode(email: string): void {
-  updateData((data) => {
+export async function removeAdminCode(email: string): Promise<void> {
+  await updateData((data) => {
     delete data.adminCodes[email];
   });
 }
 
-export function loginAdmin(email: string): void {
-  updateData((data) => {
+export async function loginAdmin(email: string): Promise<void> {
+  await updateData((data) => {
     if (!data.loggedInAdmins.includes(email)) {
       data.loggedInAdmins.push(email);
     }
   });
 }
 
-export function logoutAdmin(email: string): void {
-  updateData((data) => {
+export async function logoutAdmin(email: string): Promise<void> {
+  await updateData((data) => {
     data.loggedInAdmins = data.loggedInAdmins.filter((u) => u !== email);
   });
 }
 
-export function isAdminLoggedIn(email: string): boolean {
-  return getData().loggedInAdmins.includes(email);
+export async function isAdminLoggedIn(email: string): Promise<boolean> {
+  const data = await getData();
+  return data.loggedInAdmins.includes(email);
 }
 
-export function cleanupExpiredAdminCodes(): number {
+export async function cleanupExpiredAdminCodes(): Promise<number> {
   const now = new Date();
   let expiredCount = 0;
 
-  updateData((data) => {
+  await updateData((data) => {
     Object.keys(data.adminCodes).forEach((email) => {
       const loginCode = data.adminCodes[email];
       if (now > new Date(loginCode.expiresAt)) {
@@ -284,19 +312,21 @@ function generateGroupId(): string {
   return 'grp_' + Math.random().toString(36).substring(2, 11);
 }
 
-export function getGroups(): UserGroup[] {
-  return getData().groups || [];
+export async function getGroups(): Promise<UserGroup[]> {
+  const data = await getData();
+  return data.groups || [];
 }
 
-export function getGroupById(id: string): UserGroup | undefined {
-  return getGroups().find((g) => g.id === id);
+export async function getGroupById(id: string): Promise<UserGroup | undefined> {
+  const groups = await getGroups();
+  return groups.find((g) => g.id === id);
 }
 
-export function createGroup(
+export async function createGroup(
   name: string,
   clientName: string,
   galleryFolder: string,
-): UserGroup {
+): Promise<UserGroup> {
   const newGroup: UserGroup = {
     id: generateGroupId(),
     name,
@@ -305,7 +335,7 @@ export function createGroup(
     users: [],
   };
 
-  updateData((data) => {
+  await updateData((data) => {
     if (!data.groups) data.groups = [];
     data.groups.push(newGroup);
   });
@@ -313,13 +343,13 @@ export function createGroup(
   return newGroup;
 }
 
-export function updateGroup(
+export async function updateGroup(
   id: string,
   updates: { name?: string; clientName?: string; galleryFolder?: string },
-): UserGroup | null {
+): Promise<UserGroup | null> {
   let updatedGroup: UserGroup | null = null;
 
-  updateData((data) => {
+  await updateData((data) => {
     const group = data.groups?.find((g) => g.id === id);
     if (group) {
       if (updates.name !== undefined) group.name = updates.name;
@@ -334,13 +364,13 @@ export function updateGroup(
   return updatedGroup;
 }
 
-export function deleteGroup(id: string): boolean {
+export async function deleteGroup(id: string): Promise<boolean> {
   let deleted = false;
 
-  updateData((data) => {
+  await updateData((data) => {
     const index = data.groups?.findIndex((g) => g.id === id) ?? -1;
     if (index !== -1) {
-      data.groups.splice(index, 1);
+      data.groups!.splice(index, 1);
       deleted = true;
     }
   });
@@ -348,10 +378,13 @@ export function deleteGroup(id: string): boolean {
   return deleted;
 }
 
-export function addUserToGroup(groupId: string, email: string): boolean {
+export async function addUserToGroup(
+  groupId: string,
+  email: string,
+): Promise<boolean> {
   let added = false;
 
-  updateData((data) => {
+  await updateData((data) => {
     // Usuń użytkownika z innych grup
     data.groups?.forEach((g) => {
       g.users = g.users.filter((u) => u !== email);
@@ -368,10 +401,13 @@ export function addUserToGroup(groupId: string, email: string): boolean {
   return added;
 }
 
-export function removeUserFromGroup(groupId: string, email: string): boolean {
+export async function removeUserFromGroup(
+  groupId: string,
+  email: string,
+): Promise<boolean> {
   let removed = false;
 
-  updateData((data) => {
+  await updateData((data) => {
     const group = data.groups?.find((g) => g.id === groupId);
     if (group) {
       const index = group.users.indexOf(email);
@@ -385,7 +421,7 @@ export function removeUserFromGroup(groupId: string, email: string): boolean {
   return removed;
 }
 
-export function getUserGroup(email: string): UserGroup | null {
-  const groups = getGroups();
+export async function getUserGroup(email: string): Promise<UserGroup | null> {
+  const groups = await getGroups();
   return groups.find((g) => g.users.includes(email)) || null;
 }

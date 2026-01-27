@@ -19,7 +19,7 @@ export default async function handler(
 
   try {
     // Oczyść wygasłe kody
-    cleanupExpiredAdminCodes();
+    await cleanupExpiredAdminCodes();
 
     // Zawsze używaj skonfigurowanego emaila administratora
     const email = ADMIN_EMAIL;
@@ -39,7 +39,7 @@ export default async function handler(
       createdAt: new Date(),
     };
 
-    addAdminCode(email, adminCode);
+    await addAdminCode(email, adminCode);
 
     // Próbuj wysłać kod na email administratora
     try {

@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'ID grupy jest wymagane' });
     }
 
-    const group = updateGroup(id, { name, clientName, galleryFolder });
+    const group = await updateGroup(id, { name, clientName, galleryFolder });
 
     if (!group) {
       return res.status(404).json({ error: 'Grupa nie została znaleziona' });

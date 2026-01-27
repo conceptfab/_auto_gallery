@@ -1,0 +1,27 @@
+{
+  "pendingEmails": {},
+  "whitelist": [
+    "micz@kleniewski.com"
+  ],
+  "blacklist": [],
+  "activeCodes": {},
+  "loggedInUsers": [
+    "micz@kleniewski.com"
+  ],
+  "adminCodes": {},
+  "loggedInAdmins": [],
+  "groups": [
+    {
+      "id": "grp_fha6gymci",
+      "name": "metro",
+      "clientName": "Metro",
+      "galleryFolder": "metro/",
+      "users": [
+        "micz@kleniewski.com"
+      ]
+    }
+  ],
+  "settings": {
+    "highlightKeywords": true
+  }
+}

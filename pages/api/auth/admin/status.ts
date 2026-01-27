@@ -20,7 +20,7 @@ export default async function handler(
       });
     }
 
-    const isLoggedIn = isAdminLoggedIn(email);
+    const isLoggedIn = await isAdminLoggedIn(email);
 
     res.status(200).json({
       isAdminLoggedIn: isLoggedIn,

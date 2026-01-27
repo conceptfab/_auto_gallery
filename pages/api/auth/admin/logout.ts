@@ -15,7 +15,7 @@ export default async function handler(
     const email = getAdminEmailFromCookie(req);
 
     if (email) {
-      logoutAdmin(email);
+      await logoutAdmin(email);
       logger.debug('Administrator wylogowany:', email);
     }
 

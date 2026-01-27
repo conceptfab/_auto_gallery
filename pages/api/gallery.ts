@@ -248,7 +248,7 @@ async function galleryHandler(
 
     // Admin może podglądać galerię konkretnej grupy
     if (isAdmin && groupId && typeof groupId === 'string') {
-      const group = getGroupById(groupId);
+      const group = await getGroupById(groupId);
       if (!group) {
         return res.status(404).json({
           success: false,
@@ -271,7 +271,7 @@ async function galleryHandler(
       folders = await scanFolder(targetFolder);
     } else {
       // Sprawdź grupę użytkownika
-      const userGroup = email ? getUserGroup(email) : null;
+      const userGroup = email ? await getUserGroup(email) : null;
 
       if (!userGroup) {
         return res.status(200).json({

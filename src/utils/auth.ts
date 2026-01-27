@@ -7,16 +7,16 @@ import {
 import { ADMIN_EMAIL } from '../config/constants';
 import { isAdminLoggedIn } from './storage';
 
-export function loginUser(email: string): void {
-  storageLogin(email);
+export async function loginUser(email: string): Promise<void> {
+  await storageLogin(email);
 }
 
-export function logoutUser(email: string): void {
-  storageLogout(email);
+export async function logoutUser(email: string): Promise<void> {
+  await storageLogout(email);
 }
 
-export function isUserLoggedIn(email: string): boolean {
-  return storageIsLoggedIn(email);
+export async function isUserLoggedIn(email: string): Promise<boolean> {
+  return await storageIsLoggedIn(email);
 }
 
 export function setAuthCookie(res: NextApiResponse, email: string): void {
