@@ -57,21 +57,34 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   // Funkcje do znajdowania pasujących obrazów z Kolorystyki - używa tabeli konwersji
   const [blatImages, setBlatImages] = React.useState<{[key: string]: ImageFile | null}>({});
   const [stelazImages, setStelazImages] = React.useState<{[key: string]: ImageFile | null}>({});
+  const [highlightedNames, setHighlightedNames] = React.useState<{[key: string]: string}>({});
+  const [keywordIcons, setKeywordIcons] = React.useState<{[key: string]: Array<{icon: string, color: string, keyword: string}>}>({});
 
   React.useEffect(() => {
     const loadImages = async () => {
+      // Wyczyść cache decorConverter
+      decorConverter.clearCache();
       const blatCache: {[key: string]: ImageFile | null} = {};
       const stelazCache: {[key: string]: ImageFile | null} = {};
+      const nameCache: {[key: string]: string} = {};
+      const iconCache: {[key: string]: Array<{icon: string, color: string, keyword: string}>} = {};
       
       for (const image of images) {
         const blatImg = await decorConverter.findBlatImage(image.name, kolorystykaImages);
         const stelazImg = await decorConverter.findStelazImage(image.name, kolorystykaImages);
+        const displayName = getDisplayName(image.name);
+        const processed = await decorConverter.processKeywords(displayName);
+        
         blatCache[image.name] = blatImg;
         stelazCache[image.name] = stelazImg;
+        nameCache[image.name] = processed.highlightedText;
+        iconCache[image.name] = processed.icons;
       }
       
       setBlatImages(blatCache);
       setStelazImages(stelazCache);
+      setHighlightedNames(nameCache);
+      setKeywordIcons(iconCache);
     };
     
     loadImages();
@@ -117,7 +130,25 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           </div>
           <div className="image-title">
             <div className="image-title-top">
-              <div className="image-name">{getDisplayName(image.name)}</div>
+              <div className="image-name">
+                {/* Ikony słów kluczowych */}
+                {keywordIcons[image.name]?.map((iconData, index) => (
+                  <i
+                    key={`${iconData.keyword}-${index}`}
+                    className={iconData.icon}
+                    style={{ 
+                      color: iconData.color, 
+                      marginRight: '4px',
+                      fontSize: '12px'
+                    }}
+                    title={iconData.keyword}
+                  ></i>
+                ))}
+                {/* Kolorowana nazwa */}
+                <span 
+                  dangerouslySetInnerHTML={{ __html: highlightedNames[image.name] || getDisplayName(image.name) }}
+                ></span>
+              </div>
               <div className="image-actions">
                 {folderName.toLowerCase() === 'kolorystyka' ? (
                   // Tylko przycisk download dla kategorii Kolorystyka
