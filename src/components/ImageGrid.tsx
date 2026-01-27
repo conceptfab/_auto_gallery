@@ -17,7 +17,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   kolorystykaImages = [],
 }) => {
   console.log('🖼️ ImageGrid rendering with', images.length, 'images');
-  const [hoveredPreview, setHoveredPreview] = React.useState<{ image: ImageFile; x: number; y: number } | null>(null);
+  const [hoveredPreview, setHoveredPreview] = React.useState<{
+    image: ImageFile;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const getDisplayName = (name: string) => {
     // 1) usuń rozszerzenie
@@ -55,55 +59,37 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   };
 
   // Funkcje do znajdowania pasujących obrazów z Kolorystyki - używa tabeli konwersji
-  const [blatImages, setBlatImages] = React.useState<{[key: string]: ImageFile | null}>({});
-  const [stelazImages, setStelazImages] = React.useState<{[key: string]: ImageFile | null}>({});
-  const [highlightedNames, setHighlightedNames] = React.useState<{[key: string]: string}>({});
-  const [keywordIcons, setKeywordIcons] = React.useState<{[key: string]: Array<{icon: string, color: string, keyword: string}>}>({});
+  const [keywordImages, setKeywordImages] = React.useState<{
+    [key: string]: Array<{ keyword: string; image: ImageFile }>;
+  }>({});
 
   React.useEffect(() => {
-    const loadImages = async () => {
-      // Wyczyść cache decorConverter
+    const loadKeywordImages = async () => {
       decorConverter.clearCache();
-      const blatCache: {[key: string]: ImageFile | null} = {};
-      const stelazCache: {[key: string]: ImageFile | null} = {};
-      const nameCache: {[key: string]: string} = {};
-      const iconCache: {[key: string]: Array<{icon: string, color: string, keyword: string}>} = {};
-      
+      const cache: {
+        [key: string]: Array<{ keyword: string; image: ImageFile }>;
+      } = {};
+
       for (const image of images) {
-        const blatImg = await decorConverter.findBlatImage(image.name, kolorystykaImages);
-        const stelazImg = await decorConverter.findStelazImage(image.name, kolorystykaImages);
-        const displayName = getDisplayName(image.name);
-        const processed = await decorConverter.processKeywords(displayName);
-        
-        blatCache[image.name] = blatImg;
-        stelazCache[image.name] = stelazImg;
-        nameCache[image.name] = processed.highlightedText;
-        iconCache[image.name] = processed.icons;
+        const found = await decorConverter.findAllKeywordImages(
+          image.name,
+          kolorystykaImages,
+        );
+        cache[image.name] = found;
       }
-      
-      setBlatImages(blatCache);
-      setStelazImages(stelazCache);
-      setHighlightedNames(nameCache);
-      setKeywordIcons(iconCache);
+
+      setKeywordImages(cache);
     };
-    
-    loadImages();
+
+    loadKeywordImages();
   }, [images, kolorystykaImages]);
-
-  const findBlatImage = (imageName: string): ImageFile | null => {
-    return blatImages[imageName] || null;
-  };
-
-  const findStelazImage = (imageName: string): ImageFile | null => {
-    return stelazImages[imageName] || null;
-  };
 
   const handleColorButtonHover = (e: React.MouseEvent, image: ImageFile) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setHoveredPreview({
       image,
       x: rect.left + rect.width / 2,
-      y: rect.top - 10
+      y: rect.top - 10,
     });
   };
 
@@ -130,28 +116,32 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           </div>
           <div className="image-title">
             <div className="image-title-top">
-              <div className="image-name">
-                {/* Ikony słów kluczowych */}
-                {keywordIcons[image.name]?.map((iconData, index) => (
-                  <i
-                    key={`${iconData.keyword}-${index}`}
-                    className={iconData.icon}
-                    style={{ 
-                      color: iconData.color, 
-                      marginRight: '4px',
-                      fontSize: '12px'
-                    }}
-                    title={iconData.keyword}
-                  ></i>
-                ))}
-                {/* Kolorowana nazwa */}
-                <span 
-                  dangerouslySetInnerHTML={{ __html: highlightedNames[image.name] || getDisplayName(image.name) }}
-                ></span>
-              </div>
+              <div className="image-name">{getDisplayName(image.name)}</div>
               <div className="image-actions">
-                {folderName.toLowerCase() === 'kolorystyka' ? (
-                  // Tylko przycisk download dla kategorii Kolorystyka
+                <>
+                  {/* Dynamiczne miniaturki dla znalezionych słów kluczowych */}
+                  {folderName.toLowerCase() !== 'kolorystyka' &&
+                    keywordImages[image.name]?.map((item, idx) => (
+                      <button
+                        key={`${item.keyword}-${idx}`}
+                        className="image-action-button color-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onImageClick?.(item.image, kolorystykaImages);
+                        }}
+                        onMouseEnter={(e) =>
+                          handleColorButtonHover(e, item.image)
+                        }
+                        onMouseLeave={handleColorButtonLeave}
+                        title={item.keyword}
+                        style={{
+                          backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                    ))}
+                  {/* Przycisk download - zawsze */}
                   <button
                     className="image-action-button download-button"
                     onClick={(e) => {
@@ -165,78 +155,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                   >
                     <i className="las la-download"></i>
                   </button>
-                ) : (
-                  // Wszystkie przyciski dla pozostałych kategorii
-                  <>
-                    {(() => {
-                      const blatImage = findBlatImage(image.name);
-                      return (
-                        <button
-                          className={`image-action-button color-button ${!blatImage ? 'missing' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (blatImage) {
-                              onImageClick?.(blatImage, kolorystykaImages);
-                            }
-                          }}
-                          onMouseEnter={(e) => blatImage && handleColorButtonHover(e, blatImage)}
-                          onMouseLeave={handleColorButtonLeave}
-                          title={blatImage ? 'Zobacz kolor blatu' : 'Brak koloru blatu w Kolorystyce'}
-                          style={blatImage ? {
-                            backgroundImage: `url(${getOptimizedImageUrl(blatImage, 'thumb')})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
-                          } : {}}
-                        >
-                          {!blatImage && <i className="las la-palette" style={{ color: 'red' }}></i>}
-                        </button>
-                      );
-                    })()}
-                    {(() => {
-                      const stelazImage = findStelazImage(image.name);
-                      return (
-                        <button
-                          className={`image-action-button color-button ${!stelazImage ? 'missing' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (stelazImage) {
-                              onImageClick?.(stelazImage, kolorystykaImages);
-                            }
-                          }}
-                          onMouseEnter={(e) => stelazImage && handleColorButtonHover(e, stelazImage)}
-                          onMouseLeave={handleColorButtonLeave}
-                          title={stelazImage ? 'Zobacz kolor stelaża' : 'Brak koloru stelaża w Kolorystyce'}
-                          style={stelazImage ? {
-                            backgroundImage: `url(${getOptimizedImageUrl(stelazImage, 'thumb')})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
-                          } : {}}
-                        >
-                          {!stelazImage && <i className="las la-cog" style={{ color: 'red' }}></i>}
-                        </button>
-                      );
-                    })()}
-                    <button
-                      className="image-action-button download-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const link = document.createElement('a');
-                        link.href = image.url;
-                        link.download = image.name;
-                        link.click();
-                      }}
-                      title="Pobierz plik"
-                    >
-                      <i className="las la-download"></i>
-                    </button>
-                  </>
-                )}
+                </>
               </div>
             </div>
           </div>
         </div>
       ))}
-      
+
       {/* Podgląd obrazu przy hover */}
       {hoveredPreview && (
         <div
@@ -252,7 +177,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             border: '1px solid rgba(0,0,0,0.15)',
             borderRadius: '6px',
             overflow: 'hidden',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.15)'
+            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
           }}
         >
           <img
@@ -261,7 +186,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover'
+              objectFit: 'cover',
             }}
           />
         </div>
