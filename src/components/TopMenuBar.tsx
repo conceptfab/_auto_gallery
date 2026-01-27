@@ -26,10 +26,11 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const { showError, showSuccess, showInfo } = useNotification();
-  
+
   // Hide on login pages
-  const isLoginPage = router.pathname === '/login' || router.pathname === '/admin-login';
-  
+  const isLoginPage =
+    router.pathname === '/login' || router.pathname === '/admin-login';
+
   const checkAuthStatus = async () => {
     try {
       const response = await fetch('/api/auth/status');
@@ -65,7 +66,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   useEffect(() => {
     checkAuthStatus();
   }, [router.pathname]);
-  
+
   if (isLoginPage) {
     return null;
   }
@@ -73,7 +74,9 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const handleLogout = async () => {
     try {
       if (authStatus?.isAdmin) {
-        const response = await fetch('/api/auth/admin/logout', { method: 'POST' });
+        const response = await fetch('/api/auth/admin/logout', {
+          method: 'POST',
+        });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         showSuccess('Wylogowano pomyślnie');
         router.push('/admin-login');
@@ -95,30 +98,34 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
         <div className="menu-left">
           <div className="logo">
             <h1>
-              CONCEPTFAB Content Browser 
-              <span className="version">{versionInfo?.message} {versionInfo?.date}</span>
+              CONCEPTFAB Content Browser
+              <span className="version">
+                {versionInfo?.message} {versionInfo?.date}
+              </span>
             </h1>
           </div>
         </div>
-        
+
         <div className="menu-center">
           {clientName && (
-            <span style={{
-              fontSize: '1.1rem',
-              fontWeight: 300,
-              color: '#9C27B0',
-              padding: '4px 12px',
-              backgroundColor: 'rgba(156, 39, 176, 0.1)',
-              borderRadius: '4px'
-            }}>
+            <span
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 300,
+                color: '#9C27B0',
+                padding: '4px 12px',
+                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                borderRadius: '4px',
+              }}
+            >
               {clientName}
             </span>
           )}
         </div>
-        
+
         <div className="menu-right">
           {onRefresh && (
-            <button 
+            <button
               onClick={onRefresh}
               title="Odśwież"
               style={{
@@ -131,7 +138,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
                 height: '48px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
               }}
             >
               <i className="las la-sync" style={{ color: '#5c5c5c' }}></i>
@@ -153,7 +160,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
                     height: '48px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
                   }}
                 >
                   <i className="las la-tools" style={{ color: '#f44336' }}></i>
@@ -173,17 +180,19 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
                     height: '48px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
                   }}
                 >
                   <i className="lar la-images" style={{ color: '#5c5c5c' }}></i>
                 </button>
               )}
-              <span style={{ 
-                fontSize: '14px', 
-                color: '#666',
-                textAlign: 'center'
-              }}>
+              <span
+                style={{
+                  fontSize: '14px',
+                  color: '#666',
+                  textAlign: 'center',
+                }}
+              >
                 {authStatus.email}
               </span>
               <button
@@ -199,10 +208,13 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
                   height: '48px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               >
-                <i className="las la-sign-out-alt" style={{ color: '#5c5c5c' }}></i>
+                <i
+                  className="las la-sign-out-alt"
+                  style={{ color: '#5c5c5c' }}
+                ></i>
               </button>
             </>
           )}

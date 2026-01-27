@@ -1,5 +1,9 @@
 import { GalleryFolder, ImageFile } from '@/src/types/gallery';
-import { generateListUrl, generateSignedUrl, isFileProtectionEnabled } from './fileToken';
+import {
+  generateListUrl,
+  generateSignedUrl,
+  isFileProtectionEnabled,
+} from './fileToken';
 import { logger } from './logger';
 
 interface PHPListResponse {
@@ -11,31 +15,36 @@ interface PHPListResponse {
 /**
  * Pobiera listę plików i folderów z PHP
  */
-async function fetchFolderContents(folder: string): Promise<PHPListResponse | null> {
+async function fetchFolderContents(
+  folder: string,
+): Promise<PHPListResponse | null> {
   try {
     const listUrl = generateListUrl(folder);
-    logger.debug('PHP list request', { folder, url: listUrl.substring(0, 100) });
-    
+    logger.debug('PHP list request', {
+      folder,
+      url: listUrl.substring(0, 100),
+    });
+
     const response = await fetch(listUrl);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       logger.error('PHP error', { status: response.status, error: errorText });
       return null;
     }
-    
+
     const data: PHPListResponse = await response.json();
-    logger.debug('PHP response', { 
-      folder, 
-      foldersCount: data.folders?.length || 0, 
-      filesCount: data.files?.length || 0 
+    logger.debug('PHP response', {
+      folder,
+      foldersCount: data.folders?.length || 0,
+      filesCount: data.files?.length || 0,
     });
-    
+
     if (data.error) {
       logger.error('PHP returned error', { folder, error: data.error });
       return null;
     }
-    
+
     return data;
   } catch (error) {
     logger.error('Fetch error', { folder, error });
@@ -46,53 +55,74 @@ async function fetchFolderContents(folder: string): Promise<PHPListResponse | nu
 /**
  * Skanuje prywatny folder galerii przez PHP endpoint
  */
-export async function scanPrivateDirectory(folder: string = '', depth: number = 0): Promise<GalleryFolder[]> {
+export async function scanPrivateDirectory(
+  folder: string = '',
+  depth: number = 0,
+): Promise<GalleryFolder[]> {
   logger.debug('scanPrivateDirectory', { folder, depth });
-  
+
   if (depth > 10) {
     logger.warn('Max depth reached', { folder });
     return [];
   }
-  
+
   const data = await fetchFolderContents(folder);
   if (!data) return [];
-  
+
   const results: GalleryFolder[] = [];
-  
+
   // Jeśli są pliki w tym folderze, utwórz GalleryFolder z obrazkami
   if (data.files && data.files.length > 0) {
-    const images: ImageFile[] = data.files.map(file => ({
+    const images: ImageFile[] = data.files.map((file) => ({
       name: file.name,
       path: file.path,
       url: isFileProtectionEnabled() ? generateSignedUrl(file.path) : file.path,
       fileSize: file.size,
-      lastModified: file.modified
+      lastModified: file.modified,
     }));
-    
+
     const folderName = folder ? folder.split('/').pop() || folder : 'Galeria';
-    logger.debug('Found images in folder', { folderName, imagesCount: images.length });
-    
+    logger.debug('Found images in folder', {
+      folderName,
+      imagesCount: images.length,
+    });
+
     results.push({
       name: folderName,
       path: folder,
       images: images,
       isCategory: false,
-      level: depth
+      level: depth,
     });
   }
-  
+
   // Rekurencyjnie skanuj podfoldery
   if (data.folders && data.folders.length > 0) {
     for (const subfolder of data.folders) {
-      logger.debug('Scanning subfolder', { path: subfolder.path, name: subfolder.name });
-      console.log(`🔍 SKANUJE PODFOLDER: ${subfolder.name} (${subfolder.path})`);
-      
+      // Pomiń specjalny folder _folders
+      if (subfolder.name.toLowerCase() === '_folders') {
+        logger.debug('Pomijam specjalny folder _folders', {
+          name: subfolder.name,
+        });
+        continue;
+      }
+
+      logger.debug('Scanning subfolder', {
+        path: subfolder.path,
+        name: subfolder.name,
+      });
+      console.log(
+        `🔍 SKANUJE PODFOLDER: ${subfolder.name} (${subfolder.path})`,
+      );
+
       const subResults = await scanPrivateDirectory(subfolder.path, depth + 1);
-      
+
       if (subResults.length > 0) {
         // Sprawdź czy podfolder ma bezpośrednio obrazki czy tylko dalsze podfoldery
-        const hasDirectImages = subResults.some(r => r.path === subfolder.path && r.images.length > 0);
-        
+        const hasDirectImages = subResults.some(
+          (r) => r.path === subfolder.path && r.images.length > 0,
+        );
+
         if (hasDirectImages && subResults.length === 1) {
           // Tylko obrazki w tym folderze - dodaj bezpośrednio
           results.push(...subResults);
@@ -104,17 +134,24 @@ export async function scanPrivateDirectory(folder: string = '', depth: number = 
             images: [],
             subfolders: subResults,
             isCategory: true,
-            level: depth
+            level: depth,
           });
         }
       }
     }
   }
-  
-  logger.debug('scanPrivateDirectory returning results', { folder, resultsCount: results.length });
-  console.log(`🏁 ZWRACAM WYNIKI dla folderu "${folder}": ${results.length} elementów`);
+
+  logger.debug('scanPrivateDirectory returning results', {
+    folder,
+    resultsCount: results.length,
+  });
+  console.log(
+    `🏁 ZWRACAM WYNIKI dla folderu "${folder}": ${results.length} elementów`,
+  );
   results.forEach((result, idx) => {
-    console.log(`  ${idx + 1}. ${result.name} (${result.path}) - isCategory: ${result.isCategory}, images: ${result.images.length}, subfolders: ${result.subfolders?.length || 0}`);
+    console.log(
+      `  ${idx + 1}. ${result.name} (${result.path}) - isCategory: ${result.isCategory}, images: ${result.images.length}, subfolders: ${result.subfolders?.length || 0}`,
+    );
   });
   return results;
 }

@@ -8,7 +8,7 @@ import { NotificationProvider } from '@/src/components/GlobalNotification';
 
 // Dynamically import TopMenuBar to avoid SSR issues
 const DynamicTopMenuBar = dynamic(() => import('@/src/components/TopMenuBar'), {
-  ssr: false
+  ssr: false,
 });
 
 interface GroupInfo {
@@ -23,9 +23,9 @@ export default function App({ Component, pageProps }: AppProps) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [clientName, setClientName] = useState<string | undefined>(undefined);
   const [showLandscapeWarning, setShowLandscapeWarning] = useState(false);
-  
+
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
   };
 
   // Funkcja do blokowania orientacji (wymaga fullscreen)
@@ -47,9 +47,11 @@ export default function App({ Component, pageProps }: AppProps) {
     const checkOrientation = () => {
       const userAgent = navigator.userAgent;
       // Wykryj tylko telefony - wyklucz tablety (iPad, tablet Android)
-      const isPhone = /iPhone|iPod/i.test(userAgent) || 
+      const isPhone =
+        /iPhone|iPod/i.test(userAgent) ||
         (/Android/i.test(userAgent) && /Mobile/i.test(userAgent));
-      const isLandscape = window.innerWidth > window.innerHeight && window.innerWidth < 900;
+      const isLandscape =
+        window.innerWidth > window.innerHeight && window.innerWidth < 900;
       setShowLandscapeWarning(isPhone && isLandscape);
     };
 
@@ -66,15 +68,16 @@ export default function App({ Component, pageProps }: AppProps) {
     };
   }, [lockPortrait]);
 
-  // Pobierz nazwę klienta gdy admin podgląda grupę
+  // Pobierz nazwę klienta gdy admin podgląda grupę lub na stronie folders
   useEffect(() => {
     const groupId = router.query.groupId as string | undefined;
-    
+    const isFoldersPage = router.pathname === '/folders';
+
     if (groupId) {
       // Pobierz informacje o grupie
       fetch('/api/auth/admin/groups/list')
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.success && data.groups) {
             const group = data.groups.find((g: GroupInfo) => g.id === groupId);
             if (group) {
@@ -82,11 +85,23 @@ export default function App({ Component, pageProps }: AppProps) {
             }
           }
         })
-        .catch(err => console.error('Error fetching group info:', err));
+        .catch((err) => console.error('Error fetching group info:', err));
+    } else if (isFoldersPage) {
+      // Na stronie folders pobierz nazwę klienta z API
+      fetch('/api/folders')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.clientName) {
+            setClientName(data.clientName);
+          }
+        })
+        .catch((err) =>
+          console.error('Error fetching folders client name:', err),
+        );
     } else {
       setClientName(undefined);
     }
-  }, [router.query.groupId]);
+  }, [router.query.groupId, router.pathname]);
 
   return (
     <NotificationProvider>
@@ -99,7 +114,9 @@ export default function App({ Component, pageProps }: AppProps) {
           </div>
         </div>
       )}
-      <DynamicTopMenuBar onRefresh={handleRefresh} clientName={clientName} />
+      {router.pathname !== '/folders' && (
+        <DynamicTopMenuBar onRefresh={handleRefresh} clientName={clientName} />
+      )}
       <Component {...pageProps} refreshKey={refreshKey} />
     </NotificationProvider>
   );
