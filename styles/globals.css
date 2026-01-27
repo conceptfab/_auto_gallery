@@ -1158,7 +1158,7 @@ a {
    IMAGE TITLE AND METADATA STYLES
    ======================================== */
 
-/* Image title container - shows on hover */
+/* Image title container - always visible */
 .image-title {
   margin-top: 10px;
   font-size: 0.85rem;
@@ -1167,13 +1167,8 @@ a {
   word-break: break-word;
   line-height: 1.3;
   text-align: left;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-/* Show image title on hover */
-.image-item:hover .image-title {
   opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 /* Top row layout for image name and download button */
@@ -1192,9 +1187,30 @@ a {
 }
 
 .image-actions {
-  display: flex;
+  display: flex !important;
   gap: 6px;
   margin-left: 10px;
+  align-items: center;
+  visibility: visible !important;
+  overflow: visible !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+
+/* Placeholder dla słów kluczowych */
+.image-action-placeholder {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+  flex-shrink: 0 !important;
+  border: 2px solid #ff0000 !important;
+  border-radius: 4px;
+  background: #ffcccc !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-sizing: border-box;
 }
 
 /* Kwadratowe przyciski akcji obok nazwy */
@@ -1230,6 +1246,8 @@ a {
 .color-button {
   position: relative;
   overflow: hidden;
+  background-color: #f0f0f0;
+  background-repeat: no-repeat;
 }
 
 .color-button.missing {

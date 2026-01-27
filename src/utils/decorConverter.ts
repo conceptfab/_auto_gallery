@@ -179,6 +179,56 @@ class DecorConverter {
   }
 
   /**
+   * Koloruje słowa kluczowe w finalnej, wyświetlanej nazwie pliku (już sformatowanej, uppercase).
+   * Pracuje bezpośrednio na wyświetlanej nazwie.
+   */
+  async highlightKeywordsInDisplayName(displayName: string): Promise<string> {
+    const table = await this.loadTable();
+
+    // Pobierz wszystkie słowa kluczowe dynamicznie z JSON
+    const allKeywords = new Set<string>();
+
+    // Dodaj słowa z stelaż
+    if (table.stelaż) {
+      Object.keys(table.stelaż).forEach((key) => allKeywords.add(key));
+    }
+
+    // Dodaj słowa z blat
+    if (table.blat) {
+      Object.keys(table.blat).forEach((key) => allKeywords.add(key));
+    }
+
+    let highlightedName = displayName;
+
+    // Dla każdego słowa kluczowego - koloruj w wyświetlanej nazwie (uppercase)
+    for (const keyword of allKeywords) {
+      // Konwertuj słowo kluczowe na uppercase (bo displayName jest już uppercase)
+      const keywordUpper = keyword.toUpperCase();
+      // Szukaj słowa kluczowego w wyświetlanej nazwie (case-sensitive, bo już uppercase)
+      const displayRegex = new RegExp(
+        `\\b(${this.escapeRegex(keywordUpper)})\\b`,
+        'g',
+      );
+      if (displayRegex.test(displayName)) {
+        const color = this.getColorForKeyword(keyword);
+        highlightedName = highlightedName.replace(
+          displayRegex,
+          `<span style="color: ${color}; font-weight: bold;">$1</span>`,
+        );
+      }
+    }
+
+    return highlightedName;
+  }
+
+  /**
+   * Escapuje specjalne znaki regex w stringu
+   */
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  /**
    * Znajduje wszystkie obrazy dla słów kluczowych w nazwie pliku
    * @returns tablica {keyword, image} dla każdego znalezionego słowa
    */
@@ -187,35 +237,141 @@ class DecorConverter {
     kolorystykaImages: ImageFile[],
   ): Promise<Array<{ keyword: string; image: ImageFile }>> {
     const table = await this.loadTable();
-    const results: Array<{ keyword: string; image: ImageFile }> = [];
+    const foundKeywords: Array<{
+      keyword: string;
+      fileName: string;
+      position: number;
+    }> = [];
 
-    // Sprawdź stelaż
+    console.log(`🔍 findAllKeywordImages dla "${imageName}"`, {
+      kolorystykaImagesCount: kolorystykaImages.length,
+      stelażKeywords: table.stelaż ? Object.keys(table.stelaż) : [],
+      blatKeywords: table.blat ? Object.keys(table.blat) : [],
+    });
+
+    // Zbierz wszystkie słowa kluczowe z ich pozycjami w nazwie pliku
+    const allKeywords: Array<{
+      keyword: string;
+      fileName: string;
+      category: string;
+    }> = [];
+
+    // Dodaj słowa z stelaż
     if (table.stelaż) {
       for (const [keyword, fileName] of Object.entries(table.stelaż)) {
-        const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-        if (regex.test(imageName)) {
-          const image = kolorystykaImages.find((img) => img.name === fileName);
-          if (image) {
-            results.push({ keyword, image });
-          }
-        }
+        allKeywords.push({ keyword, fileName, category: 'stelaż' });
       }
     }
 
-    // Sprawdź blat
+    // Dodaj słowa z blat
     if (table.blat) {
       for (const [keyword, fileName] of Object.entries(table.blat)) {
-        const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-        if (regex.test(imageName)) {
-          const image = kolorystykaImages.find((img) => img.name === fileName);
-          if (image) {
-            results.push({ keyword, image });
-          }
-        }
+        allKeywords.push({ keyword, fileName, category: 'blat' });
       }
     }
 
+    // Znajdź wszystkie słowa kluczowe i zapisz ich pozycje w nazwie pliku
+    for (const { keyword, fileName } of allKeywords) {
+      // Escapuj specjalne znaki i użyj elastycznego wyszukiwania
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      let regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
+      let match = regex.exec(imageName);
+
+      // Jeśli nie znaleziono z word boundary, spróbuj bez
+      if (!match) {
+        regex = new RegExp(escapedKeyword, 'gi');
+        match = regex.exec(imageName);
+      }
+
+      if (match) {
+        const position = match.index;
+        foundKeywords.push({ keyword, fileName, position });
+        console.log(
+          `  ✅ Znaleziono słowo kluczowe "${keyword}" w "${imageName}" na pozycji ${position} -> szukam pliku "${fileName}"`,
+        );
+      }
+    }
+
+    // Posortuj według pozycji w nazwie pliku
+    foundKeywords.sort((a, b) => a.position - b.position);
+
+    // Znajdź obrazy dla posortowanych słów kluczowych
+    const results: Array<{ keyword: string; image: ImageFile }> = [];
+    for (const { keyword, fileName } of foundKeywords) {
+      const image = kolorystykaImages.find((img) => img.name === fileName);
+      if (image) {
+        console.log(
+          `    ✅ Znaleziono obraz: ${image.name} dla słowa "${keyword}"`,
+        );
+        results.push({ keyword, image });
+      } else {
+        console.log(
+          `    ❌ Nie znaleziono obrazu "${fileName}" w kolorystykaImages. Dostępne pliki:`,
+          kolorystykaImages.map((img) => img.name),
+        );
+      }
+    }
+
+    console.log(
+      `📊 findAllKeywordImages zwraca ${results.length} wyników dla "${imageName}" w kolejności:`,
+      results.map((r) => r.keyword),
+    );
     return results;
+  }
+
+  /**
+   * Znajduje wszystkie słowa kluczowe w nazwie pliku i zwraca ich listę
+   */
+  async findKeywordsInName(imageName: string): Promise<string[]> {
+    const table = await this.loadTable();
+    const foundKeywords: string[] = [];
+
+    // Pobierz wszystkie słowa kluczowe dynamicznie z JSON
+    const allKeywords = new Set<string>();
+
+    // Dodaj słowa z stelaż
+    if (table.stelaż) {
+      Object.keys(table.stelaż).forEach((key) => allKeywords.add(key));
+    }
+
+    // Dodaj słowa z blat
+    if (table.blat) {
+      Object.keys(table.blat).forEach((key) => allKeywords.add(key));
+    }
+
+    // Sprawdź które słowa kluczowe występują w nazwie pliku
+    // Używamy bardziej elastycznego regex - szukamy zarówno z word boundary jak i bez
+    for (const keyword of allKeywords) {
+      // Escapuj specjalne znaki regex w keyword
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // Spróbuj z word boundary (dla normalnych słów)
+      let regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
+      let found = regex.test(imageName);
+
+      // Jeśli nie znaleziono z word boundary, spróbuj bez (dla słów z podkreśleniami)
+      if (!found) {
+        regex = new RegExp(escapedKeyword, 'gi');
+        found = regex.test(imageName);
+      }
+
+      if (found) {
+        foundKeywords.push(keyword);
+        console.log(
+          `  ✅ findKeywordsInName: znaleziono "${keyword}" w "${imageName}"`,
+        );
+      } else {
+        console.log(
+          `  ❌ findKeywordsInName: NIE znaleziono "${keyword}" w "${imageName}"`,
+        );
+      }
+    }
+
+    console.log(
+      `📊 findKeywordsInName dla "${imageName}": znaleziono ${foundKeywords.length} słów:`,
+      foundKeywords,
+    );
+    return foundKeywords;
   }
 }
 

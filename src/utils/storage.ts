@@ -33,6 +33,9 @@ interface StorageData {
   adminCodes: Record<string, LoginCode>;
   loggedInAdmins: string[];
   groups: UserGroup[];
+  settings?: {
+    highlightKeywords?: boolean;
+  };
 }
 
 // Użyj Railway volume /data-storage jeśli istnieje, w przeciwnym razie lokalny folder data/
@@ -49,7 +52,10 @@ const defaultData: StorageData = {
   loggedInUsers: [],
   adminCodes: {},
   loggedInAdmins: [],
-  groups: []
+  groups: [],
+  settings: {
+    highlightKeywords: true,
+  },
 };
 
 // Załaduj dane z pliku
@@ -81,14 +87,14 @@ function saveData(data: StorageData): void {
 // Cache danych w pamięci
 let cachedData: StorageData | null = null;
 
-function getData(): StorageData {
+export function getData(): StorageData {
   if (!cachedData) {
     cachedData = loadData();
   }
   return cachedData;
 }
 
-function updateData(updater: (data: StorageData) => void): void {
+export function updateData(updater: (data: StorageData) => void): void {
   const data = getData();
   updater(data);
   cachedData = data;
@@ -113,7 +119,7 @@ export function getPendingEmails(): PendingEmail[] {
   return Object.entries(data.pendingEmails).map(([email, item]) => ({
     email,
     timestamp: new Date(item.timestamp),
-    ip: item.ip
+    ip: item.ip,
   }));
 }
 
@@ -139,7 +145,7 @@ export function getWhitelist(): string[] {
 
 export function removeFromWhitelist(email: string): void {
   updateData((data) => {
-    data.whitelist = data.whitelist.filter(e => e !== email);
+    data.whitelist = data.whitelist.filter((e) => e !== email);
   });
 }
 
@@ -149,7 +155,7 @@ export function getBlacklist(): string[] {
 
 export function removeFromBlacklist(email: string): void {
   updateData((data) => {
-    data.blacklist = data.blacklist.filter(e => e !== email);
+    data.blacklist = data.blacklist.filter((e) => e !== email);
   });
 }
 
@@ -179,7 +185,7 @@ export function loginUser(email: string): void {
 
 export function logoutUser(email: string): void {
   updateData((data) => {
-    data.loggedInUsers = data.loggedInUsers.filter(u => u !== email);
+    data.loggedInUsers = data.loggedInUsers.filter((u) => u !== email);
   });
 }
 
@@ -190,9 +196,9 @@ export function isUserLoggedIn(email: string): boolean {
 export function cleanupExpiredCodes(): number {
   const now = new Date();
   let expiredCount = 0;
-  
+
   updateData((data) => {
-    Object.keys(data.activeCodes).forEach(email => {
+    Object.keys(data.activeCodes).forEach((email) => {
       const loginCode = data.activeCodes[email];
       if (now > new Date(loginCode.expiresAt)) {
         delete data.activeCodes[email];
@@ -200,16 +206,16 @@ export function cleanupExpiredCodes(): number {
       }
     });
   });
-  
+
   return expiredCount;
 }
 
 export function cleanupOldRequests(): number {
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   let cleanedCount = 0;
-  
+
   updateData((data) => {
-    Object.keys(data.pendingEmails).forEach(email => {
+    Object.keys(data.pendingEmails).forEach((email) => {
       const item = data.pendingEmails[email];
       if (new Date(item.timestamp) < dayAgo) {
         delete data.pendingEmails[email];
@@ -217,7 +223,7 @@ export function cleanupOldRequests(): number {
       }
     });
   });
-  
+
   return cleanedCount;
 }
 
@@ -247,7 +253,7 @@ export function loginAdmin(email: string): void {
 
 export function logoutAdmin(email: string): void {
   updateData((data) => {
-    data.loggedInAdmins = data.loggedInAdmins.filter(u => u !== email);
+    data.loggedInAdmins = data.loggedInAdmins.filter((u) => u !== email);
   });
 }
 
@@ -258,9 +264,9 @@ export function isAdminLoggedIn(email: string): boolean {
 export function cleanupExpiredAdminCodes(): number {
   const now = new Date();
   let expiredCount = 0;
-  
+
   updateData((data) => {
-    Object.keys(data.adminCodes).forEach(email => {
+    Object.keys(data.adminCodes).forEach((email) => {
       const loginCode = data.adminCodes[email];
       if (now > new Date(loginCode.expiresAt)) {
         delete data.adminCodes[email];
@@ -268,7 +274,7 @@ export function cleanupExpiredAdminCodes(): number {
       }
     });
   });
-  
+
   return expiredCount;
 }
 
@@ -283,81 +289,90 @@ export function getGroups(): UserGroup[] {
 }
 
 export function getGroupById(id: string): UserGroup | undefined {
-  return getGroups().find(g => g.id === id);
+  return getGroups().find((g) => g.id === id);
 }
 
-export function createGroup(name: string, clientName: string, galleryFolder: string): UserGroup {
+export function createGroup(
+  name: string,
+  clientName: string,
+  galleryFolder: string,
+): UserGroup {
   const newGroup: UserGroup = {
     id: generateGroupId(),
     name,
     clientName,
     galleryFolder,
-    users: []
+    users: [],
   };
-  
+
   updateData((data) => {
     if (!data.groups) data.groups = [];
     data.groups.push(newGroup);
   });
-  
+
   return newGroup;
 }
 
-export function updateGroup(id: string, updates: { name?: string; clientName?: string; galleryFolder?: string }): UserGroup | null {
+export function updateGroup(
+  id: string,
+  updates: { name?: string; clientName?: string; galleryFolder?: string },
+): UserGroup | null {
   let updatedGroup: UserGroup | null = null;
-  
+
   updateData((data) => {
-    const group = data.groups?.find(g => g.id === id);
+    const group = data.groups?.find((g) => g.id === id);
     if (group) {
       if (updates.name !== undefined) group.name = updates.name;
-      if (updates.clientName !== undefined) group.clientName = updates.clientName;
-      if (updates.galleryFolder !== undefined) group.galleryFolder = updates.galleryFolder;
+      if (updates.clientName !== undefined)
+        group.clientName = updates.clientName;
+      if (updates.galleryFolder !== undefined)
+        group.galleryFolder = updates.galleryFolder;
       updatedGroup = { ...group };
     }
   });
-  
+
   return updatedGroup;
 }
 
 export function deleteGroup(id: string): boolean {
   let deleted = false;
-  
+
   updateData((data) => {
-    const index = data.groups?.findIndex(g => g.id === id) ?? -1;
+    const index = data.groups?.findIndex((g) => g.id === id) ?? -1;
     if (index !== -1) {
       data.groups.splice(index, 1);
       deleted = true;
     }
   });
-  
+
   return deleted;
 }
 
 export function addUserToGroup(groupId: string, email: string): boolean {
   let added = false;
-  
+
   updateData((data) => {
     // Usuń użytkownika z innych grup
-    data.groups?.forEach(g => {
-      g.users = g.users.filter(u => u !== email);
+    data.groups?.forEach((g) => {
+      g.users = g.users.filter((u) => u !== email);
     });
-    
+
     // Dodaj do wybranej grupy
-    const group = data.groups?.find(g => g.id === groupId);
+    const group = data.groups?.find((g) => g.id === groupId);
     if (group && !group.users.includes(email)) {
       group.users.push(email);
       added = true;
     }
   });
-  
+
   return added;
 }
 
 export function removeUserFromGroup(groupId: string, email: string): boolean {
   let removed = false;
-  
+
   updateData((data) => {
-    const group = data.groups?.find(g => g.id === groupId);
+    const group = data.groups?.find((g) => g.id === groupId);
     if (group) {
       const index = group.users.indexOf(email);
       if (index !== -1) {
@@ -366,11 +381,11 @@ export function removeUserFromGroup(groupId: string, email: string): boolean {
       }
     }
   });
-  
+
   return removed;
 }
 
 export function getUserGroup(email: string): UserGroup | null {
   const groups = getGroups();
-  return groups.find(g => g.users.includes(email)) || null;
+  return groups.find((g) => g.users.includes(email)) || null;
 }

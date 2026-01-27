@@ -5,7 +5,6 @@ import ImageMetadata from './ImageMetadata';
 import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
 
-
 interface FolderSectionProps {
   folder: GalleryFolder;
   onImageClick: (image: ImageFile, imagesInFolder: ImageFile[]) => void;
@@ -21,7 +20,6 @@ const FolderSection: React.FC<FolderSectionProps> = ({
   setGlobalCollapsedFolders,
   allFolders,
 }) => {
-
   const toggleFolder = (folderPath: string) => {
     const newCollapsed = new Set(globalCollapsedFolders);
     if (newCollapsed.has(folderPath)) {
@@ -34,7 +32,21 @@ const FolderSection: React.FC<FolderSectionProps> = ({
 
   const renderFolder = (currentFolder: GalleryFolder, depth: number = 0) => {
     // Znajdź obrazy z Kolorystyki
-    const kolorystykaImages = allFolders.find(f => f.name.toLowerCase() === 'kolorystyka')?.images || [];
+    const kolorystykaFolder = allFolders.find(
+      (f) => f.name.toLowerCase() === 'kolorystyka',
+    );
+    const kolorystykaImages = kolorystykaFolder?.images || [];
+
+    if (kolorystykaImages.length > 0) {
+      console.log(
+        `🎨 Gallery - Znaleziono folder Kolorystyka z ${kolorystykaImages.length} obrazami`,
+      );
+    } else {
+      console.log(
+        `⚠️ Gallery - Brak folderu Kolorystyka lub jest pusty. Dostępne foldery:`,
+        allFolders.map((f) => f.name),
+      );
+    }
     const indentClass = `level-${Math.min(depth, 4)}`;
     const categoryClass = currentFolder.isCategory
       ? 'category'
@@ -131,7 +143,9 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(
     null,
   );
-  const [globalCollapsedFolders, setGlobalCollapsedFolders] = useState<Set<string>>(new Set());
+  const [globalCollapsedFolders, setGlobalCollapsedFolders] = useState<
+    Set<string>
+  >(new Set());
 
   logger.debug('Gallery component render', {
     loading,
@@ -196,11 +210,13 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
           foldersCount: data.data.length,
         });
         setFolders(data.data);
-        
+
         // Zamknij wszystkie główne kategorie na starcie
-        const allMainFolderPaths = new Set(data.data.map(folder => folder.path));
+        const allMainFolderPaths = new Set(
+          data.data.map((folder) => folder.path),
+        );
         setGlobalCollapsedFolders(allMainFolderPaths);
-        
+
         setError(null);
         setLoadingProgress(100);
       } else {
@@ -253,7 +269,12 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   };
 
   if (loading) {
-    return <LoadingOverlay message="Ładowanie galerii..." progress={loadingProgress} />;
+    return (
+      <LoadingOverlay
+        message="Ładowanie galerii..."
+        progress={loadingProgress}
+      />
+    );
   }
 
   if (error) {
