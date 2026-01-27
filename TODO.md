@@ -1,1 +1,1 @@
-TAILWIND CSS
+progress bar przyładowaniu / odświerzania galerii

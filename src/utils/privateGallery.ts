@@ -84,7 +84,8 @@ export async function scanPrivateDirectory(folder: string = '', depth: number = 
   // Rekurencyjnie skanuj podfoldery
   if (data.folders && data.folders.length > 0) {
     for (const subfolder of data.folders) {
-      logger.debug('Scanning subfolder', { path: subfolder.path });
+      logger.debug('Scanning subfolder', { path: subfolder.path, name: subfolder.name });
+      console.log(`🔍 SKANUJE PODFOLDER: ${subfolder.name} (${subfolder.path})`);
       
       const subResults = await scanPrivateDirectory(subfolder.path, depth + 1);
       
@@ -111,5 +112,9 @@ export async function scanPrivateDirectory(folder: string = '', depth: number = 
   }
   
   logger.debug('scanPrivateDirectory returning results', { folder, resultsCount: results.length });
+  console.log(`🏁 ZWRACAM WYNIKI dla folderu "${folder}": ${results.length} elementów`);
+  results.forEach((result, idx) => {
+    console.log(`  ${idx + 1}. ${result.name} (${result.path}) - isCategory: ${result.isCategory}, images: ${result.images.length}, subfolders: ${result.subfolders?.length || 0}`);
+  });
   return results;
 }

@@ -60,6 +60,11 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
     checkAuthStatus();
     loadVersionInfo();
   }, []);
+
+  // Odśwież status autoryzacji przy zmianie strony
+  useEffect(() => {
+    checkAuthStatus();
+  }, [router.pathname]);
   
   if (isLoginPage) {
     return null;
