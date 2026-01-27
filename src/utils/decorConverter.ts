@@ -36,7 +36,7 @@ class DecorConverter {
       }
 
       this.table = data;
-      return this.table;
+      return this.table!;
     } catch (error) {
       logger.error('Błąd ładowania tabeli dekorów', error);
 
@@ -45,7 +45,7 @@ class DecorConverter {
         stelaż: {},
         blat: {},
       };
-      return this.table;
+      return this.table!;
     }
   }
 
