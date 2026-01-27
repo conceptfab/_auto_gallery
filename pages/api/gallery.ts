@@ -73,6 +73,25 @@ function collectDecorsImages(folders: GalleryFolder[]): ImageFile[] {
 }
 
 /**
+ * Folder _folders NIE MOŻE być wyświetlany w galerii pod żadnym pozorem.
+ * Usuwa rekurencyjnie z drzewa każdy folder o nazwie _folders lub ścieżce zawierającej _folders.
+ */
+function removeFoldersHiddenFromGallery(folders: GalleryFolder[]): GalleryFolder[] {
+  return folders
+    .filter(
+      (f) =>
+        f.name.toLowerCase() !== '_folders' &&
+        !String(f.path).toLowerCase().includes('_folders'),
+    )
+    .map((folder) => ({
+      ...folder,
+      subfolders: folder.subfolders
+        ? removeFoldersHiddenFromGallery(folder.subfolders)
+        : undefined,
+    }));
+}
+
+/**
  * Usuwa wszystkie foldery "decors" z drzewa folderów
  */
 function removeDecorsFolders(folders: GalleryFolder[]): GalleryFolder[] {
@@ -159,8 +178,8 @@ async function galleryHandler(
           groupId as string | undefined,
         );
         if (cached) {
-          // Upewnij się, że struktura ma kategorię "Kolorystyka" nawet z cache
-          return attachDecorsAsKolorystyka(cached);
+          // _folders nigdy z cache do galerii; potem Kolorystyka
+          return attachDecorsAsKolorystyka(removeFoldersHiddenFromGallery(cached));
         }
       }
 
@@ -188,7 +207,8 @@ async function galleryHandler(
         folders = convertFolderUrls(folders, galleryUrl);
       }
 
-      // Podłącz globalną kategorię "Kolorystyka" z podfolderów "decors"
+      // Folder _folders nigdy w galerii; potem Kolorystyka
+      folders = removeFoldersHiddenFromGallery(folders);
       folders = attachDecorsAsKolorystyka(folders);
 
       // Zapisz do cache (tylko dla publicznych galerii)

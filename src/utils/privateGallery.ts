@@ -99,10 +99,18 @@ export async function scanPrivateDirectory(
   // Rekurencyjnie skanuj podfoldery
   if (data.folders && data.folders.length > 0) {
     for (const subfolder of data.folders) {
-      // Pomiń specjalny folder _folders
-      if (subfolder.name.toLowerCase() === '_folders') {
+      // Pomiń specjalny folder _folders – po nazwie i po ścieżce (nigdy w galerii)
+      const nameNorm = (subfolder.name || '').toLowerCase();
+      const pathNorm = (subfolder.path || '').toLowerCase();
+      if (
+        nameNorm === '_folders' ||
+        pathNorm.includes('_folders') ||
+        pathNorm.endsWith('/_folders') ||
+        pathNorm === '_folders'
+      ) {
         logger.debug('Pomijam specjalny folder _folders', {
           name: subfolder.name,
+          path: subfolder.path,
         });
         continue;
       }

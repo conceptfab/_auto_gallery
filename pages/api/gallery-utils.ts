@@ -118,6 +118,8 @@ async function findSubfolders(
         (href.includes('/gallery/') && href.endsWith('/'));
 
       if (isFolder) {
+        const lastSegment = (href.split('/').filter(Boolean).pop() || '').toLowerCase();
+        if (lastSegment === '_folders') continue; // _folders nigdy w galerii
         const folderUrl = href.endsWith('/') ? fullUrl : fullUrl + '/';
         subfolders.push({
           name: text || href.split('/').filter(Boolean).pop() || href,
@@ -185,10 +187,17 @@ async function scanDirectoryRecursive(
         depth: currentDepth,
       });
 
-      // Pomiń specjalny folder _folders
-      if (folder.name.toLowerCase() === '_folders') {
+      // Pomiń specjalny folder _folders – po nazwie i po URL/ścieżce
+      const urlNorm = (folder.url || '').replace(/\/$/, '').toLowerCase();
+      const nameNorm = (folder.name || '').toLowerCase();
+      if (
+        nameNorm === '_folders' ||
+        urlNorm.endsWith('_folders') ||
+        urlNorm.includes('/_folders/')
+      ) {
         logger.debug('Pomijam specjalny folder _folders', {
           name: folder.name,
+          url: folder.url,
         });
         continue;
       }
