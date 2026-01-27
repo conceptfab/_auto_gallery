@@ -1,32 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createGroup } from '../../../../../src/utils/storage';
-import { getEmailFromCookie } from '../../../../../src/utils/auth';
-import { ADMIN_EMAIL } from '../../../../../src/config/constants';
-import { isAdminLoggedIn } from '../../../../../src/utils/storage';
+import { withAdminAuth } from '../../../../../src/utils/adminMiddleware';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Sprawdź autoryzację admina
-  const email = getEmailFromCookie(req);
-  if (email !== ADMIN_EMAIL || !isAdminLoggedIn(email)) {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-
   try {
     const { name, clientName, galleryFolder } = req.body;
 
     if (!name || !clientName || !galleryFolder) {
-      return res
-        .status(400)
-        .json({
-          error: 'Nazwa grupy, nazwa klienta i folder galerii są wymagane',
-        });
+      return res.status(400).json({
+        error: 'Nazwa grupy, nazwa klienta i folder galerii są wymagane',
+      });
     }
 
     const group = createGroup(name, clientName, galleryFolder);
@@ -36,3 +22,5 @@ export default async function handler(
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default withAdminAuth(handler);

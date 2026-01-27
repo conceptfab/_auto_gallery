@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie } from '../../../../src/utils/auth';
-import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateUploadToken } from '../../../../src/utils/fileToken';
+import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
 
 export const config = {
   api: {
@@ -9,15 +8,9 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // Sprawdź czy to admin
-  const email = getEmailFromCookie(req);
-  if (email !== ADMIN_EMAIL) {
-    return res.status(403).json({ error: 'Admin access required' });
   }
 
   const { folder = '' } = req.query;
@@ -40,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Stwórz nowy FormData z tokenem
     // Musimy przeparsować multipart i dodać token
     const boundary = contentType.split('boundary=')[1];
-    
+
     if (!boundary) {
       return res.status(400).json({ error: 'Invalid content type' });
     }
@@ -49,13 +42,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tokenPart = `--${boundary}\r\nContent-Disposition: form-data; name="token"\r\n\r\n${token}\r\n`;
     const expiresPart = `--${boundary}\r\nContent-Disposition: form-data; name="expires"\r\n\r\n${expires}\r\n`;
     const folderPart = `--${boundary}\r\nContent-Disposition: form-data; name="folder"\r\n\r\n${folderPath}\r\n`;
-    
+
     // Usuń końcowy boundary i dodaj nowe pola
     const bodyStr = body.toString('binary');
     const lastBoundary = `--${boundary}--`;
     const bodyWithoutEnd = bodyStr.replace(lastBoundary, '');
-    
-    const newBody = tokenPart + expiresPart + folderPart + bodyWithoutEnd + lastBoundary;
+
+    const newBody =
+      tokenPart + expiresPart + folderPart + bodyWithoutEnd + lastBoundary;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -66,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       return res.status(response.status).json(data);
     }
@@ -77,3 +71,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Failed to upload file' });
   }
 }
+
+export default withAdminAuth(handler);

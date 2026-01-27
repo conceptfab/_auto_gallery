@@ -1,36 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie } from '../../../../src/utils/auth';
-import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateDeleteToken } from '../../../../src/utils/fileToken';
+import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
+import { validateFilePath } from '../../../../src/utils/pathValidation';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Sprawdź czy to admin
-  const email = getEmailFromCookie(req);
-  if (email !== ADMIN_EMAIL) {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-
   const { path } = req.body;
-
-  if (!path || typeof path !== 'string') {
-    return res.status(400).json({ error: 'Path is required' });
-  }
-
-  // Walidacja ścieżki - zapobieganie Path Traversal
-  if (path.includes('..') || path.includes('./') || path.startsWith('/')) {
-    return res.status(400).json({ error: 'Invalid path' });
-  }
-
-  // Dozwolone tylko znaki alfanumeryczne, myślniki, podkreślenia i slashe
-  if (!/^[a-zA-Z0-9\/_\-\.]+$/.test(path)) {
-    return res.status(400).json({ error: 'Invalid characters in path' });
+  const pathResult = validateFilePath(path);
+  if (!pathResult.valid) {
+    return res.status(400).json({ error: pathResult.error });
   }
 
   try {
@@ -56,3 +37,5 @@ export default async function handler(
     res.status(500).json({ error: 'Failed to delete file' });
   }
 }
+
+export default withAdminAuth(handler);

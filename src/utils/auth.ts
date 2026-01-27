@@ -74,3 +74,8 @@ export function getAdminEmailFromCookie(req: NextApiRequest): string | null {
 
   return null;
 }
+
+/** Generuje 6-znakowy kod do logowania (np. email). */
+export function generateCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}

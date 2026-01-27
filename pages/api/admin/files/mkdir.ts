@@ -1,56 +1,27 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie } from '../../../../src/utils/auth';
-import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { generateMkdirToken } from '../../../../src/utils/fileToken';
 import { logger } from '../../../../src/utils/logger';
+import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
+import {
+  validateFilePath,
+  validateFileName,
+} from '../../../../src/utils/pathValidation';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Sprawdź czy to admin
-  const email = getEmailFromCookie(req);
-  if (email !== ADMIN_EMAIL) {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-
   const { parentFolder = '', folderName } = req.body;
-
-  if (!folderName || typeof folderName !== 'string') {
-    return res.status(400).json({ error: 'folderName is required' });
+  if (parentFolder) {
+    const parentResult = validateFilePath(parentFolder);
+    if (!parentResult.valid) {
+      return res.status(400).json({ error: parentResult.error });
+    }
   }
-
-  // Walidacja folderu nadrzędnego - zapobieganie Path Traversal
-  if (
-    parentFolder &&
-    (parentFolder.includes('..') ||
-      parentFolder.includes('./') ||
-      parentFolder.startsWith('/'))
-  ) {
-    return res.status(400).json({ error: 'Invalid parent folder path' });
-  }
-
-  if (parentFolder && !/^[a-zA-Z0-9\/_\-\.]+$/.test(parentFolder)) {
-    return res
-      .status(400)
-      .json({ error: 'Invalid characters in parent folder' });
-  }
-
-  // Walidacja nazwy folderu
-  if (
-    folderName.includes('..') ||
-    folderName.includes('/') ||
-    folderName.includes('\\')
-  ) {
-    return res.status(400).json({ error: 'Invalid folder name' });
-  }
-
-  if (!/^[a-zA-Z0-9_\-\.]+$/.test(folderName)) {
-    return res.status(400).json({ error: 'Invalid characters in folder name' });
+  const nameResult = validateFileName(folderName);
+  if (!nameResult.valid) {
+    return res.status(400).json({ error: nameResult.error });
   }
 
   try {
@@ -93,3 +64,5 @@ export default async function handler(
       .json({ error: 'Failed to create folder: ' + (error as Error).message });
   }
 }
+
+export default withAdminAuth(handler);

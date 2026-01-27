@@ -7,10 +7,7 @@ import {
 import { LoginCode } from '../../../../src/types/auth';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { logger } from '../../../../src/utils/logger';
-
-function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+import { generateCode } from '../../../../src/utils/auth';
 
 export default async function handler(
   req: NextApiRequest,

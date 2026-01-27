@@ -1,10 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { LoginRequest } from '../../../../src/types/auth';
-import { getAdminCode, removeAdminCode, cleanupExpiredAdminCodes, loginAdmin } from '../../../../src/utils/storage';
+import {
+  getAdminCode,
+  removeAdminCode,
+  cleanupExpiredAdminCodes,
+  loginAdmin,
+} from '../../../../src/utils/storage';
 
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -21,14 +28,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Zawsze używaj skonfigurowanego emaila administratora
     const email = ADMIN_EMAIL;
-    
+
     if (!email) {
       return res.status(500).json({ error: 'Admin email not configured' });
     }
 
     // Sprawdź czy używa kodu awaryjnego
     const emergencyCode = process.env.ADMIN_EMERGENCY_CODE;
-    const isEmergencyCode = emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
+    const isEmergencyCode =
+      emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
 
     if (isEmergencyCode) {
       console.log('🆘 Używa kodu awaryjnego do logowania administratora');
@@ -38,7 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const adminCode = getAdminCode(email);
 
       if (!adminCode) {
-        return res.status(404).json({ error: 'No active admin code for this email' });
+        return res
+          .status(404)
+          .json({ error: 'No active admin code for this email' });
       }
 
       // Sprawdź czy kod nie wygasł
@@ -60,17 +70,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Ustaw admin cookie
     res.setHeader('Set-Cookie', [
       `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict`,
-      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict`
+      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict`,
     ]);
 
     console.log('👑 Administrator zalogowany:', email);
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Admin login successful',
       email,
-      success: true
+      success: true,
     });
-
   } catch (error) {
     console.error('Error verifying admin code:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -101,7 +101,7 @@ async function findSubfolders(
       try {
         // Obsługa absolutnych ścieżek jak /__metro/gallery/CUBE/
         if (href.startsWith('/')) {
-          fullUrl = `https://conceptfab.com${href}`;
+          fullUrl = new URL(href, GALLERY_BASE_URL).href;
         } else {
           fullUrl = new URL(href, url).href;
         }
@@ -118,7 +118,9 @@ async function findSubfolders(
         (href.includes('/gallery/') && href.endsWith('/'));
 
       if (isFolder) {
-        const lastSegment = (href.split('/').filter(Boolean).pop() || '').toLowerCase();
+        const lastSegment = (
+          href.split('/').filter(Boolean).pop() || ''
+        ).toLowerCase();
         if (lastSegment === '_folders') continue; // _folders nigdy w galerii
         const folderUrl = href.endsWith('/') ? fullUrl : fullUrl + '/';
         subfolders.push({
@@ -266,7 +268,7 @@ async function scanDirectoryRecursive(
             if (isImage) {
               let fullUrl: string;
               if (href.startsWith('/')) {
-                fullUrl = `https://conceptfab.com${href}`;
+                fullUrl = new URL(href, GALLERY_BASE_URL).href;
               } else {
                 fullUrl = new URL(href, folder.url).href;
               }
@@ -303,11 +305,11 @@ async function scanDirectoryRecursive(
 function validateGalleryUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
-    // Only allow HTTPS and specific conceptfab.com domain
+    const baseUrl = new URL(GALLERY_BASE_URL);
     return (
       parsedUrl.protocol === 'https:' &&
-      parsedUrl.hostname === 'conceptfab.com' &&
-      parsedUrl.pathname.startsWith('/__metro/gallery/')
+      parsedUrl.hostname === baseUrl.hostname &&
+      parsedUrl.pathname.startsWith(baseUrl.pathname)
     );
   } catch {
     return false;

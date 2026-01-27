@@ -1,90 +1,54 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogFn = (message: string, ...args: unknown[]) => void;
 
-class Logger {
-  private level: LogLevel;
-  private isDev: boolean;
-  
-  constructor() {
-    this.isDev = process.env.NODE_ENV !== 'production';
-    this.level = this.isDev ? 'warn' : 'error';
-  }
-  
-  private shouldLog(level: LogLevel): boolean {
-    const levels = ['debug', 'info', 'warn', 'error'];
-    return levels.indexOf(level) >= levels.indexOf(this.level);
-  }
-  
-  private formatMessage(level: LogLevel, message: string, ...args: any[]): [string, ...any[]] {
-    const timestamp = new Date().toISOString();
-    const emoji = this.getEmoji(level);
-    const formattedMessage = `[${timestamp}] ${emoji} ${message}`;
-    return [formattedMessage, ...args];
-  }
-  
-  private getEmoji(level: LogLevel): string {
-    if (!this.isDev) return ''; // Brak emoji w produkcji
-    
-    switch (level) {
-      case 'debug': return '🔍';
-      case 'info': return 'ℹ️';
-      case 'warn': return '⚠️';
-      case 'error': return '❌';
-      default: return '📝';
-    }
-  }
-  
-  debug(message: string, ...args: any[]) {
-    if (this.shouldLog('debug')) {
-      console.log(...this.formatMessage('debug', message, ...args));
-    }
-  }
-  
-  info(message: string, ...args: any[]) {
-    if (this.shouldLog('info')) {
-      console.info(...this.formatMessage('info', message, ...args));
-    }
-  }
-  
-  warn(message: string, ...args: any[]) {
-    if (this.shouldLog('warn')) {
-      console.warn(...this.formatMessage('warn', message, ...args));
-    }
-  }
-  
-  error(message: string, ...args: any[]) {
-    if (this.shouldLog('error')) {
-      console.error(...this.formatMessage('error', message, ...args));
-    }
-  }
-  
-  // Gallery specific methods for backward compatibility
-  galleryStart(url: string) {
-    this.info(`Starting gallery scan: ${url}`);
-  }
-  
-  galleryComplete(folderCount: number, totalImages: number) {
-    this.info(`Gallery scan complete: ${folderCount} folders, ${totalImages} images`);
-  }
-  
-  galleryError(url: string, error: any) {
-    this.error(`Gallery scan failed for ${url}:`, error);
-  }
-  
-  cacheStatus(message: string, ...args: any[]) {
-    this.debug(`Cache: ${message}`, ...args);
-  }
-  
-  authEvent(action: string, email?: string, ...args: any[]) {
-    this.info(`Auth ${action}${email ? ` for ${email}` : ''}`, ...args);
-  }
-  
-  apiRequest(method: string, path: string, clientId?: string) {
-    this.debug(`API ${method} ${path}${clientId ? ` from ${clientId}` : ''}`);
-  }
-  
-  emailEvent(action: string, recipient?: string, ...args: any[]) {
-    this.info(`Email ${action}${recipient ? ` to ${recipient}` : ''}`, ...args);
-  }
+interface Logger {
+  debug: LogFn;
+  info: LogFn;
+  warn: LogFn;
+  error: LogFn;
+  galleryStart: (url: string) => void;
+  galleryComplete: (folderCount: number, totalImages: number) => void;
+  galleryError: (url: string, error: unknown) => void;
+  cacheStatus: LogFn;
+  authEvent: (action: string, email?: string, ...args: unknown[]) => void;
+  apiRequest: (method: string, path: string, clientId?: string) => void;
+  emailEvent: (action: string, recipient?: string, ...args: unknown[]) => void;
 }
 
-export const logger = new Logger();
+const isDev = process.env.NODE_ENV !== 'production';
+const noop: LogFn = () => {};
+
+export const logger: Logger = {
+  debug: isDev ? (m, ...a) => console.log('[DEBUG]', m, ...a) : noop,
+  info: isDev ? (m, ...a) => console.info('[INFO]', m, ...a) : noop,
+  warn: (m, ...a) => console.warn('[WARN]', m, ...a),
+  error: (m, ...a) => console.error('[ERROR]', m, ...a),
+  galleryStart: (url) =>
+    (isDev ? console.info : noop)('[INFO]', `Starting gallery scan: ${url}`),
+  galleryComplete: (folderCount, totalImages) =>
+    (isDev ? console.info : noop)(
+      '[INFO]',
+      `Gallery scan complete: ${folderCount} folders, ${totalImages} images`,
+    ),
+  galleryError: (url, err) =>
+    console.error('[ERROR]', `Gallery scan failed for ${url}:`, err),
+  cacheStatus: isDev
+    ? (m, ...a) => console.log('[DEBUG]', `Cache: ${m}`, ...a)
+    : noop,
+  authEvent: (action, email, ...a) =>
+    (isDev ? console.info : noop)(
+      '[INFO]',
+      `Auth ${action}${email ? ` for ${email}` : ''}`,
+      ...a,
+    ),
+  apiRequest: (method, path, clientId) =>
+    (isDev ? console.log : noop)(
+      '[DEBUG]',
+      `API ${method} ${path}${clientId ? ` from ${clientId}` : ''}`,
+    ),
+  emailEvent: (action, recipient, ...a) =>
+    (isDev ? console.info : noop)(
+      '[INFO]',
+      `Email ${action}${recipient ? ` to ${recipient}` : ''}`,
+      ...a,
+    ),
+};

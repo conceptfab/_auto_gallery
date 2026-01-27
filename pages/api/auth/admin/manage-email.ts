@@ -9,28 +9,13 @@ import {
   cleanupExpiredCodes,
   getPendingEmails,
 } from '../../../../src/utils/storage';
-import { getEmailFromCookie } from '../../../../src/utils/auth';
-import { ADMIN_EMAIL } from '../../../../src/config/constants';
-import { isAdminLoggedIn } from '../../../../src/utils/storage';
+import { generateCode } from '../../../../src/utils/auth';
+import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
 
-function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Sprawdź autoryzację admina
-  const email = getEmailFromCookie(req);
-  if (email !== ADMIN_EMAIL || !isAdminLoggedIn(email)) {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-
   try {
     // Oczyść wygasłe kody przed przetwarzaniem
     cleanupExpiredCodes();
@@ -96,4 +81,4 @@ export default async function handler(
   }
 }
 
-// Export już niepotrzebny - używamy globalnego storage
+export default withAdminAuth(handler);

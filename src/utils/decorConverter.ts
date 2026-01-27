@@ -22,7 +22,7 @@ class DecorConverter {
     if (this.table) return this.table;
 
     try {
-      const response = await fetch('/decor-conversion.json?t=' + Date.now());
+      const response = await fetch('/decor-conversion.json');
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -318,15 +318,6 @@ class DecorConverter {
     }
 
     // Znajdź wszystkie słowa kluczowe i zapisz ich pozycje w nazwie pliku
-    console.log(
-      '🔍 findAllKeywordImages - szukam słów kluczowych w:',
-      imageName,
-    );
-    console.log(
-      '🔍 Dostępne słowa kluczowe:',
-      allKeywords.map((k) => k.keyword),
-    );
-
     for (const { keyword, fileName } of allKeywords) {
       // Escapuj specjalne znaki i użyj elastycznego wyszukiwania
       const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -338,10 +329,6 @@ class DecorConverter {
       // Reset regex przed każdym użyciem
       regex.lastIndex = 0;
 
-      console.log(
-        `🔍 Sprawdzam słowo kluczowe: "${keyword}" (escaped: "${escapedKeyword}")`,
-      );
-
       // Sprawdź wszystkie wystąpienia i zweryfikuj czy są otoczone odpowiednimi znakami
       while ((match = regex.exec(imageName)) !== null) {
         const position = match.index;
@@ -351,46 +338,20 @@ class DecorConverter {
             ? imageName[position + match[0].length]
             : '';
         // Sprawdź czy jest otoczone przez podkreślenia, spacje, myślniki lub granice słowa
-        // Używamy prostszego podejścia - sprawdzamy czy przed/po jest podkreślenie, spacja, myślnik lub brak znaku (początek/koniec)
         const isValidBoundary = (char: string) => {
-          if (!char) return true; // Początek lub koniec stringa
-          return /[_\s-]/.test(char); // Podkreślenie, spacja lub myślnik
+          if (!char) return true;
+          return /[_\s-]/.test(char);
         };
 
         const beforeValid = isValidBoundary(before);
         const afterValid = isValidBoundary(after);
 
-        console.log(`  📍 Znaleziono "${keyword}" na pozycji ${position}:`, {
-          przed: before || '(początek)',
-          po: after || '(koniec)',
-          przedOK: beforeValid,
-          poOK: afterValid,
-          fragment: imageName.substring(
-            Math.max(0, position - 5),
-            position + match[0].length + 5,
-          ),
-        });
-
         if (beforeValid && afterValid) {
           foundKeywords.push({ keyword, fileName, position });
-          console.log(
-            `✅ DODANO słowo kluczowe: "${keyword}" dla pliku: ${fileName}`,
-          );
-          break; // Znaleziono pierwsze poprawne wystąpienie
-        } else {
-          console.log(`❌ ODRZUCONO "${keyword}" - nieprawidłowe granice`);
+          break;
         }
       }
-
-      if (!match) {
-        console.log(`⚠️ Nie znaleziono "${keyword}" w nazwie pliku`);
-      }
     }
-
-    console.log(
-      '🔍 Znalezione słowa kluczowe:',
-      foundKeywords.map((k) => k.keyword),
-    );
 
     // Posortuj według pozycji w nazwie pliku
     foundKeywords.sort((a, b) => a.position - b.position);
