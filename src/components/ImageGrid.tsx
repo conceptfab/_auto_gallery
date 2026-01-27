@@ -55,12 +55,34 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   };
 
   // Funkcje do znajdowania pasujących obrazów z Kolorystyki - używa tabeli konwersji
+  const [blatImages, setBlatImages] = React.useState<{[key: string]: ImageFile | null}>({});
+  const [stelazImages, setStelazImages] = React.useState<{[key: string]: ImageFile | null}>({});
+
+  React.useEffect(() => {
+    const loadImages = async () => {
+      const blatCache: {[key: string]: ImageFile | null} = {};
+      const stelazCache: {[key: string]: ImageFile | null} = {};
+      
+      for (const image of images) {
+        const blatImg = await decorConverter.findBlatImage(image.name, kolorystykaImages);
+        const stelazImg = await decorConverter.findStelazImage(image.name, kolorystykaImages);
+        blatCache[image.name] = blatImg;
+        stelazCache[image.name] = stelazImg;
+      }
+      
+      setBlatImages(blatCache);
+      setStelazImages(stelazCache);
+    };
+    
+    loadImages();
+  }, [images, kolorystykaImages]);
+
   const findBlatImage = (imageName: string): ImageFile | null => {
-    return decorConverter.findBlatImage(imageName, kolorystykaImages);
+    return blatImages[imageName] || null;
   };
 
   const findStelazImage = (imageName: string): ImageFile | null => {
-    return decorConverter.findStelazImage(imageName, kolorystykaImages);
+    return stelazImages[imageName] || null;
   };
 
   const handleColorButtonHover = (e: React.MouseEvent, image: ImageFile) => {
