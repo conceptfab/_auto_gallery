@@ -16,8 +16,6 @@ const getDisplayNameStatic = (name: string): string => {
   let baseName = lastDotIndex === -1 ? name : name.substring(0, lastDotIndex);
   const shotIndex = baseName.indexOf('__Shot');
   if (shotIndex !== -1) baseName = baseName.substring(0, shotIndex);
-  const ralMatch = baseName.match(/RAL\d+/i);
-  if (ralMatch) return ralMatch[0].toUpperCase();
   return baseName.replace(/_+/g, ' ').trim().toUpperCase();
 };
 
@@ -219,16 +217,14 @@ const ImageGrid: React.FC<ImageGridProps> = ({
       } = {};
 
       for (const image of images) {
-        // Koloruj słowa kluczowe tylko jeśli opcja jest włączona i załadowana
+        // Zawsze styluj słowa kluczowe (font-size, font-weight). Kolor tylko gdy opcja włączona.
         const displayName = getDisplayName(image.name);
-        if (highlightKeywordsEnabled === true) {
-          const processed =
-            await decorConverter.highlightKeywordsInDisplayName(displayName);
-          highlighted[image.name] = processed;
-        } else {
-          // Jeśli null (nie załadowane) lub false (wyłączone) - nie koloruj
-          highlighted[image.name] = displayName;
-        }
+        const useColors = highlightKeywordsEnabled === true;
+        const processed = await decorConverter.highlightKeywordsInDisplayName(
+          displayName,
+          useColors,
+        );
+        highlighted[image.name] = processed;
 
         // Znajdź obrazy dla słów kluczowych w nazwie pliku
         const foundImages = await decorConverter.findAllKeywordImages(
@@ -259,9 +255,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           image={image}
           index={index}
           highlightedName={
-            highlightKeywordsEnabled === true
-              ? (highlightedNames[image.name] ?? getDisplayName(image.name))
-              : getDisplayName(image.name)
+            highlightedNames[image.name] ?? getDisplayName(image.name)
           }
           keywordItems={keywordImages[image.name] ?? []}
           folderName={folderName}

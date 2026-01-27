@@ -1186,6 +1186,13 @@ a {
   flex: 1;
 }
 
+/* Styl słów kluczowych – zawsze (font, rozmiar); kolor to osobna opcja */
+.image-name .keyword {
+  font-weight: 500 !important;
+  font-size: 0.72em !important;
+  vertical-align: baseline;
+}
+
 .image-actions {
   display: flex !important;
   gap: 6px;
