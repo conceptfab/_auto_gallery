@@ -1,6 +1,7 @@
 import React from 'react';
 import { ImageFile } from '@/src/types/gallery';
 import ImageMetadata from './ImageMetadata';
+import decorConverter from '@/src/utils/decorConverter';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -53,27 +54,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     return `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=${size}`;
   };
 
-  // Funkcje do znajdowania pasujących obrazów z Kolorystyki
+  // Funkcje do znajdowania pasujących obrazów z Kolorystyki - używa tabeli konwersji
   const findBlatImage = (imageName: string): ImageFile | null => {
-    // Szukaj kodu blatu (np. W210, W240, etc.)
-    const blatMatch = imageName.match(/W\d+/i);
-    if (!blatMatch) return null;
-    
-    const blatCode = blatMatch[0];
-    return kolorystykaImages.find(img => 
-      img.name.toLowerCase().includes(blatCode.toLowerCase())
-    ) || null;
+    return decorConverter.findBlatImage(imageName, kolorystykaImages);
   };
 
   const findStelazImage = (imageName: string): ImageFile | null => {
-    // Szukaj koloru stelaża (grey, black, white, etc.)
-    const colorMatch = imageName.match(/(grey|gray|black|white|silver)/i);
-    if (!colorMatch) return null;
-    
-    const color = colorMatch[0];
-    return kolorystykaImages.find(img => 
-      img.name.toLowerCase().includes(color.toLowerCase())
-    ) || null;
+    return decorConverter.findStelazImage(imageName, kolorystykaImages);
   };
 
   const handleColorButtonHover = (e: React.MouseEvent, image: ImageFile) => {

@@ -967,7 +967,7 @@ a {
   height: 5px;
   background-color: magenta;
   z-index: 10001;
-  animation: loading-grow 2s ease-out infinite;
+  transition: width 0.3s ease-out;
 }
 
 @keyframes loading-grow {

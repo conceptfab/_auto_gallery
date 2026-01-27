@@ -124,6 +124,7 @@ interface GalleryProps {
 const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<ImageFile | null>(null);
   const [currentImageList, setCurrentImageList] = useState<ImageFile[]>([]);
@@ -147,6 +148,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     try {
       logger.info('Fetching gallery data');
       setLoading(true);
+      setLoadingProgress(10);
       setError(null);
 
       const controller = new AbortController();
@@ -160,17 +162,20 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         ? `/api/gallery?groupId=${groupId}`
         : '/api/gallery';
 
+      setLoadingProgress(30);
       const response = await fetch(apiUrl, {
         signal: controller.signal,
       });
 
       clearTimeout(timeout);
+      setLoadingProgress(60);
       logger.debug('Response status', { status: response.status });
 
       // Obsługa 304 Not Modified
       if (response.status === 304) {
         logger.info('Gallery not modified - using cached data');
-        setLoading(false);
+        setLoadingProgress(100);
+        setTimeout(() => setLoading(false), 200);
         return;
       }
 
@@ -178,12 +183,14 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         throw new Error(`API returned ${response.status}`);
       }
 
+      setLoadingProgress(80);
       const data: GalleryResponse = await response.json();
       logger.debug('Response data', {
         dataLength: JSON.stringify(data).length,
         foldersCount: data.data?.length || 0,
       });
 
+      setLoadingProgress(90);
       if (data.success && data.data && data.data.length > 0) {
         logger.info('Gallery loaded successfully', {
           foldersCount: data.data.length,
@@ -195,6 +202,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         setGlobalCollapsedFolders(allMainFolderPaths);
         
         setError(null);
+        setLoadingProgress(100);
       } else {
         logger.error('Gallery API error or empty', {
           error: data.error || 'Empty data',
@@ -210,7 +218,10 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       }
     } finally {
       logger.debug('Setting loading to false');
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+        setLoadingProgress(0);
+      }, 200);
     }
   };
 
@@ -242,7 +253,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   };
 
   if (loading) {
-    return <LoadingOverlay message="Ładowanie galerii..." />;
+    return <LoadingOverlay message="Ładowanie galerii..." progress={loadingProgress} />;
   }
 
   if (error) {
