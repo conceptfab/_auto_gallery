@@ -144,7 +144,7 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
 
   logger.debug('Zebrane obrazy z folderów decors:', decorsImages.length);
   decorsImages.forEach((img, idx) => {
-    logger.debug(idx + 1, img.name);
+    logger.debug(`${idx + 1}. ${img.name}`);
   });
 
   if (decorsImages.length === 0) {

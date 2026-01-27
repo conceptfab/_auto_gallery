@@ -152,15 +152,7 @@ export async function scanPrivateDirectory(
   });
   results.forEach((result, idx) => {
     logger.debug(
-      idx + 1,
-      result.name,
-      result.path,
-      'isCategory:',
-      result.isCategory,
-      'images:',
-      result.images.length,
-      'subfolders:',
-      result.subfolders?.length || 0,
+      `${idx + 1}. ${result.name} (${result.path}) - isCategory: ${result.isCategory}, images: ${result.images.length}, subfolders: ${result.subfolders?.length || 0}`,
     );
   });
   return results;
