@@ -26,12 +26,15 @@ function git(cmd) {
   }
 }
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 function ask(question) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     log(`PYTANIE: ${question}`);
-    rl.question(question, answer => {
+    rl.question(question, (answer) => {
       log(`ODPOWIEDŹ: ${answer}`);
       resolve(answer);
     });
@@ -40,17 +43,17 @@ function ask(question) {
 
 async function main() {
   log('START');
-  
+
   try {
     log('Sprawdzam status git...');
     const status = git('status --porcelain');
-    
+
     if (!status) {
       log('Brak zmian');
       rl.close();
       return;
     }
-    
+
     console.log('\n📋 Zmiany:');
     console.log(status);
     console.log('');
@@ -60,10 +63,10 @@ async function main() {
 
     const ver = await ask(`📦 Wersja (${pkg.version}): `);
     log(`Wpisana wersja: "${ver}"`);
-    
+
     const msg = await ask('📝 Opis: ');
     log(`Wpisany opis: "${msg}"`);
-    
+
     rl.close();
     log('readline zamknięty');
 
@@ -81,20 +84,28 @@ async function main() {
     git('add -A');
 
     log('git commit...');
-    git(`commit -m "v${ver.trim()}: ${msg.trim()}"`);
+    git(`commit -m "${ver.trim()}: ${msg.trim()}"`);
 
     log('Pobieram hash...');
     const hash = git('rev-parse --short HEAD');
-    
+
     log('Pobieram datę...');
     const date = git('log -1 --format=%cd --date=short').replace(/-/g, '');
 
     log('Zapisuję version.json...');
-    fs.writeFileSync(verPath, JSON.stringify({
-      hash, date,
-      message: `v${ver.trim()}: ${msg.trim()}`.substring(0, 50),
-      buildTime: new Date().toISOString()
-    }, null, 2));
+    fs.writeFileSync(
+      verPath,
+      JSON.stringify(
+        {
+          hash,
+          date,
+          message: `${ver.trim()}: ${msg.trim()}`.substring(0, 50),
+          buildTime: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
     log('version.json zapisany');
 
     log('git add version.json...');
@@ -106,9 +117,9 @@ async function main() {
     log('Pobieram finalny hash...');
     const finalHash = git('rev-parse --short HEAD');
 
-    console.log(`\n✅ v${ver.trim()}: ${msg.trim()}`);
+    console.log(`\n✅ ${ver.trim()}: ${msg.trim()}`);
     console.log(`   Hash: ${finalHash}`);
-    
+
     log('git push...');
     try {
       git('push');
@@ -116,10 +127,9 @@ async function main() {
       log('Push failed, trying force push...');
       git('push --force');
     }
-    
+
     console.log('\n🚀 Wypchnięto na GitHub!\n');
     log('KONIEC - sukces');
-
   } catch (error) {
     log(`BŁĄD: ${error.message}`);
     console.error('\n❌ Błąd:', error.message);
