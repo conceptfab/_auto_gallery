@@ -5,20 +5,26 @@
 export async function downloadFile(
   url: string,
   filename?: string,
-  trackFn?: (filePath: string, fileName: string) => Promise<void> | void,
+  trackFn?: (
+    filePath: string,
+    fileName: string,
+    fileSize?: number,
+  ) => Promise<void> | void,
 ): Promise<void> {
   try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const fileSize = blob.size;
+
     if (trackFn && filename) {
       try {
-        await trackFn(url, filename);
+        await trackFn(url, filename, fileSize);
       } catch (trackError) {
         // eslint-disable-next-line no-console
         console.error('Błąd trackowania pobrania:', trackError);
       }
     }
 
-    const response = await fetch(url);
-    const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
 
     const link = document.createElement('a');

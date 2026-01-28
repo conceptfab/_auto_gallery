@@ -8,6 +8,25 @@ function getSessionIdFromCookie(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+/**
+ * Zbiera informacje o urządzeniu dostępne po stronie klienta
+ */
+function getDeviceInfo(): {
+  screenWidth?: number;
+  screenHeight?: number;
+  language?: string;
+} {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  return {
+    screenWidth: window.screen?.width,
+    screenHeight: window.screen?.height,
+    language: navigator.language || navigator.languages?.[0],
+  };
+}
+
 export function useStatsTracker(initialSessionId: string | null = null) {
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const lastViewRef = useRef<string | null>(null);
@@ -49,10 +68,17 @@ export function useStatsTracker(initialSessionId: string | null = null) {
       lastViewRef.current = viewKey;
 
       try {
+        const deviceInfo = getDeviceInfo();
         await fetch('/api/stats/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, type, path, name }),
+          body: JSON.stringify({
+            sessionId,
+            type,
+            path,
+            name,
+            ...deviceInfo,
+          }),
         });
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -63,14 +89,21 @@ export function useStatsTracker(initialSessionId: string | null = null) {
   );
 
   const trackDownload = useCallback(
-    async (filePath: string, fileName: string) => {
+    async (filePath: string, fileName: string, fileSize?: number) => {
       if (!sessionId) return;
 
       try {
+        const deviceInfo = getDeviceInfo();
         await fetch('/api/stats/track-download', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, filePath, fileName }),
+          body: JSON.stringify({
+            sessionId,
+            filePath,
+            fileName,
+            fileSize,
+            ...deviceInfo,
+          }),
         });
       } catch (error) {
         // eslint-disable-next-line no-console

@@ -20,6 +20,18 @@ export interface UserSession {
   userAgent?: string;
 }
 
+// Informacje o urządzeniu wyciągnięte z userAgent i przeglądarki
+export interface DeviceInfo {
+  browser?: string; // Chrome, Firefox, Safari, Edge, Opera, etc.
+  browserVersion?: string;
+  os?: string; // Windows, macOS, Linux, iOS, Android, etc.
+  osVersion?: string;
+  deviceType?: 'desktop' | 'mobile' | 'tablet';
+  screenWidth?: number;
+  screenHeight?: number;
+  language?: string; // język przeglądarki
+}
+
 // Zdarzenie przeglądania (folder lub obraz)
 export interface ViewEvent {
   id: string; // view_xxxxxxxx
@@ -31,6 +43,9 @@ export interface ViewEvent {
   folderName?: string; // nazwa folderu (dla kontekstu)
   imageName?: string; // nazwa pliku obrazu
   duration?: number; // czas oglądania w sekundach (dla obrazów)
+  ip?: string;
+  userAgent?: string;
+  deviceInfo?: DeviceInfo;
 }
 
 // Zdarzenie pobrania pliku
@@ -42,6 +57,9 @@ export interface DownloadEvent {
   filePath: string;
   fileName: string;
   fileSize?: number;
+  ip?: string;
+  userAgent?: string;
+  deviceInfo?: DeviceInfo;
 }
 
 // Statystyki zbiorcze użytkownika

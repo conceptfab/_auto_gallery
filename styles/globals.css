@@ -2499,19 +2499,19 @@ a {
 
 .stats-card h4 {
   margin: 0 0 8px 0;
-  font-size: 13px;
+  font-size: 10.4px;
   font-weight: 500;
   color: #6b7280;
 }
 
 .stats-value {
-  font-size: 24px;
+  font-size: 19.2px;
   font-weight: 600;
   color: #111827;
 }
 
 .stats-label {
-  font-size: 12px;
+  font-size: 9.6px;
   color: #6b7280;
   margin-top: 4px;
 }
@@ -2524,9 +2524,10 @@ a {
 
 .stats-table th,
 .stats-table td {
-  padding: 12px;
+  padding: 9.6px;
   text-align: left;
   border-bottom: 1px solid #eee;
+  font-size: 10.4px;
 }
 
 .stats-table th {
@@ -2549,7 +2550,7 @@ a {
   gap: 15px;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
-  font-size: 13px;
+  font-size: 10.4px;
 }
 
 .activity-time {
@@ -2585,6 +2586,7 @@ a {
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 12.8px;
 }
 
 .stats-date-filter button.active,
@@ -2607,8 +2609,23 @@ a {
   color: #111827;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 8px;
-  font-size: 0.95rem;
+  font-size: 0.76rem;
   font-weight: 500;
+}
+
+.stats-section h4 {
+  font-size: 0.76rem;
+  font-weight: 500;
+  margin: 0 0 10px 0;
+  color: #111827;
+}
+
+.stats-summary-grid {
+  font-size: 10.4px;
+}
+
+.stats-summary-grid div {
+  font-size: inherit;
 }
 
 /* Error Animation */

@@ -6,6 +6,7 @@ import type {
   DownloadEvent,
   UserStats,
   StatsData,
+  DeviceInfo,
 } from '../types/stats';
 
 // Generowanie unikalnych ID
@@ -143,6 +144,9 @@ export async function recordViewEvent(
   type: 'folder' | 'image',
   path: string,
   name: string,
+  ip?: string,
+  userAgent?: string,
+  deviceInfo?: DeviceInfo,
 ): Promise<ViewEvent> {
   const event: ViewEvent = {
     id: generateId('view'),
@@ -152,6 +156,9 @@ export async function recordViewEvent(
     type,
     path,
     [type === 'folder' ? 'folderName' : 'imageName']: name,
+    ip,
+    userAgent,
+    deviceInfo,
   };
 
   await updateData((data) => {
@@ -196,6 +203,9 @@ export async function recordDownloadEvent(
   filePath: string,
   fileName: string,
   fileSize?: number,
+  ip?: string,
+  userAgent?: string,
+  deviceInfo?: DeviceInfo,
 ): Promise<DownloadEvent> {
   const event: DownloadEvent = {
     id: generateId('dl'),
@@ -205,6 +215,9 @@ export async function recordDownloadEvent(
     filePath,
     fileName,
     fileSize,
+    ip,
+    userAgent,
+    deviceInfo,
   };
 
   await updateData((data) => {

@@ -1,12 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../src/utils/auth';
 import { recordViewEvent } from '../../../src/utils/statsStorage';
+import { getClientIp, createDeviceInfo } from '../../../src/utils/deviceInfo';
 
 interface TrackViewBody {
   sessionId?: string;
   type?: 'folder' | 'image';
   path?: string;
   name?: string;
+  screenWidth?: number;
+  screenHeight?: number;
+  language?: string;
 }
 
 export default async function handler(
@@ -22,13 +26,32 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { sessionId, type, path, name } = req.body as TrackViewBody;
+  const { sessionId, type, path, name, screenWidth, screenHeight, language } =
+    req.body as TrackViewBody;
 
   if (!sessionId || !type || !path || !name) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  await recordViewEvent(email, sessionId, type, path, name);
+  // Zbierz informacje o IP, userAgent i urządzeniu
+  const ip = getClientIp(req);
+  const userAgent = req.headers['user-agent'] || undefined;
+  const deviceInfo = createDeviceInfo(req, {
+    screenWidth,
+    screenHeight,
+    language,
+  });
+
+  await recordViewEvent(
+    email,
+    sessionId,
+    type,
+    path,
+    name,
+    ip,
+    userAgent,
+    deviceInfo,
+  );
 
   return res.status(200).json({ success: true });
 }
