@@ -31,6 +31,7 @@ export function clearAuthCookie(res: NextApiResponse): void {
     'auth_email=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
     'auth_logged=; Path=/; Max-Age=0; SameSite=Strict',
     'session_id=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
+    'stats_session_id=; Path=/; Max-Age=0; SameSite=Strict',
   ]);
 }
 

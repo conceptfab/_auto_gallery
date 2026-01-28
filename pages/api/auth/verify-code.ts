@@ -57,16 +57,26 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     await recordLogin(email, ip, userAgent);
     const session = await startSession(email, ip, userAgent);
 
-    // Dodaj cookie z session_id, nie nadpisując istniejących
+    // Dodaj cookie z session_id (HttpOnly) oraz stats_session_id (widoczne dla frontu),
+    // nie nadpisując istniejących
     const existingCookies = res.getHeader('Set-Cookie');
     const sessionCookie = `session_id=${session.id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=43200`;
+    const statsSessionCookie = `stats_session_id=${session.id}; Path=/; SameSite=Strict; Max-Age=43200`;
 
     if (Array.isArray(existingCookies)) {
-      res.setHeader('Set-Cookie', [...existingCookies, sessionCookie]);
+      res.setHeader('Set-Cookie', [
+        ...existingCookies,
+        sessionCookie,
+        statsSessionCookie,
+      ]);
     } else if (typeof existingCookies === 'string') {
-      res.setHeader('Set-Cookie', [existingCookies, sessionCookie]);
+      res.setHeader('Set-Cookie', [
+        existingCookies,
+        sessionCookie,
+        statsSessionCookie,
+      ]);
     } else {
-      res.setHeader('Set-Cookie', sessionCookie);
+      res.setHeader('Set-Cookie', [sessionCookie, statsSessionCookie]);
     }
 
     res.status(200).json({

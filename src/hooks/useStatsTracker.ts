@@ -4,6 +4,12 @@ type ViewType = 'folder' | 'image';
 
 function getSessionIdFromCookie(): string | null {
   if (typeof document === 'undefined') return null;
+
+  // Preferuj nie-HttpOnly cookie widoczne po stronie klienta
+  const statsMatch = document.cookie.match(/stats_session_id=([^;]+)/);
+  if (statsMatch) return decodeURIComponent(statsMatch[1]);
+
+  // Dla zgodności: gdyby kiedyś session_id nie było HttpOnly
   const match = document.cookie.match(/session_id=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
