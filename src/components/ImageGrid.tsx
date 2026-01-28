@@ -44,6 +44,7 @@ interface ImageItemProps {
     filePath: string,
     fileName: string,
   ) => Promise<void> | void;
+  isTouchDevice: boolean;
 }
 
 const ImageItem = memo(function ImageItem({
@@ -61,6 +62,7 @@ const ImageItem = memo(function ImageItem({
   onHoverPreview,
   onHoverPreviewClear,
   onTrackDownload,
+  isTouchDevice,
 }: ImageItemProps) {
   const handleImageError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -104,19 +106,56 @@ const ImageItem = memo(function ImageItem({
                   <button
                     key={`keyword-${image.name}-${idx}`}
                     className="image-action-button color-button"
+                    onTouchStart={(e) => {
+                      // Na tablecie obsłuż touch event
+                      if (isTouchDevice) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        onHoverPreview(
+                          item.image,
+                          rect.left + rect.width / 2,
+                          rect.top,
+                        );
+                        setTimeout(() => onHoverPreviewClear(), 2000);
+                      }
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE otwieraj pełnego obrazu
+                      if (isTouchDevice) {
+                        e.preventDefault();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        onHoverPreview(
+                          item.image,
+                          rect.left + rect.width / 2,
+                          rect.top,
+                        );
+                        // Ukryj podgląd po 2 sekundach
+                        setTimeout(() => onHoverPreviewClear(), 2000);
+                        return; // WAŻNE: return early - nie wykonuj dalszego kodu!
+                      }
+                      // Na desktopie otwórz pełny obraz
+                      onHoverPreviewClear();
                       onImageClick?.(item.image, kolorystykaImages);
                     }}
                     onMouseEnter={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      onHoverPreview(
-                        item.image,
-                        rect.left + rect.width / 2,
-                        rect.top,
-                      );
+                      // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
+                      if (!isTouchDevice) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        onHoverPreview(
+                          item.image,
+                          rect.left + rect.width / 2,
+                          rect.top,
+                        );
+                      }
                     }}
-                    onMouseLeave={onHoverPreviewClear}
+                    onMouseLeave={() => {
+                      // Na tablecie nie ukrywaj podglądu przy mouseLeave
+                      if (!isTouchDevice) {
+                        onHoverPreviewClear();
+                      }
+                    }}
                     title={buttonTitle}
                     style={{
                       backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
@@ -194,6 +233,20 @@ const ImageGrid: React.FC<ImageGridProps> = ({
 
   const { highlightKeywords: highlightKeywordsEnabled } = useSettings();
 
+  // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
+  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
+  React.useEffect(() => {
+    const checkTouchDevice = () => {
+      // Urządzenie dotykowe: pointer: coarse (palec) zamiast pointer: fine (mysz)
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
+      setIsTouchDevice(isTouch);
+    };
+    checkTouchDevice();
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    mediaQuery.addEventListener('change', checkTouchDevice);
+    return () => mediaQuery.removeEventListener('change', checkTouchDevice);
+  }, []);
+
   React.useEffect(() => {
     const loadHighlightedNames = async () => {
       const highlighted: {
@@ -255,6 +308,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           onHoverPreview={handleHoverPreview}
           onHoverPreviewClear={handleHoverPreviewClear}
           onTrackDownload={onTrackDownload}
+          isTouchDevice={isTouchDevice}
         />
       ))}
 

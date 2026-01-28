@@ -200,6 +200,21 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
 
   const { trackView, trackDownload } = useStatsTracker(null);
 
+  // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      // Urządzenie dotykowe: pointer: coarse (palec) zamiast pointer: fine (mysz)
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
+      setIsTouchDevice(isTouch);
+    };
+    checkTouchDevice();
+    // Nasłuchuj zmian (np. podłączenie myszy do tabletu)
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    mediaQuery.addEventListener('change', checkTouchDevice);
+    return () => mediaQuery.removeEventListener('change', checkTouchDevice);
+  }, []);
+
   // Wyciągnij obrazy z folderu Kolorystyka
   const kolorystykaImages = useMemo(() => {
     const findKolorystykaImages = (
@@ -447,8 +462,37 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                 <button
                   key={`modal-keyword-${idx}`}
                   className="modal-color-button"
+                  onTouchStart={(e) => {
+                    // Na tablecie obsłuż touch event
+                    if (isTouchDevice) {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setModalHoveredPreview({
+                        image: item.image,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                      });
+                      setTimeout(() => setModalHoveredPreview(null), 2000);
+                    }
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
+                    // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
+                    if (isTouchDevice) {
+                      e.preventDefault();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setModalHoveredPreview({
+                        image: item.image,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                      });
+                      // Ukryj podgląd po 2 sekundach
+                      setTimeout(() => setModalHoveredPreview(null), 2000);
+                      return; // WAŻNE: return early - nie wykonuj dalszego kodu!
+                    }
+                    // Na desktopie zmień obraz
+                    setModalHoveredPreview(null);
                     const index = kolorystykaImages.findIndex(
                       (img) => img.path === item.image.path,
                     );
@@ -457,14 +501,22 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                     setSelectedImage(item.image);
                   }}
                   onMouseEnter={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setModalHoveredPreview({
-                      image: item.image,
-                      x: rect.left + rect.width / 2,
-                      y: rect.top,
-                    });
+                    // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
+                    if (!isTouchDevice) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setModalHoveredPreview({
+                        image: item.image,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                      });
+                    }
                   }}
-                  onMouseLeave={() => setModalHoveredPreview(null)}
+                  onMouseLeave={() => {
+                    // Na tablecie nie ukrywaj podglądu przy mouseLeave
+                    if (!isTouchDevice) {
+                      setModalHoveredPreview(null);
+                    }
+                  }}
                   title={getDisplayName(item.image.name)}
                   style={{
                     backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,

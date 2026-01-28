@@ -1695,6 +1695,50 @@ a {
   .modal-image {
     max-height: 60vh;
   }
+
+  /* Podgląd kolorystyki w modalu - tylko miniaturka 150x150px na tablecie */
+  .modal-color-preview {
+    width: 150px !important;
+    height: 150px !important;
+    max-width: 150px !important;
+    max-height: 150px !important;
+    min-width: 150px !important;
+    min-height: 150px !important;
+    transform: translateX(25px) translateY(-50px) !important;
+  }
+
+  .modal-color-preview img {
+    width: 100% !important;
+    height: 150px !important;
+    max-height: 150px !important;
+    object-fit: cover;
+    display: block;
+  }
+
+  .modal-color-preview .preview-name {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Podgląd kolorystyki w galerii - tylko miniaturka 150x150px na tablecie */
+  .color-preview {
+    width: 150px !important;
+    height: 150px !important;
+    max-width: 150px !important;
+    max-height: 150px !important;
+    min-width: 150px !important;
+    min-height: 150px !important;
+  }
+
+  .color-preview img {
+    width: 100% !important;
+    height: 150px !important;
+    max-height: 150px !important;
+    object-fit: cover !important;
+  }
 }
 
 /* Mobile responsive adjustments */
