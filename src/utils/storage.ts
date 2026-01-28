@@ -1,4 +1,3 @@
-import fs from 'fs';
 import path from 'path';
 import fsp from 'fs/promises';
 import type { StatsData } from '../types/stats';
@@ -42,10 +41,18 @@ interface StorageData {
   stats?: StatsData;
 }
 
-// Użyj Railway volume /data-storage jeśli istnieje, w przeciwnym razie lokalny folder data/
-const DATA_FILE = fs.existsSync('/data-storage')
-  ? '/data-storage/storage.json'
-  : path.join(process.cwd(), 'data', 'storage.json');
+// Funkcja async do określenia ścieżki pliku danych
+async function getDataFilePath(): Promise<string> {
+  try {
+    await fsp.access('/data-storage');
+    return '/data-storage/storage.json';
+  } catch {
+    return path.join(process.cwd(), 'data', 'storage.json');
+  }
+}
+
+// Cache dla ścieżki pliku (inicjalizowany przy pierwszym użyciu)
+let cachedDataFilePath: string | null = null;
 
 // Domyślne dane
 const defaultData: StorageData = {
@@ -71,7 +78,10 @@ const defaultData: StorageData = {
 // Załaduj dane z pliku (async)
 async function loadData(): Promise<StorageData> {
   try {
-    const raw = await fsp.readFile(DATA_FILE, 'utf8');
+    if (!cachedDataFilePath) {
+      cachedDataFilePath = await getDataFilePath();
+    }
+    const raw = await fsp.readFile(cachedDataFilePath, 'utf8');
     const data = JSON.parse(raw);
     return { ...defaultData, ...data };
   } catch (err: unknown) {
@@ -91,9 +101,12 @@ async function loadData(): Promise<StorageData> {
 // Zapisz dane do pliku (async)
 async function saveData(data: StorageData): Promise<void> {
   try {
-    const dir = path.dirname(DATA_FILE);
+    if (!cachedDataFilePath) {
+      cachedDataFilePath = await getDataFilePath();
+    }
+    const dir = path.dirname(cachedDataFilePath);
     await fsp.mkdir(dir, { recursive: true });
-    await fsp.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+    await fsp.writeFile(cachedDataFilePath, JSON.stringify(data, null, 2));
   } catch (error) {
     console.error('❌ Błąd zapisywania danych:', error);
     throw error;

@@ -193,8 +193,7 @@ const LoginPage: React.FC = () => {
                   setError('');
                   setMessage('');
                 }}
-                className="login-btn login-btn--secondary"
-                style={{ marginTop: '10px', textDecoration: 'underline' }}
+                className="login-btn login-btn--secondary login-btn--underline"
               >
                 Zmień adres email
               </button>
@@ -202,49 +201,18 @@ const LoginPage: React.FC = () => {
           )}
 
           {message && (
-            <div
-              style={{
-                marginTop: '20px',
-                padding: '12px',
-                backgroundColor: '#e8f5e8',
-                border: '1px solid #4CAF50',
-                borderRadius: '4px',
-                color: '#2e7d32',
-                fontSize: '14px',
-              }}
-            >
+            <div className="login-message login-message--success">
               {message}
             </div>
           )}
 
           {error && (
-            <div
-              style={{
-                marginTop: '20px',
-                padding: '12px',
-                backgroundColor: '#fdeaea',
-                border: '1px solid #f44336',
-                borderRadius: '4px',
-                color: '#c62828',
-                fontSize: '14px',
-              }}
-            >
-              {error}
-            </div>
+            <div className="login-message login-message--error">{error}</div>
           )}
 
-          <div
-            style={{
-              marginTop: '30px',
-              padding: '15px',
-              backgroundColor: '#f9f9f9',
-              borderRadius: '4px',
-              fontSize: '12px',
-              color: '#666',
-            }}
-          >
+          <div className="login-info-box">
             <strong>Jak to działa:</strong>
-            <ol style={{ margin: '10px 0 0 20px', padding: 0 }}>
+            <ol>
               <li>Wprowadź swój adres email</li>
               <li>
                 Administrator otrzyma powiadomienie i zatwierdzi Twój dostęp

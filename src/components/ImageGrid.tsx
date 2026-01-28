@@ -6,6 +6,7 @@ import { logger } from '@/src/utils/logger';
 import { useSettings } from '@/src/contexts/SettingsContext';
 import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
+import { PREVIEW_TIMEOUT } from '@/src/config/constants';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -117,7 +118,10 @@ const ImageItem = memo(function ImageItem({
                           rect.left + rect.width / 2,
                           rect.top,
                         );
-                        setTimeout(() => onHoverPreviewClear(), 2000);
+                        setTimeout(
+                          () => onHoverPreviewClear(),
+                          PREVIEW_TIMEOUT,
+                        );
                       }
                     }}
                     onClick={(e) => {
@@ -131,8 +135,11 @@ const ImageItem = memo(function ImageItem({
                           rect.left + rect.width / 2,
                           rect.top,
                         );
-                        // Ukryj podgląd po 2 sekundach
-                        setTimeout(() => onHoverPreviewClear(), 2000);
+                        // Ukryj podgląd po określonym czasie
+                        setTimeout(
+                          () => onHoverPreviewClear(),
+                          PREVIEW_TIMEOUT,
+                        );
                         return; // WAŻNE: return early - nie wykonuj dalszego kodu!
                       }
                       // Na desktopie otwórz pełny obraz

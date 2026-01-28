@@ -8,6 +8,19 @@ import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
 import decorConverter from '@/src/utils/decorConverter';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
+import {
+  API_TIMEOUT_LONG,
+  UI_DELAY_SHORT,
+  LOADING_PROGRESS_START,
+  LOADING_PROGRESS_FETCH,
+  LOADING_PROGRESS_MID,
+  LOADING_PROGRESS_PARSE,
+  LOADING_PROGRESS_FINAL,
+  LOADING_PROGRESS_COMPLETE,
+  PREVIEW_TIMEOUT,
+  PREVIEW_OFFSET_X,
+  PREVIEW_OFFSET_Y,
+} from '@/src/config/constants';
 
 interface FolderSectionProps {
   folder: GalleryFolder;
@@ -197,6 +210,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     x: number;
     y: number;
   } | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const { trackView, trackDownload } = useStatsTracker(null);
 
@@ -281,27 +295,27 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       const timeout = setTimeout(() => {
         logger.error('Gallery API timeout');
         controller.abort();
-      }, 30000); // 30s timeout
+      }, API_TIMEOUT_LONG);
 
       // Dodaj groupId do URL jeśli jest podany (podgląd admina)
       const apiUrl = groupId
         ? `/api/gallery?groupId=${groupId}`
         : '/api/gallery';
 
-      setLoadingProgress(30);
+      setLoadingProgress(LOADING_PROGRESS_FETCH);
       const response = await fetch(apiUrl, {
         signal: controller.signal,
       });
 
       clearTimeout(timeout);
-      setLoadingProgress(60);
+      setLoadingProgress(LOADING_PROGRESS_MID);
       logger.debug('Response status', { status: response.status });
 
       // Obsługa 304 Not Modified
       if (response.status === 304) {
         logger.info('Gallery not modified - using cached data');
-        setLoadingProgress(100);
-        setTimeout(() => setLoading(false), 200);
+        setLoadingProgress(LOADING_PROGRESS_COMPLETE);
+        setTimeout(() => setLoading(false), UI_DELAY_SHORT);
         return;
       }
 
@@ -309,7 +323,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         throw new Error(`API returned ${response.status}`);
       }
 
-      setLoadingProgress(80);
+      setLoadingProgress(LOADING_PROGRESS_PARSE);
       const data: GalleryResponse = await response.json();
       logger.debug('Response data', {
         dataLength: JSON.stringify(data).length,
@@ -330,7 +344,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         setGlobalCollapsedFolders(allMainFolderPaths);
 
         setError(null);
-        setLoadingProgress(100);
+        setLoadingProgress(LOADING_PROGRESS_COMPLETE);
       } else {
         logger.error('Gallery API error or empty', {
           error: data.error || 'Empty data',
@@ -349,7 +363,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       setTimeout(() => {
         setLoading(false);
         setLoadingProgress(0);
-      }, 200);
+      }, UI_DELAY_SHORT);
     }
   };
 
@@ -360,6 +374,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       setCurrentImageList(imagesInFolder);
       setCurrentImageIndex(safeIndex);
       setSelectedImage(imagesInFolder[safeIndex] || image);
+      setImageLoaded(false); // Reset stanu załadowania przy zmianie obrazu
 
       // Tracking wyświetlenia obrazu
       trackView('image', image.path, image.name);
@@ -381,11 +396,13 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     if (newImage) {
       setCurrentImageIndex(newIndex);
       setSelectedImage(newImage);
+      setImageLoaded(false); // Reset stanu załadowania przy zmianie obrazu
     }
   };
 
   const closeModal = () => {
     setSelectedImage(null);
+    setImageLoaded(false); // Reset stanu załadowania przy zamknięciu modala
   };
 
   if (loading) {
@@ -434,116 +451,126 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       {selectedImage && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="modal-nav-button modal-nav-button-left"
-              onClick={(e) => {
-                e.stopPropagation();
-                showAdjacentImage(-1);
-              }}
-              title="Poprzedni obraz"
-            >
-              <i className="las la-angle-left"></i>
-            </button>
-            <button
-              className="modal-nav-button modal-nav-button-right"
-              onClick={(e) => {
-                e.stopPropagation();
-                showAdjacentImage(1);
-              }}
-              title="Następny obraz"
-            >
-              <i className="las la-angle-right"></i>
-            </button>
-            <button className="close-button" onClick={closeModal}>
-              <i className="las la-times"></i>
-            </button>
-            <div className="modal-bottom-actions">
-              {modalKeywordImages.map((item, idx) => (
+            {imageLoaded && (
+              <>
                 <button
-                  key={`modal-keyword-${idx}`}
-                  className="modal-color-button"
-                  onTouchStart={(e) => {
-                    // Na tablecie obsłuż touch event
-                    if (isTouchDevice) {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setModalHoveredPreview({
-                        image: item.image,
-                        x: rect.left + rect.width / 2,
-                        y: rect.top,
-                      });
-                      setTimeout(() => setModalHoveredPreview(null), 2000);
-                    }
-                  }}
+                  className="modal-nav-button modal-nav-button-left"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
-                    if (isTouchDevice) {
-                      e.preventDefault();
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setModalHoveredPreview({
-                        image: item.image,
-                        x: rect.left + rect.width / 2,
-                        y: rect.top,
-                      });
-                      // Ukryj podgląd po 2 sekundach
-                      setTimeout(() => setModalHoveredPreview(null), 2000);
-                      return; // WAŻNE: return early - nie wykonuj dalszego kodu!
-                    }
-                    // Na desktopie zmień obraz
-                    setModalHoveredPreview(null);
-                    const index = kolorystykaImages.findIndex(
-                      (img) => img.path === item.image.path,
-                    );
-                    setCurrentImageList(kolorystykaImages);
-                    setCurrentImageIndex(index >= 0 ? index : 0);
-                    setSelectedImage(item.image);
+                    showAdjacentImage(-1);
                   }}
-                  onMouseEnter={(e) => {
-                    // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
-                    if (!isTouchDevice) {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setModalHoveredPreview({
-                        image: item.image,
-                        x: rect.left + rect.width / 2,
-                        y: rect.top,
-                      });
-                    }
+                  title="Poprzedni obraz"
+                >
+                  <i className="las la-angle-left"></i>
+                </button>
+                <button
+                  className="modal-nav-button modal-nav-button-right"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showAdjacentImage(1);
                   }}
-                  onMouseLeave={() => {
-                    // Na tablecie nie ukrywaj podglądu przy mouseLeave
-                    if (!isTouchDevice) {
-                      setModalHoveredPreview(null);
-                    }
-                  }}
-                  title={getDisplayName(item.image.name)}
-                  style={{
-                    backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
-                  }}
-                />
-              ))}
-              <button
-                className="modal-download-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  downloadFile(
-                    selectedImage.url,
-                    selectedImage.name,
-                    trackDownload,
-                  );
-                }}
-                title="Pobierz plik"
-              >
-                <i className="las la-download"></i>
-              </button>
-            </div>
+                  title="Następny obraz"
+                >
+                  <i className="las la-angle-right"></i>
+                </button>
+                <button className="close-button" onClick={closeModal}>
+                  <i className="las la-times"></i>
+                </button>
+                <div className="modal-bottom-actions">
+                  {modalKeywordImages.map((item, idx) => (
+                    <button
+                      key={`modal-keyword-${idx}`}
+                      className="modal-color-button"
+                      onTouchStart={(e) => {
+                        // Na tablecie obsłuż touch event
+                        if (isTouchDevice) {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setModalHoveredPreview({
+                            image: item.image,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                          setTimeout(
+                            () => setModalHoveredPreview(null),
+                            PREVIEW_TIMEOUT,
+                          );
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
+                        if (isTouchDevice) {
+                          e.preventDefault();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setModalHoveredPreview({
+                            image: item.image,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                          // Ukryj podgląd po określonym czasie
+                          setTimeout(
+                            () => setModalHoveredPreview(null),
+                            PREVIEW_TIMEOUT,
+                          );
+                          return; // WAŻNE: return early - nie wykonuj dalszego kodu!
+                        }
+                        // Na desktopie zmień obraz
+                        setModalHoveredPreview(null);
+                        const index = kolorystykaImages.findIndex(
+                          (img) => img.path === item.image.path,
+                        );
+                        setCurrentImageList(kolorystykaImages);
+                        setCurrentImageIndex(index >= 0 ? index : 0);
+                        setSelectedImage(item.image);
+                      }}
+                      onMouseEnter={(e) => {
+                        // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
+                        if (!isTouchDevice) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setModalHoveredPreview({
+                            image: item.image,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        // Na tablecie nie ukrywaj podglądu przy mouseLeave
+                        if (!isTouchDevice) {
+                          setModalHoveredPreview(null);
+                        }
+                      }}
+                      title={getDisplayName(item.image.name)}
+                      style={{
+                        backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
+                      }}
+                    />
+                  ))}
+                  <button
+                    className="modal-download-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadFile(
+                        selectedImage.url,
+                        selectedImage.name,
+                        trackDownload,
+                      );
+                    }}
+                    title="Pobierz plik"
+                  >
+                    <i className="las la-download"></i>
+                  </button>
+                </div>
+              </>
+            )}
             {modalHoveredPreview && (
               <div
                 className="modal-color-preview"
                 style={{
-                  left: modalHoveredPreview.x - 100,
-                  top: modalHoveredPreview.y - 210,
+                  left: modalHoveredPreview.x - PREVIEW_OFFSET_X,
+                  top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
                 }}
               >
                 <img
@@ -559,55 +586,59 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
               src={getOptimizedImageUrl(selectedImage, 'full')}
               alt={selectedImage.name}
               className="modal-image"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(true)} // Pokazuj info nawet przy błędzie
             />
-            <div className="modal-info">
-              <h3>{selectedImage.name}</h3>
-              <ImageMetadata
-                src={selectedImage.url}
-                fileSize={selectedImage.fileSize}
-                lastModified={selectedImage.lastModified}
-              />
-              {/* Duplikaty przycisków tylko na mobile */}
-              <div className="modal-mobile-actions">
-                <button
-                  type="button"
-                  className="modal-mobile-nav-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showAdjacentImage(-1);
-                  }}
-                  title="Poprzedni obraz"
-                >
-                  <i className="las la-angle-left"></i>
-                </button>
-                <button
-                  type="button"
-                  className="modal-mobile-download-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadFile(
-                      selectedImage.url,
-                      selectedImage.name,
-                      trackDownload,
-                    );
-                  }}
-                  title="Pobierz plik"
-                >
-                  <i className="las la-download"></i>
-                </button>
-                <button
-                  type="button"
-                  className="modal-mobile-nav-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showAdjacentImage(1);
-                  }}
-                  title="Następny obraz"
-                >
-                  <i className="las la-angle-right"></i>
-                </button>
+            {imageLoaded && (
+              <div className="modal-info">
+                <h3>{selectedImage.name}</h3>
+                <ImageMetadata
+                  src={selectedImage.url}
+                  fileSize={selectedImage.fileSize}
+                  lastModified={selectedImage.lastModified}
+                />
+                {/* Duplikaty przycisków tylko na mobile */}
+                <div className="modal-mobile-actions">
+                  <button
+                    type="button"
+                    className="modal-mobile-nav-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showAdjacentImage(-1);
+                    }}
+                    title="Poprzedni obraz"
+                  >
+                    <i className="las la-angle-left"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="modal-mobile-download-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadFile(
+                        selectedImage.url,
+                        selectedImage.name,
+                        trackDownload,
+                      );
+                    }}
+                    title="Pobierz plik"
+                  >
+                    <i className="las la-download"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="modal-mobile-nav-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showAdjacentImage(1);
+                    }}
+                    title="Następny obraz"
+                  >
+                    <i className="las la-angle-right"></i>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

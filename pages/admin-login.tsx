@@ -116,18 +116,14 @@ const AdminLoginPage: React.FC = () => {
             <form onSubmit={handleEmailSubmit}>
               <h2 className="login-form-title">Autoryzacja administratora</h2>
 
-              <p
-                className="login-msg"
-                style={{ marginBottom: '30px', textAlign: 'center' }}
-              >
+              <p className="login-msg login-msg--centered">
                 Kliknij aby otrzymać kod dostępu na email administratora.
               </p>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="login-btn login-btn--danger"
-                style={{ padding: '15px' }}
+                className="login-btn login-btn--danger login-btn--large"
               >
                 {loading ? 'Wysyłanie...' : 'Wyślij kod dostępu'}
               </button>
@@ -183,35 +179,13 @@ const AdminLoginPage: React.FC = () => {
           )}
 
           {message && (
-            <div
-              style={{
-                marginTop: '20px',
-                padding: '12px',
-                backgroundColor: '#e8f5e8',
-                border: '1px solid #4CAF50',
-                borderRadius: '4px',
-                color: '#2e7d32',
-                fontSize: '14px',
-              }}
-            >
+            <div className="login-message login-message--success">
               {message}
             </div>
           )}
 
           {error && (
-            <div
-              style={{
-                marginTop: '20px',
-                padding: '12px',
-                backgroundColor: '#fdeaea',
-                border: '1px solid #f44336',
-                borderRadius: '4px',
-                color: '#c62828',
-                fontSize: '14px',
-              }}
-            >
-              {error}
-            </div>
+            <div className="login-message login-message--error">{error}</div>
           )}
         </div>
       </div>

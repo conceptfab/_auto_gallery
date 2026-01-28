@@ -39,3 +39,38 @@ export function validateFileName(name: string): FileNameValidationResult {
   }
   return { valid: true };
 }
+
+/**
+ * Walidacja ścieżki folderu z dodatkowymi sprawdzeniami (głębokość, normalizacja).
+ * Używana w convert-folder.ts i innych miejscach wymagających szczegółowej walidacji.
+ */
+export function validateFolderPathDetailed(
+  folderPath: string,
+  maxDepth: number = 5,
+): PathValidationResult {
+  // Podstawowa walidacja
+  const basicValidation = validateFilePath(folderPath);
+  if (!basicValidation.valid) {
+    return basicValidation;
+  }
+
+  // Normalizacja ścieżki
+  const normalized = folderPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+
+  // Sprawdź czy normalizacja nie zmieniła ścieżki w nieoczekiwany sposób
+  const cleaned = folderPath.replace(/^\/|\/$/g, '');
+  if (normalized !== cleaned) {
+    return { valid: false, error: 'Invalid path normalization' };
+  }
+
+  // Sprawdź głębokość folderów
+  const depth = normalized.split('/').length;
+  if (depth > maxDepth) {
+    return {
+      valid: false,
+      error: `Path depth exceeds maximum of ${maxDepth} levels`,
+    };
+  }
+
+  return { valid: true };
+}
