@@ -1355,27 +1355,91 @@ a {
   color: #333;
 }
 
-/* Download button in modal */
-.modal-download-button {
+/* Bottom action buttons container in modal */
+.modal-bottom-actions {
   position: absolute;
   bottom: 15px;
   right: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  z-index: 1001;
+}
+
+/* Color buttons in modal - 2x larger (52px) */
+.modal-color-button {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f0f0f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-color-button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Download button in modal */
+.modal-download-button {
   background: none;
   color: #999;
-  border: none;
-  width: 36px;
-  height: 36px;
-  font-size: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
   cursor: pointer;
-  z-index: 1001;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .modal-download-button:hover {
   color: #333;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Hover preview for color buttons in modal */
+.modal-color-preview {
+  position: fixed;
+  width: 200px;
+  z-index: 9999;
+  pointer-events: none;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: #fff;
+}
+
+.modal-color-preview img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+.modal-color-preview .preview-name {
+  display: block;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #333;
+  background: #f8f8f8;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Left/right navigation arrows in modal */

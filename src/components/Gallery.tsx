@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
 import ImageMetadata from './ImageMetadata';
@@ -6,6 +6,7 @@ import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
 import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
+import decorConverter from '@/src/utils/decorConverter';
 
 interface FolderSectionProps {
   folder: GalleryFolder;
@@ -161,6 +162,58 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   const [globalCollapsedFolders, setGlobalCollapsedFolders] = useState<
     Set<string>
   >(new Set());
+  const [modalKeywordImages, setModalKeywordImages] = useState<
+    Array<{ keyword: string; image: ImageFile }>
+  >([]);
+  const [modalHoveredPreview, setModalHoveredPreview] = useState<{
+    image: ImageFile;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Wyciągnij obrazy z folderu Kolorystyka
+  const kolorystykaImages = useMemo(() => {
+    const findKolorystykaImages = (
+      folderList: GalleryFolder[],
+    ): ImageFile[] => {
+      for (const folder of folderList) {
+        if (folder.name.toLowerCase() === 'kolorystyka') {
+          return folder.images;
+        }
+        if (folder.subfolders) {
+          const found = findKolorystykaImages(folder.subfolders);
+          if (found.length > 0) return found;
+        }
+      }
+      return [];
+    };
+    return findKolorystykaImages(folders);
+  }, [folders]);
+
+  // Pomocnicza funkcja do wyświetlania nazwy
+  const getDisplayName = useCallback((name: string): string => {
+    const lastDotIndex = name.lastIndexOf('.');
+    let baseName = lastDotIndex === -1 ? name : name.substring(0, lastDotIndex);
+    const shotIndex = baseName.indexOf('__Shot');
+    if (shotIndex !== -1) baseName = baseName.substring(0, shotIndex);
+    return baseName.replace(/_+/g, ' ').trim().toUpperCase();
+  }, []);
+
+  // Oblicz keyword images gdy zmienia się wybrany obraz
+  useEffect(() => {
+    const loadKeywordImages = async () => {
+      if (!selectedImage || kolorystykaImages.length === 0) {
+        setModalKeywordImages([]);
+        return;
+      }
+      const foundImages = await decorConverter.findAllKeywordImages(
+        selectedImage.name,
+        kolorystykaImages,
+      );
+      setModalKeywordImages(foundImages);
+    };
+    loadKeywordImages();
+  }, [selectedImage, kolorystykaImages]);
 
   logger.debug('Gallery component render', {
     loading,
@@ -355,16 +408,63 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
             <button className="close-button" onClick={closeModal}>
               <i className="las la-times"></i>
             </button>
-            <button
-              className="modal-download-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                downloadFile(selectedImage.url, selectedImage.name);
-              }}
-              title="Pobierz plik"
-            >
-              <i className="las la-download"></i>
-            </button>
+            <div className="modal-bottom-actions">
+              {modalKeywordImages.map((item, idx) => (
+                <button
+                  key={`modal-keyword-${idx}`}
+                  className="modal-color-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const index = kolorystykaImages.findIndex(
+                      (img) => img.path === item.image.path,
+                    );
+                    setCurrentImageList(kolorystykaImages);
+                    setCurrentImageIndex(index >= 0 ? index : 0);
+                    setSelectedImage(item.image);
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setModalHoveredPreview({
+                      image: item.image,
+                      x: rect.left + rect.width / 2,
+                      y: rect.top,
+                    });
+                  }}
+                  onMouseLeave={() => setModalHoveredPreview(null)}
+                  title={getDisplayName(item.image.name)}
+                  style={{
+                    backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
+                  }}
+                />
+              ))}
+              <button
+                className="modal-download-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(selectedImage.url, selectedImage.name);
+                }}
+                title="Pobierz plik"
+              >
+                <i className="las la-download"></i>
+              </button>
+            </div>
+            {modalHoveredPreview && (
+              <div
+                className="modal-color-preview"
+                style={{
+                  left: modalHoveredPreview.x - 100,
+                  top: modalHoveredPreview.y - 210,
+                }}
+              >
+                <img
+                  src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
+                  alt={modalHoveredPreview.image.name}
+                />
+                <span className="preview-name">
+                  {getDisplayName(modalHoveredPreview.image.name)}
+                </span>
+              </div>
+            )}
             <img
               src={getOptimizedImageUrl(selectedImage, 'full')}
               alt={selectedImage.name}
