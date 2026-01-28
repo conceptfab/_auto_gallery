@@ -2559,8 +2559,14 @@ a {
   align-items: center;
   justify-content: center;
   background-color: #f5f5f5;
-  font-family: Arial, sans-serif;
   padding: 20px;
+}
+
+@media (min-width: 1025px) {
+  .login-container {
+    align-items: flex-start;
+    padding-top: 20vh; /* przesunięcie okna logowania w górę o ~połowę */
+  }
 }
 
 .login-box {
@@ -2572,15 +2578,39 @@ a {
   max-width: 400px;
 }
 
+.login-subtitle {
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #777;
+  margin-bottom: 8px;
+  font-weight: 300;
+}
+
 .login-title {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 0;
   color: #333;
+  font-weight: 100;
+}
+
+.login-version {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.login-version .version {
+  font-size: 0.56em; /* taka sama czytelność jak w pasku */
 }
 
 .login-form-title {
   margin-bottom: 20px;
   color: #555;
+  font-weight: 300;
+  font-size: 1.4rem;
 }
 
 .login-field {
@@ -2698,7 +2728,6 @@ a {
 
 .admin-page {
   padding: 20px;
-  font-family: Arial, sans-serif;
 }
 
 .admin-header {

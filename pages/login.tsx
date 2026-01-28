@@ -2,11 +2,20 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
+interface VersionInfo {
+  hash: string;
+  date: string;
+  message: string;
+  buildTime: string;
+}
+
 const LoginPage: React.FC = () => {
   const router = useRouter();
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
     checkIfAlreadyLoggedIn();
+    loadVersionInfo();
   }, []);
 
   const checkIfAlreadyLoggedIn = async () => {
@@ -19,6 +28,18 @@ const LoginPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
+    }
+  };
+
+  const loadVersionInfo = async () => {
+    try {
+      const response = await fetch('/version.json');
+      if (response.ok) {
+        const version: VersionInfo = await response.json();
+        setVersionInfo(version);
+      }
+    } catch (error) {
+      console.error('Error loading version info:', error);
     }
   };
   const [step, setStep] = useState<'email' | 'code'>('email');
@@ -100,7 +121,16 @@ const LoginPage: React.FC = () => {
 
       <div className="login-container">
         <div className="login-box">
+          <div className="login-subtitle">CONCEPTFAB</div>
           <h1 className="login-title">Content Browser</h1>
+          {versionInfo && (
+            <div className="login-version">
+              <span className="version">
+                ver: {versionInfo.message?.split(':')[0] ?? versionInfo.message}
+                {versionInfo.date ? ` ${versionInfo.date}` : ''}
+              </span>
+            </div>
+          )}
 
           {step === 'email' ? (
             <form onSubmit={handleEmailSubmit}>
@@ -209,7 +239,7 @@ const LoginPage: React.FC = () => {
               padding: '15px',
               backgroundColor: '#f9f9f9',
               borderRadius: '4px',
-              fontSize: '14px',
+              fontSize: '12px',
               color: '#666',
             }}
           >

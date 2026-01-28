@@ -6,7 +6,6 @@
     "RAL7021": "RAL7021.webp"
   },
   "blat": {
-    "U164VL": "U164VL.webp",
     "H1180": "H1180.webp",
     "PD3003": "PD3003.webp",
     "U100": "U100.webp",
@@ -15,7 +14,8 @@
     "W210": "W210.webp",
     "W240": "W240.webp",
     "W250": "W250.webp",
-    "WG": "wg.webp",
-    "BG": "bg.webp"
+    "W350.webp": "W350.webp",
+    "wg": "wg.webp",
+    "gb": "bg.webp"
   }
 }
