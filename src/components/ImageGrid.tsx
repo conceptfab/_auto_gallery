@@ -12,6 +12,10 @@ interface ImageGridProps {
   onImageClick?: (image: ImageFile, imagesInFolder: ImageFile[]) => void;
   folderName: string;
   kolorystykaImages?: ImageFile[];
+  onTrackDownload?: (
+    filePath: string,
+    fileName: string,
+  ) => Promise<void> | void;
 }
 
 const getDisplayNameStatic = (name: string): string => {
@@ -36,7 +40,10 @@ interface ImageItemProps {
   getDisplayName: (name: string) => string;
   onHoverPreview: (img: ImageFile, x: number, y: number) => void;
   onHoverPreviewClear: () => void;
-  onDownload: (url: string, name: string) => void;
+  onTrackDownload?: (
+    filePath: string,
+    fileName: string,
+  ) => Promise<void> | void;
 }
 
 const ImageItem = memo(function ImageItem({
@@ -53,7 +60,7 @@ const ImageItem = memo(function ImageItem({
   getDisplayName,
   onHoverPreview,
   onHoverPreviewClear,
-  onDownload,
+  onTrackDownload,
 }: ImageItemProps) {
   const handleImageError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -125,9 +132,16 @@ const ImageItem = memo(function ImageItem({
               })}
             <button
               className="image-action-button download-button"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                onDownload(image.url, image.name);
+                if (onTrackDownload) {
+                  try {
+                    await onTrackDownload(image.url, image.name);
+                  } catch (trackError) {
+                    logger.error('Błąd trackowania pobrania', trackError);
+                  }
+                }
+                await downloadFile(image.url, image.name);
               }}
               title="Pobierz plik"
             >
@@ -145,6 +159,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   onImageClick,
   folderName,
   kolorystykaImages = [],
+  onTrackDownload,
 }) => {
   const [hoveredPreview, setHoveredPreview] = React.useState<{
     image: ImageFile;
@@ -239,7 +254,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           getDisplayName={getDisplayName}
           onHoverPreview={handleHoverPreview}
           onHoverPreviewClear={handleHoverPreviewClear}
-          onDownload={downloadFile}
+          onTrackDownload={onTrackDownload}
         />
       ))}
 

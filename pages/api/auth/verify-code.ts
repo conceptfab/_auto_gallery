@@ -7,6 +7,7 @@ import {
 } from '../../../src/utils/storage';
 import { loginUser, setAuthCookie } from '../../../src/utils/auth';
 import { withRateLimit } from '../../../src/utils/rateLimiter';
+import { recordLogin, startSession } from '../../../src/utils/statsStorage';
 
 async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -39,14 +40,40 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     // Kod poprawny - usuń z aktywnych
     await removeActiveCode(email);
 
-    // Zaloguj użytkownika i ustaw ciasteczka
+    // Zaloguj użytkownika
     await loginUser(email);
+
+    // Ustaw ciasteczka autoryzacyjne
     setAuthCookie(res, email);
+
+    // Dane o środowisku klienta
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.socket.remoteAddress ||
+      'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    // Zarejestruj logowanie i rozpocznij sesję statystyk
+    await recordLogin(email, ip, userAgent);
+    const session = await startSession(email, ip, userAgent);
+
+    // Dodaj cookie z session_id, nie nadpisując istniejących
+    const existingCookies = res.getHeader('Set-Cookie');
+    const sessionCookie = `session_id=${session.id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=43200`;
+
+    if (Array.isArray(existingCookies)) {
+      res.setHeader('Set-Cookie', [...existingCookies, sessionCookie]);
+    } else if (typeof existingCookies === 'string') {
+      res.setHeader('Set-Cookie', [existingCookies, sessionCookie]);
+    } else {
+      res.setHeader('Set-Cookie', sessionCookie);
+    }
 
     res.status(200).json({
       message: 'Login successful',
       email,
       success: true,
+      sessionId: session.id,
     });
   } catch (error) {
     console.error('Error verifying code:', error);

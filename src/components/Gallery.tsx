@@ -7,6 +7,7 @@ import { logger } from '@/src/utils/logger';
 import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
 import decorConverter from '@/src/utils/decorConverter';
+import { useStatsTracker } from '@/src/hooks/useStatsTracker';
 
 interface FolderSectionProps {
   folder: GalleryFolder;
@@ -14,6 +15,11 @@ interface FolderSectionProps {
   globalCollapsedFolders: Set<string>;
   setGlobalCollapsedFolders: (collapsed: Set<string>) => void;
   allFolders: GalleryFolder[];
+  onFolderView?: (folder: GalleryFolder) => void;
+  onTrackDownload?: (
+    filePath: string,
+    fileName: string,
+  ) => Promise<void> | void;
 }
 
 function FolderSectionInner({
@@ -22,13 +28,19 @@ function FolderSectionInner({
   globalCollapsedFolders,
   setGlobalCollapsedFolders,
   allFolders,
+  onFolderView,
+  onTrackDownload,
 }: FolderSectionProps) {
-  const toggleFolder = (folderPath: string) => {
+  const toggleFolder = (currentFolder: GalleryFolder) => {
     const newCollapsed = new Set(globalCollapsedFolders);
-    if (newCollapsed.has(folderPath)) {
-      newCollapsed.delete(folderPath);
+    const isCurrentlyCollapsed = newCollapsed.has(currentFolder.path);
+    if (isCurrentlyCollapsed) {
+      newCollapsed.delete(currentFolder.path);
+      if (onFolderView) {
+        onFolderView(currentFolder);
+      }
     } else {
-      newCollapsed.add(folderPath);
+      newCollapsed.add(currentFolder.path);
     }
     setGlobalCollapsedFolders(newCollapsed);
   };
@@ -69,7 +81,14 @@ function FolderSectionInner({
         {currentFolder.isCategory ? (
           <div className="category-header">
             <h2 className="category-title">
-              <div className="folder-title-left">
+              <div
+                className={`folder-title-left ${hasCollapsibleContent ? 'folder-title-clickable' : ''}`}
+                onClick={
+                  hasCollapsibleContent
+                    ? () => toggleFolder(currentFolder)
+                    : undefined
+                }
+              >
                 <i className="lar la-folder category-icon"></i>
                 {currentFolder.name}
                 {isCollapsed && currentFolder.subfolders && depth === 0 && (
@@ -82,7 +101,7 @@ function FolderSectionInner({
               {hasCollapsibleContent && (
                 <button
                   className={`folder-action-button ${isCollapsed ? 'collapsed' : ''}`}
-                  onClick={() => toggleFolder(currentFolder.path)}
+                  onClick={() => toggleFolder(currentFolder)}
                 >
                   <i className="las la-angle-up"></i>
                 </button>
@@ -92,7 +111,14 @@ function FolderSectionInner({
         ) : (
           <div className="gallery-section">
             <h3 className="gallery-title">
-              <div className="folder-title-left">
+              <div
+                className={`folder-title-left ${hasCollapsibleContent ? 'folder-title-clickable' : ''}`}
+                onClick={
+                  hasCollapsibleContent
+                    ? () => toggleFolder(currentFolder)
+                    : undefined
+                }
+              >
                 <i className="lar la-image gallery-icon"></i>
                 {currentFolder.name}
                 <span className="inline-image-count">
@@ -102,7 +128,7 @@ function FolderSectionInner({
               {hasCollapsibleContent && (
                 <button
                   className={`folder-action-button ${isCollapsed ? 'collapsed' : ''}`}
-                  onClick={() => toggleFolder(currentFolder.path)}
+                  onClick={() => toggleFolder(currentFolder)}
                 >
                   <i className="las la-angle-up"></i>
                 </button>
@@ -114,6 +140,7 @@ function FolderSectionInner({
                 onImageClick={onImageClick}
                 folderName={currentFolder.name}
                 kolorystykaImages={kolorystykaImages}
+                onTrackDownload={onTrackDownload}
               />
             )}
           </div>
@@ -170,6 +197,8 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     x: number;
     y: number;
   } | null>(null);
+
+  const { trackView, trackDownload } = useStatsTracker(null);
 
   // Wyciągnij obrazy z folderu Kolorystyka
   const kolorystykaImages = useMemo(() => {
@@ -316,8 +345,11 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
       setCurrentImageList(imagesInFolder);
       setCurrentImageIndex(safeIndex);
       setSelectedImage(imagesInFolder[safeIndex] || image);
+
+      // Tracking wyświetlenia obrazu
+      trackView('image', image.path, image.name);
     },
-    [],
+    [trackView],
   );
 
   const showAdjacentImage = (direction: 1 | -1) => {
@@ -377,6 +409,8 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
               globalCollapsedFolders={globalCollapsedFolders}
               setGlobalCollapsedFolders={setGlobalCollapsedFolders}
               allFolders={folders}
+              onFolderView={(f) => trackView('folder', f.path, f.name)}
+              onTrackDownload={trackDownload}
             />
           ))}
         </div>
@@ -441,7 +475,11 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                 className="modal-download-button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  downloadFile(selectedImage.url, selectedImage.name);
+                  downloadFile(
+                    selectedImage.url,
+                    selectedImage.name,
+                    trackDownload,
+                  );
                 }}
                 title="Pobierz plik"
               >
@@ -477,6 +515,46 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                 fileSize={selectedImage.fileSize}
                 lastModified={selectedImage.lastModified}
               />
+              {/* Duplikaty przycisków tylko na mobile */}
+              <div className="modal-mobile-actions">
+                <button
+                  type="button"
+                  className="modal-mobile-nav-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showAdjacentImage(-1);
+                  }}
+                  title="Poprzedni obraz"
+                >
+                  <i className="las la-angle-left"></i>
+                </button>
+                <button
+                  type="button"
+                  className="modal-mobile-download-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadFile(
+                      selectedImage.url,
+                      selectedImage.name,
+                      trackDownload,
+                    );
+                  }}
+                  title="Pobierz plik"
+                >
+                  <i className="las la-download"></i>
+                </button>
+                <button
+                  type="button"
+                  className="modal-mobile-nav-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showAdjacentImage(1);
+                  }}
+                  title="Następny obraz"
+                >
+                  <i className="las la-angle-right"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>

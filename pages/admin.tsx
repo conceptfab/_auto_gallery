@@ -5,6 +5,7 @@ import FileManager from '../src/components/FileManager';
 import FolderConverter from '../src/components/FolderConverter';
 import LoadingOverlay from '../src/components/LoadingOverlay';
 import { PendingRequestsSection } from '../src/components/admin/PendingRequestsSection';
+import { StatsOverview } from '../src/components/admin/StatsOverview';
 import { logger } from '../src/utils/logger';
 
 interface PendingEmail {
@@ -74,6 +75,25 @@ const AdminPanel: React.FC = () => {
   const [settings, setSettings] = useState<{ highlightKeywords: boolean }>({
     highlightKeywords: true,
   });
+
+  // Stan dla rozwiniętych sekcji
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['stats', 'whitelist', 'blacklist', 'groups', 'settings', 'files']),
+  );
+
+  // Stan dla formularzy dodawania emaili
+  const [newWhitelistEmail, setNewWhitelistEmail] = useState('');
+  const [newBlacklistEmail, setNewBlacklistEmail] = useState('');
+
+  const toggleSection = (sectionId: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(sectionId)) {
+      newExpanded.delete(sectionId);
+    } else {
+      newExpanded.add(sectionId);
+    }
+    setExpandedSections(newExpanded);
+  };
 
   // Automatyczne ustawianie folderu na podstawie nazwy grupy
   const handleGroupNameChange = (name: string) => {
@@ -433,6 +453,52 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleAddToList = async (
+    email: string,
+    listType: 'whitelist' | 'blacklist',
+  ) => {
+    if (!email || !email.trim()) {
+      alert('Proszę podać adres email');
+      return;
+    }
+
+    // Walidacja emaila
+    const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!EMAIL_REGEX.test(email.trim())) {
+      alert('Nieprawidłowy adres email');
+      return;
+    }
+
+    setProcessing(`add-${listType}-${email}`);
+    try {
+      const response = await fetch('/api/auth/admin/add-to-list', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim(), listType }),
+      });
+
+      if (response.ok) {
+        await fetchData(); // Odśwież dane
+        // Wyczyść pole formularza
+        if (listType === 'whitelist') {
+          setNewWhitelistEmail('');
+        } else {
+          setNewBlacklistEmail('');
+        }
+      } else {
+        const error = await response.json();
+        alert(`Błąd: ${error.error}`);
+      }
+    } catch (error) {
+      logger.error('Error adding email to list', error);
+      alert('Błąd podczas dodawania emaila');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   if (checkingAuth) {
     return (
       <LoadingOverlay message="Sprawdzanie autoryzacji administratora..." />
@@ -456,7 +522,7 @@ const AdminPanel: React.FC = () => {
 
       <div className="admin-page">
         <div className="admin-header">
-          <h1 className="admin-header-title">👑 Panel Administracyjny</h1>
+          <h1 className="admin-header-title">Panel administracyjny</h1>
           <div className="admin-header-actions">
             <span className="admin-header-user">
               Zalogowany: <strong>{authStatus.email}</strong>
@@ -477,485 +543,601 @@ const AdminPanel: React.FC = () => {
           onAction={handlePendingEmailAction}
         />
 
+        {/* Statystyki użytkowników */}
+        <section className="admin-section">
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('stats')}
+          >
+            <span>Statystyki użytkowników</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('stats') ? '' : 'collapsed'
+              }`}
+            ></i>
+          </h2>
+          {expandedSections.has('stats') && <StatsOverview />}
+        </section>
+
         {/* Biała lista */}
         <section className="admin-section">
-          <h2 className="admin-section-title admin-section-title--success">
-            Biała lista ({data.whitelist.length})
+          <h2
+            className="admin-section-title admin-section-title--success admin-section-title-clickable"
+            onClick={() => toggleSection('whitelist')}
+          >
+            <span>Biała lista ({data.whitelist.length})</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('whitelist') ? '' : 'collapsed'
+              }`}
+            ></i>
           </h2>
 
-          {data.whitelist.length === 0 ? (
-            <p className="admin-empty-msg">Brak emaili na białej liście</p>
-          ) : (
-            <div className="admin-list-grid">
-              {data.whitelist.map((email) => (
+          {expandedSections.has('whitelist') && (
+            <>
+              {/* Formularz dodawania emaila */}
+              <div className="admin-form-box" style={{ marginBottom: '16px' }}>
                 <div
-                  key={email}
-                  className="admin-list-item admin-list-item--success"
+                  style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
                 >
-                  <span>{email}</span>
+                  <input
+                    type="email"
+                    placeholder="Dodaj email do białej listy"
+                    value={newWhitelistEmail}
+                    onChange={(e) => setNewWhitelistEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddToList(newWhitelistEmail, 'whitelist');
+                      }
+                    }}
+                    className="admin-input"
+                    style={{ flex: 1 }}
+                  />
                   <button
-                    onClick={() => handleRemoveFromList(email, 'whitelist')}
-                    disabled={processing === email}
+                    onClick={() =>
+                      handleAddToList(newWhitelistEmail, 'whitelist')
+                    }
+                    disabled={
+                      processing?.startsWith('add-whitelist-') ||
+                      !newWhitelistEmail.trim()
+                    }
                     type="button"
-                    className="admin-btn admin-btn--danger-sm"
+                    className="admin-btn admin-btn--success"
                   >
-                    Usuń
+                    Dodaj
                   </button>
                 </div>
-              ))}
-            </div>
+              </div>
+
+              {data.whitelist.length === 0 ? (
+                <p className="admin-empty-msg">Brak emaili na białej liście</p>
+              ) : (
+                <div className="admin-list-grid">
+                  {data.whitelist.map((email) => (
+                    <div
+                      key={email}
+                      className="admin-list-item admin-list-item--success"
+                    >
+                      <span>{email}</span>
+                      <button
+                        onClick={() => handleRemoveFromList(email, 'whitelist')}
+                        disabled={processing === email}
+                        type="button"
+                        className="admin-btn admin-btn--danger-sm"
+                      >
+                        Usuń
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
 
         {/* Czarna lista */}
         <section className="admin-section">
-          <h2 className="admin-section-title admin-section-title--danger">
-            Czarna lista ({data.blacklist.length})
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('blacklist')}
+          >
+            <span>Czarna lista ({data.blacklist.length})</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('blacklist') ? '' : 'collapsed'
+              }`}
+            ></i>
           </h2>
 
-          {data.blacklist.length === 0 ? (
-            <p className="admin-empty-msg">Brak emaili na czarnej liście</p>
-          ) : (
-            <div className="admin-list-grid">
-              {data.blacklist.map((email) => (
+          {expandedSections.has('blacklist') && (
+            <>
+              {/* Formularz dodawania emaila */}
+              <div className="admin-form-box" style={{ marginBottom: '16px' }}>
                 <div
-                  key={email}
-                  className="admin-list-item admin-list-item--danger"
+                  style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
                 >
-                  <span>{email}</span>
+                  <input
+                    type="email"
+                    placeholder="Dodaj email do czarnej listy"
+                    value={newBlacklistEmail}
+                    onChange={(e) => setNewBlacklistEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddToList(newBlacklistEmail, 'blacklist');
+                      }
+                    }}
+                    className="admin-input"
+                    style={{ flex: 1 }}
+                  />
                   <button
-                    onClick={() => handleRemoveFromList(email, 'blacklist')}
-                    disabled={processing === email}
+                    onClick={() =>
+                      handleAddToList(newBlacklistEmail, 'blacklist')
+                    }
+                    disabled={
+                      processing?.startsWith('add-blacklist-') ||
+                      !newBlacklistEmail.trim()
+                    }
                     type="button"
-                    className="admin-btn admin-btn--danger-sm"
+                    className="admin-btn admin-btn--danger"
                   >
-                    Usuń
+                    Dodaj
                   </button>
                 </div>
-              ))}
-            </div>
+              </div>
+
+              {data.blacklist.length === 0 ? (
+                <p className="admin-empty-msg">Brak emaili na czarnej liście</p>
+              ) : (
+                <div className="admin-list-grid">
+                  {data.blacklist.map((email) => (
+                    <div
+                      key={email}
+                      className="admin-list-item admin-list-item--danger"
+                    >
+                      <span>{email}</span>
+                      <button
+                        onClick={() => handleRemoveFromList(email, 'blacklist')}
+                        disabled={processing === email}
+                        type="button"
+                        className="admin-btn admin-btn--danger-sm"
+                      >
+                        Usuń
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
 
         {/* Grupy użytkowników */}
         <section className="admin-section">
-          <h2 className="admin-section-title admin-section-title--purple">
-            Grupy użytkowników ({groups.length})
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('groups')}
+          >
+            <span>Grupy użytkowników ({groups.length})</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('groups') ? '' : 'collapsed'
+              }`}
+            ></i>
           </h2>
 
-          {/* Formularz nowej grupy */}
-          <div className="admin-form-box">
-            <h3>Utwórz nową grupę</h3>
-            <div className="admin-form-grid">
-              <input
-                type="text"
-                placeholder="Nazwa grupy"
-                value={newGroupName}
-                onChange={(e) => handleGroupNameChange(e.target.value)}
-                className="admin-input"
-              />
-              <input
-                type="text"
-                placeholder="Nazwa klienta"
-                value={newGroupClient}
-                onChange={(e) => setNewGroupClient(e.target.value)}
-                className="admin-input"
-              />
-              <input
-                type="text"
-                placeholder="Folder galerii (np. klient1/)"
-                value={newGroupFolder}
-                onChange={(e) => handleFolderChange(e.target.value)}
-                className="admin-input"
-              />
-              <button
-                onClick={handleCreateGroup}
-                disabled={processing === 'create-group'}
-                type="button"
-                className="admin-btn admin-btn--purple"
-              >
-                {processing === 'create-group' ? 'Tworzenie...' : 'Utwórz'}
-              </button>
-            </div>
-          </div>
+          {expandedSections.has('groups') && (
+            <>
+              {/* Formularz nowej grupy */}
+              <div className="admin-form-box">
+                <h3>Utwórz nową grupę</h3>
+                <div className="admin-form-grid">
+                  <input
+                    type="text"
+                    placeholder="Nazwa grupy"
+                    value={newGroupName}
+                    onChange={(e) => handleGroupNameChange(e.target.value)}
+                    className="admin-input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nazwa klienta"
+                    value={newGroupClient}
+                    onChange={(e) => setNewGroupClient(e.target.value)}
+                    className="admin-input"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Folder galerii (np. klient1/)"
+                    value={newGroupFolder}
+                    onChange={(e) => handleFolderChange(e.target.value)}
+                    className="admin-input"
+                  />
+                  <button
+                    onClick={handleCreateGroup}
+                    disabled={processing === 'create-group'}
+                    type="button"
+                    className="admin-btn admin-btn--purple"
+                  >
+                    {processing === 'create-group' ? 'Tworzenie...' : 'Utwórz'}
+                  </button>
+                </div>
+              </div>
 
-          {/* Lista grup */}
-          {groups.length === 0 ? (
-            <p style={{ color: '#666', fontStyle: 'italic' }}>Brak grup</p>
-          ) : (
-            <div style={{ display: 'grid', gap: '15px' }}>
-              {groups.map((group) => (
-                <div
-                  key={group.id}
-                  style={{
-                    background: '#faf5fc',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: '1px solid #9C27B0',
-                  }}
-                >
-                  {editingGroup === group.id ? (
-                    // Tryb edycji
-                    <div>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gap: '10px',
-                          gridTemplateColumns: '1fr 1fr 1fr',
-                          marginBottom: '10px',
-                        }}
-                      >
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          placeholder="Nazwa grupy"
-                          style={{
-                            padding: '8px',
-                            borderRadius: '4px',
-                            border: '1px solid #ddd',
-                          }}
-                        />
-                        <input
-                          type="text"
-                          value={editClient}
-                          onChange={(e) => setEditClient(e.target.value)}
-                          placeholder="Nazwa klienta"
-                          style={{
-                            padding: '8px',
-                            borderRadius: '4px',
-                            border: '1px solid #ddd',
-                          }}
-                        />
-                        <input
-                          type="text"
-                          value={editFolder}
-                          onChange={(e) => setEditFolder(e.target.value)}
-                          placeholder="Folder galerii"
-                          style={{
-                            padding: '8px',
-                            borderRadius: '4px',
-                            border: '1px solid #ddd',
-                          }}
-                        />
-                      </div>
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        <button
-                          onClick={() => handleUpdateGroup(group.id)}
-                          disabled={processing === group.id}
-                          style={{
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                          }}
-                        >
-                          Zapisz
-                        </button>
-                        <button
-                          onClick={() => setEditingGroup(null)}
-                          style={{
-                            backgroundColor: '#666',
-                            color: 'white',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                          }}
-                        >
-                          Anuluj
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Tryb wyświetlania
-                    <div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          marginBottom: '10px',
-                        }}
-                      >
+              {/* Lista grup */}
+              {groups.length === 0 ? (
+                <p className="admin-empty-msg">Brak grup</p>
+              ) : (
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  {groups.map((group) => (
+                    <div key={group.id} className="admin-card">
+                      {editingGroup === group.id ? (
+                        // Tryb edycji
                         <div>
-                          <h3 style={{ margin: '0 0 8px 0', color: '#9C27B0' }}>
-                            {group.name}
-                          </h3>
                           <div
                             style={{
-                              fontSize: '14px',
-                              color: '#666',
-                              lineHeight: '1.6',
+                              display: 'grid',
+                              gap: '10px',
+                              gridTemplateColumns: '1fr 1fr 1fr',
+                              marginBottom: '10px',
                             }}
                           >
-                            <div>
-                              <strong>Klient:</strong> {group.clientName}
-                            </div>
-                            <div
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              placeholder="Nazwa grupy"
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={editClient}
+                              onChange={(e) => setEditClient(e.target.value)}
+                              placeholder="Nazwa klienta"
+                              style={{
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={editFolder}
+                              onChange={(e) => setEditFolder(e.target.value)}
+                              placeholder="Folder galerii"
+                              style={{
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                              }}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                              onClick={() => handleUpdateGroup(group.id)}
+                              disabled={processing === group.id}
+                              className="admin-btn admin-btn--success"
+                              style={{ fontSize: '12px', padding: '6px 12px' }}
+                            >
+                              Zapisz
+                            </button>
+                            <button
+                              onClick={() => setEditingGroup(null)}
+                              style={{
+                                backgroundColor: '#e5e7eb',
+                                color: '#111827',
+                                border: '1px solid #d1d5db',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
                               }}
                             >
-                              <span>
-                                <strong>Folder:</strong>{' '}
-                                {(() => {
-                                  const folder = group.galleryFolder || '';
-                                  // Jeśli to pełny URL, wyciągnij ścieżkę po gallery/
-                                  if (folder.includes('://')) {
-                                    const match =
-                                      folder.match(/gallery\/(.*)$/);
-                                    return match ? match[1] || '/' : folder;
-                                  }
-                                  return folder || '/';
-                                })()}
-                              </span>
-                              {folderStatus[group.id] && (
-                                <span
-                                  style={{
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    fontSize: '11px',
-                                    fontWeight: 500,
-                                    backgroundColor: folderStatus[group.id]
-                                      .exists
-                                      ? '#e8f5e9'
-                                      : '#ffebee',
-                                    color: folderStatus[group.id].exists
-                                      ? '#2e7d32'
-                                      : '#c62828',
-                                  }}
-                                >
-                                  {folderStatus[group.id].exists
-                                    ? `✓ ${folderStatus[group.id].foldersCount} folderów, ${folderStatus[group.id].filesCount} plików`
-                                    : `✗ Folder nie istnieje`}
-                                </span>
-                              )}
-                            </div>
+                              Anuluj
+                            </button>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '5px' }}>
-                          <a
-                            href={`/?groupId=${group.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              backgroundColor: '#9C27B0',
-                              color: 'white',
-                              border: 'none',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              textDecoration: 'none',
-                              display: 'inline-block',
-                            }}
-                          >
-                            Podgląd
-                          </a>
-                          <button
-                            onClick={() => startEditGroup(group)}
-                            style={{
-                              backgroundColor: '#2196F3',
-                              color: 'white',
-                              border: 'none',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                            }}
-                          >
-                            Edytuj
-                          </button>
-                          <button
-                            onClick={() => handleDeleteGroup(group.id)}
-                            disabled={processing === group.id}
-                            style={{
-                              backgroundColor: '#f44336',
-                              color: 'white',
-                              border: 'none',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              cursor:
-                                processing === group.id
-                                  ? 'not-allowed'
-                                  : 'pointer',
-                              fontSize: '12px',
-                              opacity: processing === group.id ? 0.6 : 1,
-                            }}
-                          >
-                            Usuń
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Użytkownicy w grupie */}
-                      <div style={{ marginTop: '10px' }}>
-                        <strong style={{ fontSize: '13px' }}>
-                          Użytkownicy ({group.users.length}):
-                        </strong>
-                        {group.users.length === 0 ? (
-                          <span
-                            style={{
-                              color: '#666',
-                              fontStyle: 'italic',
-                              marginLeft: '10px',
-                              fontSize: '13px',
-                            }}
-                          >
-                            Brak
-                          </span>
-                        ) : (
+                      ) : (
+                        // Tryb wyświetlania
+                        <div>
                           <div
                             style={{
                               display: 'flex',
-                              flexWrap: 'wrap',
-                              gap: '5px',
-                              marginTop: '5px',
+                              justifyContent: 'space-between',
+                              alignItems: 'flex-start',
+                              marginBottom: '10px',
                             }}
                           >
-                            {group.users.map((email) => (
-                              <span
-                                key={email}
+                            <div>
+                              <h3
                                 style={{
-                                  background: '#e1bee7',
-                                  padding: '3px 8px',
-                                  borderRadius: '12px',
-                                  fontSize: '12px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
+                                  margin: '0 0 8px 0',
+                                  color: '#111827',
                                 }}
                               >
-                                {email}
-                                <button
-                                  onClick={() =>
-                                    handleRemoveUserFromGroup(group.id, email)
-                                  }
-                                  disabled={processing === email}
+                                {group.name}
+                              </h3>
+                              <div
+                                style={{
+                                  fontSize: '14px',
+                                  color: '#666',
+                                  lineHeight: '1.6',
+                                }}
+                              >
+                                <div>
+                                  <strong>Klient:</strong> {group.clientName}
+                                </div>
+                                <div
                                   style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#f44336',
-                                    cursor: 'pointer',
-                                    padding: '0',
-                                    fontSize: '14px',
-                                    lineHeight: '1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
                                   }}
                                 >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
+                                  <span>
+                                    <strong>Folder:</strong>{' '}
+                                    {(() => {
+                                      const folder = group.galleryFolder || '';
+                                      // Jeśli to pełny URL, wyciągnij ścieżkę po gallery/
+                                      if (folder.includes('://')) {
+                                        const match =
+                                          folder.match(/gallery\/(.*)$/);
+                                        return match ? match[1] || '/' : folder;
+                                      }
+                                      return folder || '/';
+                                    })()}
+                                  </span>
+                                  {folderStatus[group.id] && (
+                                    <span
+                                      style={{
+                                        padding: '2px 8px',
+                                        borderRadius: '999px',
+                                        fontSize: '11px',
+                                        fontWeight: 500,
+                                        border: '1px solid #e5e7eb',
+                                        backgroundColor: '#f9fafb',
+                                        color: '#374151',
+                                      }}
+                                    >
+                                      {folderStatus[group.id].exists
+                                        ? `${folderStatus[group.id].foldersCount} folderów, ${folderStatus[group.id].filesCount} plików`
+                                        : `Folder nie istnieje`}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                              <a
+                                href={`/?groupId=${group.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  backgroundColor: '#2563eb',
+                                  color: 'white',
+                                  border: '1px solid #2563eb',
+                                  padding: '4px 10px',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '12px',
+                                  textDecoration: 'none',
+                                  display: 'inline-block',
+                                }}
+                              >
+                                Podgląd
+                              </a>
+                              <button
+                                onClick={() => startEditGroup(group)}
+                                className="admin-btn"
+                                style={{
+                                  padding: '4px 10px',
+                                  fontSize: '12px',
+                                  borderColor: '#d1d5db',
+                                }}
+                              >
+                                Edytuj
+                              </button>
+                              <button
+                                onClick={() => handleDeleteGroup(group.id)}
+                                disabled={processing === group.id}
+                                style={{
+                                  backgroundColor: '#dc2626',
+                                  color: 'white',
+                                  border: '1px solid #dc2626',
+                                  padding: '4px 10px',
+                                  borderRadius: '4px',
+                                  cursor:
+                                    processing === group.id
+                                      ? 'not-allowed'
+                                      : 'pointer',
+                                  fontSize: '12px',
+                                  opacity: processing === group.id ? 0.6 : 1,
+                                }}
+                              >
+                                Usuń
+                              </button>
+                            </div>
                           </div>
-                        )}
-                      </div>
 
-                      {/* Dodaj użytkownika */}
-                      {getUnassignedUsers().length > 0 && (
-                        <div style={{ marginTop: '10px' }}>
-                          <select
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                handleAssignUser(group.id, e.target.value);
-                                e.target.value = '';
-                              }
-                            }}
-                            style={{
-                              padding: '5px 10px',
-                              borderRadius: '4px',
-                              border: '1px solid #ddd',
-                              fontSize: '12px',
-                            }}
-                          >
-                            <option value="">+ Dodaj użytkownika...</option>
-                            {getUnassignedUsers().map((email) => (
-                              <option key={email} value={email}>
-                                {email}
-                              </option>
-                            ))}
-                          </select>
+                          {/* Użytkownicy w grupie */}
+                          <div style={{ marginTop: '10px' }}>
+                            <strong style={{ fontSize: '13px' }}>
+                              Użytkownicy ({group.users.length}):
+                            </strong>
+                            {group.users.length === 0 ? (
+                              <span
+                                style={{
+                                  color: '#666',
+                                  fontStyle: 'italic',
+                                  marginLeft: '10px',
+                                  fontSize: '13px',
+                                }}
+                              >
+                                Brak
+                              </span>
+                            ) : (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: '5px',
+                                  marginTop: '5px',
+                                }}
+                              >
+                                {group.users.map((email) => (
+                                  <span
+                                    key={email}
+                                    style={{
+                                      background: '#e1bee7',
+                                      padding: '3px 8px',
+                                      borderRadius: '12px',
+                                      fontSize: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                    }}
+                                  >
+                                    {email}
+                                    <button
+                                      onClick={() =>
+                                        handleRemoveUserFromGroup(
+                                          group.id,
+                                          email,
+                                        )
+                                      }
+                                      disabled={processing === email}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#f44336',
+                                        cursor: 'pointer',
+                                        padding: '0',
+                                        fontSize: '14px',
+                                        lineHeight: '1',
+                                      }}
+                                    >
+                                      ×
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Dodaj użytkownika */}
+                          {getUnassignedUsers().length > 0 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    handleAssignUser(group.id, e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                                style={{
+                                  padding: '5px 10px',
+                                  borderRadius: '4px',
+                                  border: '1px solid #ddd',
+                                  fontSize: '12px',
+                                }}
+                              >
+                                <option value="">+ Dodaj użytkownika...</option>
+                                {getUnassignedUsers().map((email) => (
+                                  <option key={email} value={email}>
+                                    {email}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </section>
 
         {/* Ustawienia */}
-        <section style={{ marginBottom: '40px' }}>
+        <section className="admin-section">
           <h2
-            style={{
-              color: '#FF9800',
-              borderBottom: '2px solid #ddd',
-              paddingBottom: '10px',
-            }}
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('settings')}
           >
-            Ustawienia
+            <span>Ustawienia</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('settings') ? '' : 'collapsed'
+              }`}
+            ></i>
           </h2>
 
-          <div
-            style={{
-              background: '#fff3e0',
-              padding: '15px',
-              borderRadius: '8px',
-              border: '1px solid #FF9800',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <div>
-                <h3 style={{ margin: '0 0 5px 0', color: '#FF9800' }}>
-                  Kolorowanie słów kluczowych
-                </h3>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                  Włącz/wyłącz kolorowanie słów kluczowych w nazwach plików
-                </p>
-              </div>
-              <label
+          {expandedSections.has('settings') && (
+            <div className="admin-card">
+              <div
                 style={{
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={settings.highlightKeywords}
-                  onChange={(e) => {
-                    updateSettings({ highlightKeywords: e.target.checked });
-                  }}
+                <div>
+                  <h3 style={{ margin: '0 0 5px 0', color: '#111827' }}>
+                    Kolorowanie słów kluczowych
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                    Włącz/wyłącz kolorowanie słów kluczowych w nazwach plików
+                  </p>
+                </div>
+                <label
                   style={{
-                    width: '20px',
-                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
                     cursor: 'pointer',
                   }}
-                />
-                <span style={{ fontSize: '14px', fontWeight: 500 }}>
-                  {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
-                </span>
-              </label>
+                >
+                  <input
+                    type="checkbox"
+                    checked={settings.highlightKeywords}
+                    onChange={(e) => {
+                      updateSettings({ highlightKeywords: e.target.checked });
+                    }}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                    {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
+                  </span>
+                </label>
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Menedżer plików */}
-        <FileManager />
+        <section className="admin-section">
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('files')}
+          >
+            <span>Menedżer plików</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('files') ? '' : 'collapsed'
+              }`}
+            ></i>
+          </h2>
+          {expandedSections.has('files') && <FileManager />}
+        </section>
 
         <div style={{ marginTop: '40px', textAlign: 'center' }}>
           <button

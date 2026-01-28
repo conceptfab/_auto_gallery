@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import fsp from 'fs/promises';
+import type { StatsData } from '../types/stats';
 
 // Trwałe przechowywanie danych w plikach JSON
 
@@ -37,6 +38,8 @@ interface StorageData {
   settings?: {
     highlightKeywords?: boolean;
   };
+  // Statystyki użytkowników
+  stats?: StatsData;
 }
 
 // Użyj Railway volume /data-storage jeśli istnieje, w przeciwnym razie lokalny folder data/
@@ -56,6 +59,12 @@ const defaultData: StorageData = {
   groups: [],
   settings: {
     highlightKeywords: true,
+  },
+  stats: {
+    logins: [],
+    sessions: [],
+    viewEvents: [],
+    downloadEvents: [],
   },
 };
 

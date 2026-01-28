@@ -30,6 +30,7 @@ export function clearAuthCookie(res: NextApiResponse): void {
   res.setHeader('Set-Cookie', [
     'auth_email=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
     'auth_logged=; Path=/; Max-Age=0; SameSite=Strict',
+    'session_id=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
   ]);
 }
 

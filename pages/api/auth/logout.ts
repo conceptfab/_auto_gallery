@@ -4,6 +4,7 @@ import {
   clearAuthCookie,
   getEmailFromCookie,
 } from '../../../src/utils/auth';
+import { endSession } from '../../../src/utils/statsStorage';
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,6 +19,12 @@ export default async function handler(
 
     if (email) {
       await logoutUser(email);
+    }
+
+    // Zakończ aktywną sesję statystyk, jeśli istnieje
+    const sessionId = req.cookies?.session_id;
+    if (sessionId) {
+      await endSession(sessionId);
     }
 
     clearAuthCookie(res);
