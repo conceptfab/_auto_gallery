@@ -1,0 +1,44 @@
+{
+  "name": "conceptfab-autogallery",
+  "version": "b0.19e8",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "node scripts/generate-version.js && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "version": "node scripts/generate-version.js",
+    "commit": "node scripts/commit.js"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.1",
+    "@types/dompurify": "^3.0.5",
+    "@types/nodemailer": "^7.0.5",
+    "@types/uuid": "^10.0.0",
+    "@upstash/redis": "^1.36.1",
+    "axios": "^1.7.9",
+    "dompurify": "^3.3.1",
+    "form-data": "^4.0.5",
+    "line-awesome": "^1.3.0",
+    "next": "^15.5.9",
+    "nodemailer": "^7.0.12",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "resend": "^6.8.0",
+    "sharp": "^0.33.5",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "19.2.9",
+    "@types/react-dom": "^19",
+    "eslint": "^8",
+    "eslint-config-next": "15.1.7",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

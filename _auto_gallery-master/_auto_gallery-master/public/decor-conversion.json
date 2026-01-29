@@ -1,0 +1,21 @@
+{
+  "stelaż": {
+    "white": "white_RAL9003.webp",
+    "grey": "grey_RAL9006.webp",
+    "black": "black_RAL9005.webp",
+    "RAL7021": "RAL7021.webp"
+  },
+  "blat": {
+    "H1180": "H1180.webp",
+    "PD3003": "PD3003.webp",
+    "U100": "U100.webp",
+    "U120": "U120.webp",
+    "U130": "U130.webp",
+    "W210": "W210.webp",
+    "W240": "W240.webp",
+    "W250": "W250.webp",
+    "W350": "W350.webp",
+    "wg": "wg.webp",
+    "gb": "bg.webp"
+  }
+}

@@ -1,3 +1,3 @@
-progress bar przyładowaniu / odświerzania galerii
+poprawka wyswietlania miniaturki
 
-fbdfhdfhdfh
+loading galerii
