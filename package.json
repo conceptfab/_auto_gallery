@@ -1,6 +1,6 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "b0.16 lintfix",
+  "version": "b 0.19 lintfix",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
