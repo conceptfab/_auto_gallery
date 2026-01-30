@@ -11,11 +11,9 @@ import { useStatsTracker } from '@/src/hooks/useStatsTracker';
 import {
   API_TIMEOUT_LONG,
   UI_DELAY_SHORT,
-  LOADING_PROGRESS_START,
   LOADING_PROGRESS_FETCH,
   LOADING_PROGRESS_MID,
   LOADING_PROGRESS_PARSE,
-  LOADING_PROGRESS_FINAL,
   LOADING_PROGRESS_COMPLETE,
   PREVIEW_TIMEOUT,
   PREVIEW_OFFSET_X,
@@ -282,6 +280,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
   useEffect(() => {
     logger.debug('useEffect triggered with refreshKey', { refreshKey });
     fetchGalleryData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refreshKey is the intended trigger
   }, [refreshKey]);
 
   const fetchGalleryData = async () => {
@@ -351,12 +350,12 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
         });
         setError(data.error || 'Brak danych w galerii');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error('Fetch error', err);
-      if (err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         setError('Timeout - API nie odpowiada');
       } else {
-        setError(`Błąd połączenia: ${err.message}`);
+        setError(`Błąd połączenia: ${err instanceof Error ? err.message : String(err)}`);
       }
     } finally {
       logger.debug('Setting loading to false');
@@ -573,6 +572,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                   top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
                 }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element -- dynamic gallery URLs */}
                 <img
                   src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
                   alt={modalHoveredPreview.image.name}
@@ -582,6 +582,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                 </span>
               </div>
             )}
+            {/* eslint-disable-next-line @next/next/no-img-element -- dynamic gallery URLs */}
             <img
               src={getOptimizedImageUrl(selectedImage, 'full')}
               alt={selectedImage.name}

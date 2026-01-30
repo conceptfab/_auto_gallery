@@ -1,13 +1,13 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "b 0.19e9",
+  "version": "b0.16 lintfix",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "node scripts/generate-version.js && next build",
     "start": "next start",
-    "lint": "next lint",
-    "version": "node scripts/generate-version.js",
+    "lint": "eslint .",
+    "predeploy": "node scripts/pre-deploy.js",
     "commit": "node scripts/commit.js"
   },
   "dependencies": {
@@ -34,7 +34,7 @@
     "@types/node": "^20",
     "@types/react": "19.2.9",
     "@types/react-dom": "^19",
-    "eslint": "^8",
+    "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "typescript": "5.9.3"
   },

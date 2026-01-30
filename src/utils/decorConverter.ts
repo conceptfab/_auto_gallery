@@ -75,7 +75,7 @@ class DecorConverter {
     for (const keyword of allKeywords) {
       const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-      let regex = new RegExp(
+      const regex = new RegExp(
         `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
         'gi',
       );
@@ -201,7 +201,7 @@ class DecorConverter {
     for (const keyword of allKeywords) {
       const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-      let regex = new RegExp(
+      const regex = new RegExp(
         `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
         'gi',
       );

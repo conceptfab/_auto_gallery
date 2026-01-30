@@ -52,6 +52,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         hideNotification(id);
       }, newNotification.duration);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hideNotification is stable, avoid loop
   }, []);
 
   const hideNotification = useCallback((id: string) => {

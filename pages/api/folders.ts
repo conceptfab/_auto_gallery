@@ -56,7 +56,7 @@ async function checkFolderThumbnailHTTP(
     }
 
     return null;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
@@ -92,7 +92,7 @@ async function checkFolderThumbnailPHP(
     }
 
     return null;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
@@ -149,7 +149,7 @@ async function getSubfoldersHTTP(baseUrl: string): Promise<FolderItem[]> {
         } else {
           fullUrl = new URL(href, baseUrl).href;
         }
-      } catch (error) {
+      } catch (_error) {
         continue;
       }
 
@@ -289,10 +289,10 @@ export default async function handler(
         }
         folders = await getSubfoldersHTTP(galleryUrl);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log(
         'Folder _folders nie istnieje lub jest pusty:',
-        error.message,
+        error instanceof Error ? error.message : String(error),
       );
       folders = [];
     }
@@ -302,7 +302,7 @@ export default async function handler(
       clientName,
       folders,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching folders:', error);
     return res.status(500).json({
       success: false,

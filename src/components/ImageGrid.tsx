@@ -50,11 +50,11 @@ interface ImageItemProps {
 
 const ImageItem = memo(function ImageItem({
   image,
-  index,
+  index: _index,
   highlightedName,
   keywordItems,
   folderName,
-  highlightKeywordsEnabled,
+  highlightKeywordsEnabled: _highlightKeywordsEnabled,
   onImageClick,
   images,
   kolorystykaImages,
@@ -80,6 +80,7 @@ const ImageItem = memo(function ImageItem({
         className="image-container"
         onClick={() => onImageClick?.(image, images)}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element -- dynamic gallery URLs */}
         <img
           src={getOptimizedImageUrl(image, 'thumb')}
           alt={image.name}
@@ -290,6 +291,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     };
 
     loadHighlightedNames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getDisplayName is stable
   }, [images, kolorystykaImages, highlightKeywordsEnabled]);
 
   const memoizedImages = useMemo(() => images, [images]);
@@ -339,6 +341,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             visibility: 'visible',
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic gallery URLs */}
           <img
             src={getOptimizedImageUrl(hoveredPreview.image, 'thumb')}
             alt={hoveredPreview.image.name}

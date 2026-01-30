@@ -28,7 +28,7 @@ const FileManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
-  const { showError, showSuccess, showWarning } = useNotification();
+  const { showError: _showError, showSuccess: _showSuccess, showWarning: _showWarning } = useNotification();
 
   // Upload
   const [uploading, setUploading] = useState(false);
@@ -221,9 +221,9 @@ const FileManager: React.FC = () => {
 
         // Ustaw pełny postęp dla tego pliku
         setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.error('Upload error', { file: file.name, error: err });
-        alert(`Błąd uploadu ${file.name}: ${err.message}`);
+        alert(`Błąd uploadu ${file.name}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -433,7 +433,7 @@ const FileManager: React.FC = () => {
 
   // Drop na breadcrumb (przeniesienie do folderu nadrzędnego)
   const handleBreadcrumbDrop = async (
-    e: DragEvent<HTMLButtonElement>,
+    e: React.DragEvent<HTMLElement>,
     targetFolder: string,
   ) => {
     e.preventDefault();
@@ -728,7 +728,7 @@ const FileManager: React.FC = () => {
                   e.preventDefault();
                   const parts = currentFolder.split('/').filter(Boolean);
                   parts.pop();
-                  handleBreadcrumbDrop(e as any, parts.join('/'));
+                  handleBreadcrumbDrop(e, parts.join('/'));
                 }}
                 style={{
                   padding: '10px 15px',
@@ -1047,7 +1047,7 @@ const FileManager: React.FC = () => {
                 </div>
                 <div>Folder jest pusty</div>
                 <div style={{ fontSize: '12px', marginTop: '5px' }}>
-                  Przeciągnij pliki tutaj lub kliknij "Upload"
+                  Przeciągnij pliki tutaj lub kliknij &quot;Upload&quot;
                 </div>
               </div>
             )}

@@ -14,7 +14,7 @@ export default async function handler(
         highlightKeywords: true,
       };
       return res.status(200).json({ success: true, settings });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading settings:', error);
       return res.status(500).json({ error: 'Błąd ładowania ustawień' });
     }
@@ -49,7 +49,7 @@ export default async function handler(
       return res
         .status(200)
         .json({ success: true, settings: updatedData.settings });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving settings:', error);
       return res.status(500).json({ error: 'Błąd zapisywania ustawień' });
     }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 const AdminLoginPage: React.FC = () => {
   const router = useRouter();
   const [step, setStep] = useState<'email' | 'code'>('email');
-  const [email, setEmail] = useState('');
+  const [email, _setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -14,6 +14,7 @@ const AdminLoginPage: React.FC = () => {
 
   useEffect(() => {
     checkIfAlreadyLoggedIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   const checkIfAlreadyLoggedIn = async () => {
@@ -24,8 +25,8 @@ const AdminLoginPage: React.FC = () => {
       if (result.isAdminLoggedIn) {
         router.push('/admin');
       }
-    } catch (error) {
-      console.error('Error checking admin auth status:', error);
+    } catch (err) {
+      console.error('Error checking admin auth status:', err);
     }
   };
 
@@ -61,7 +62,7 @@ const AdminLoginPage: React.FC = () => {
       } else {
         setError(result.error || 'Wystąpił błąd');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);
@@ -92,7 +93,7 @@ const AdminLoginPage: React.FC = () => {
       } else {
         setError(result.error || 'Wystąpił błąd');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);

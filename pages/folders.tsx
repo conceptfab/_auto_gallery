@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import LoadingOverlay from '../src/components/LoadingOverlay';
 import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 
 interface FolderItem {
@@ -28,9 +27,9 @@ const FoldersPage: React.FC = () => {
   const { groupId } = router.query;
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [data, setData] = useState<FoldersResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_data, setData] = useState<FoldersResponse | null>(null);
+  const [_loading, setLoading] = useState(true);
+  const [_error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -80,9 +79,9 @@ const FoldersPage: React.FC = () => {
         } else {
           setError(result.error || 'Błąd pobierania danych');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching folders:', err);
-        setError(`Błąd połączenia: ${err.message}`);
+        setError(`Błąd połączenia: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         setLoading(false);
       }
@@ -91,7 +90,7 @@ const FoldersPage: React.FC = () => {
     fetchFolders();
   }, [router.isReady, groupId, authLoading, authStatus]);
 
-  const getThumbnailUrl = (folder: FolderItem): string => {
+  const _getThumbnailUrl = (folder: FolderItem): string => {
     if (folder.thumbnailUrl) {
       // Jeśli jest folder_thumb.png, użyj go
       return folder.thumbnailUrl.startsWith('http')

@@ -25,7 +25,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
-  const { showError, showSuccess, showInfo } = useNotification();
+  const { showError, showSuccess, showInfo: _showInfo } = useNotification();
 
   // Hide on login pages
   const isLoginPage =

@@ -349,7 +349,7 @@ export async function getOverviewStats(dateRange?: {
     });
   };
 
-  const filteredLogins = filterByDate(stats.logins);
+  const _filteredLogins = filterByDate(stats.logins);
   const filteredViews = filterByDate(stats.viewEvents);
   const filteredDownloads = filterByDate(stats.downloadEvents);
 

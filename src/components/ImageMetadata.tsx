@@ -58,7 +58,7 @@ const ImageMetadata: React.FC<ImageMetadataProps> = ({
         month: '2-digit',
         day: '2-digit',
       });
-    } catch (error) {
+    } catch (_error) {
       return '';
     }
   };

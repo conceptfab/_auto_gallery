@@ -44,7 +44,7 @@ async function countImagesInDirectory(url: string): Promise<number> {
     }
 
     return imageCount;
-  } catch (error) {
+  } catch (_error) {
     logger.error('Błąd liczenia obrazów', { url });
     return 0;
   }
@@ -107,7 +107,7 @@ async function findSubfolders(
         } else {
           fullUrl = new URL(href, url).href;
         }
-      } catch (error) {
+      } catch (_error) {
         continue;
       }
 

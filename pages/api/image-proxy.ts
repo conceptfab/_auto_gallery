@@ -35,7 +35,7 @@ export default async function handler(
 
     // Redirect do oryginalnego URL
     res.redirect(301, imageUrl);
-  } catch (error) {
+  } catch (_error) {
     return res.status(400).json({ error: 'Invalid URL' });
   }
 }

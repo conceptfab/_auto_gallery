@@ -16,6 +16,7 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     checkIfAlreadyLoggedIn();
     loadVersionInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   const checkIfAlreadyLoggedIn = async () => {
@@ -74,7 +75,7 @@ const LoginPage: React.FC = () => {
       } else {
         setError(result.error || 'Wystąpił błąd');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);
@@ -105,7 +106,7 @@ const LoginPage: React.FC = () => {
       } else {
         setError(result.error || 'Wystąpił błąd');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);

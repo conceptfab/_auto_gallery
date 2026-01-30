@@ -10,7 +10,7 @@ const readline = require('readline');
 const pkgPath = path.join(__dirname, '..', 'package.json');
 const verPath = path.join(__dirname, '..', 'public', 'version.json');
 
-function log(msg) {
+function log(_msg) {
   // Logging disabled for production
 }
 
@@ -123,7 +123,7 @@ async function main() {
     log('git push...');
     try {
       git('push');
-    } catch (e) {
+    } catch (_e) {
       log('Push failed, trying force push...');
       git('push --force');
     }

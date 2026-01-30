@@ -32,6 +32,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
 
   useEffect(() => {
     checkAuthStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   const checkAuthStatus = async () => {

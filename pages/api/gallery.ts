@@ -130,7 +130,7 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
 
   // Jeśli "Kolorystyka" już istnieje (np. zapisane w cache), potraktuj jej podfoldery
   // jako już zebrane "decors", żeby funkcja była idempotentna.
-  const existingKolorystyka = folders.find(
+  const _existingKolorystyka = folders.find(
     (f) => f.name.toLowerCase() === 'kolorystyka',
   );
 
@@ -138,7 +138,7 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
   const decorsImages = collectDecorsImages(folders);
 
   // Usuń wszystkie foldery "decors" z oryginalnych miejsc i wyklucz "Kolorystykę"
-  let processedRoots = removeDecorsFolders(
+  const processedRoots = removeDecorsFolders(
     folders.filter((f) => f.name.toLowerCase() !== 'kolorystyka'),
   );
 
@@ -315,7 +315,7 @@ async function galleryHandler(
       success: true,
       data: folders,
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({
       success: false,
       error: 'Błąd podczas skanowania galerii',

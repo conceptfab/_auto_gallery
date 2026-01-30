@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import FileManager from '../src/components/FileManager';
-import FolderConverter from '../src/components/FolderConverter';
 import LoadingOverlay from '../src/components/LoadingOverlay';
 import { PendingRequestsSection } from '../src/components/admin/PendingRequestsSection';
 import { StatsOverview } from '../src/components/admin/StatsOverview';
@@ -172,6 +171,7 @@ const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     checkAdminAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   useEffect(() => {
@@ -180,6 +180,7 @@ const AdminPanel: React.FC = () => {
       fetchGroups();
       fetchSettings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- authStatus is the intended trigger
   }, [authStatus]);
 
   const fetchSettings = async () => {

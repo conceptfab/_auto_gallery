@@ -5,7 +5,6 @@ import {
   isUserLoggedIn as storageIsLoggedIn,
 } from './storage';
 import { ADMIN_EMAIL } from '../config/constants';
-import { isAdminLoggedIn } from './storage';
 
 export async function loginUser(email: string): Promise<void> {
   await storageLogin(email);

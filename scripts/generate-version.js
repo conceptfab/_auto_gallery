@@ -5,7 +5,7 @@ const path = require('path');
 function runGitCommand(command) {
   try {
     return execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
@@ -35,7 +35,7 @@ function generateVersion() {
       if (existing.hash && existing.hash !== 'unknown') {
         return existing;
       }
-    } catch (e) {}
+    } catch (_e) {}
     
     // Fallback
     const fallback = {

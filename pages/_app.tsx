@@ -33,12 +33,12 @@ export default function App({ Component, pageProps }: AppProps) {
   const lockPortrait = useCallback(async () => {
     try {
       if (screen.orientation && 'lock' in screen.orientation) {
-        const lock = (screen.orientation as any).lock;
+        const lock = (screen.orientation as { lock?: (orientation: string) => Promise<void> }).lock;
         if (typeof lock === 'function') {
           await lock('portrait');
         }
       }
-    } catch (err) {
+    } catch (_err) {
       // Blokowanie orientacji nie jest wspierane lub wymaga fullscreen
     }
   }, []);
