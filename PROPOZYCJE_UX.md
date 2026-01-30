@@ -11,12 +11,32 @@
 
 ## 1. Sekwencyjne ładowanie obrazów
 
+### Priorytet: foldery specjalne
+
+**W pierwszej kolejności** mają być pobierane pliki z **folderów specjalnych** (np. `Kolorystyka/decors`). Dla tych zasobów:
+
+- **Inteligentne buforowanie** — treści z folderów specjalnych są buforowane z wyższym priorytetem i dłuższym czasem życia w cache, tak aby powtórny dostęp był natychmiastowy.
+- **Miniaturki we wszystkich wymaganych rozmiarach** — dla każdego pliku z folderów specjalnych generowane są miniatureki we wszystkich rozmiarach używanych w UI (np. siatka, podgląd, modal), aby uniknąć opóźnień i przeładowań przy zmianie widoku.
+- **Cel:** maksymalnie **płynne UI** — użytkownik nie powinien czekać na treści z folderów specjalnych; mają być dostępne od razu po wejściu w dany kontekst.
+
+Implementacja (lista folderów specjalnych, polityka cache, zestaw rozmiarów miniaturek) powinna być konfigurowalna.
+
 ### Problem
 Obecnie obrazy ładują się losowo (zależy od szybkości odpowiedzi serwera dla każdego pliku), co tworzy chaotyczne wrażenie wizualne.
 
 ### Rozwiązanie: Waterfall Loading Pattern
 
 ```
+┌─────────────────────────────────────────────────────────┐
+│  FAZA 0: Foldery specjalne (np. Kolorystyka/decors)     │
+│  ├─ Pobierz pliki z folderów specjalnych w pierwszej   │
+│  │   kolejności                                        │
+│  ├─ Inteligentne buforowanie (wyższy priorytet cache)  │
+│  └─ Miniaturki we wszystkich wymaganych rozmiarach     │
+│      → maksymalnie płynne UI                            │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
 ┌─────────────────────────────────────────────────────────┐
 │  FAZA 1: Prefetch metadata                              │
 │  ├─ Pobierz listę plików z API                         │
