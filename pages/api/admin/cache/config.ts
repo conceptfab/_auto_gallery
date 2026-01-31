@@ -4,7 +4,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { isAdminLoggedIn } from '@/src/utils/storage';
 import { getAdminEmailFromCookie } from '@/src/utils/auth';
 import { getCacheData, updateCacheData } from '@/src/utils/cacheStorage';
-import { SchedulerConfig, ThumbnailConfig } from '@/src/types/cache';
+import { SchedulerConfig, ThumbnailConfig, EmailNotificationConfig } from '@/src/types/cache';
+import { DEFAULT_EMAIL_NOTIFICATION_CONFIG } from '@/src/utils/cacheStorage';
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,6 +23,7 @@ export default async function handler(
         success: true,
         schedulerConfig: data.schedulerConfig,
         thumbnailConfig: data.thumbnailConfig,
+        emailNotificationConfig: data.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG,
       });
     } catch (error) {
       console.error('Error getting cache config:', error);
@@ -31,9 +33,10 @@ export default async function handler(
 
   if (req.method === 'POST') {
     try {
-      const { schedulerConfig, thumbnailConfig } = req.body as {
+      const { schedulerConfig, thumbnailConfig, emailNotificationConfig } = req.body as {
         schedulerConfig?: Partial<SchedulerConfig>;
         thumbnailConfig?: Partial<ThumbnailConfig>;
+        emailNotificationConfig?: Partial<EmailNotificationConfig>;
       };
 
       await updateCacheData((data) => {
@@ -65,6 +68,13 @@ export default async function handler(
             ...thumbnailConfig,
           };
         }
+
+        if (emailNotificationConfig) {
+          data.emailNotificationConfig = {
+            ...(data.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG),
+            ...emailNotificationConfig,
+          };
+        }
       });
 
       const updatedData = await getCacheData();
@@ -73,6 +83,7 @@ export default async function handler(
         success: true,
         schedulerConfig: updatedData.schedulerConfig,
         thumbnailConfig: updatedData.thumbnailConfig,
+        emailNotificationConfig: updatedData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG,
       });
     } catch (error) {
       console.error('Error updating cache config:', error);

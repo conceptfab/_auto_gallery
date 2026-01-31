@@ -1,10 +1,11 @@
 // src/services/hashService.ts
 
-import { FileHash, HashChangeEvent } from '@/src/types/cache';
+import { FileHash, HashChangeEvent, FolderHashRecord } from '@/src/types/cache';
 import { logger } from '@/src/utils/logger';
 import axios from 'axios';
 import xxhashInit from 'xxhash-wasm';
 import { generateListUrl } from '@/src/utils/fileToken';
+import { getCacheData, updateCacheData } from '@/src/utils/cacheStorage';
 
 // Lazy-loaded xxhash API
 type XXHashAPI = Awaited<ReturnType<typeof xxhashInit>>;
@@ -207,4 +208,59 @@ export function getChangeStats(changes: HashChangeEvent[]): {
     deleted: changes.filter((c) => c.type === 'file_deleted').length,
     total: changes.length,
   };
+}
+
+/**
+ * Oblicza i zapisuje hashe dla każdego folderu
+ * Porównuje z poprzednimi hashami i zwraca rekordy
+ */
+export async function computeAndStoreFolderHashes(): Promise<FolderHashRecord[]> {
+  const cacheData = await getCacheData();
+  const fileHashes = cacheData.fileHashes || [];
+
+  // Grupuj pliki po folderach
+  const folderMap = new Map<string, FileHash[]>();
+  for (const file of fileHashes) {
+    const parts = file.path.split('/');
+    parts.pop(); // Usuń nazwę pliku
+    const folderPath = parts.join('/') || '/';
+
+    if (!folderMap.has(folderPath)) {
+      folderMap.set(folderPath, []);
+    }
+    folderMap.get(folderPath)!.push(file);
+  }
+
+  // Oblicz hash dla każdego folderu
+  const records: FolderHashRecord[] = [];
+  const existingRecords = cacheData.folderHashRecords || [];
+
+  for (const [folderPath, files] of folderMap) {
+    const currentHash = await computeFolderHash(
+      files.map((f) => ({
+        name: f.path.split('/').pop()!,
+        size: f.size,
+        lastModified: f.lastModified,
+      }))
+    );
+
+    const existingRecord = existingRecords.find((r) => r.path === folderPath);
+
+    records.push({
+      path: folderPath,
+      currentHash,
+      previousHash: existingRecord?.currentHash || null,
+      timestamp: new Date().toISOString(),
+      fileCount: files.length,
+    });
+  }
+
+  // Zapisz zaktualizowane rekordy
+  await updateCacheData((data) => {
+    data.folderHashRecords = records;
+  });
+
+  logger.info(`Computed and stored hashes for ${records.length} folders`);
+
+  return records;
 }

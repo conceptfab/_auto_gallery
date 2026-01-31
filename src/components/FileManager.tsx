@@ -28,7 +28,11 @@ const FileManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
-  const { showError: _showError, showSuccess: _showSuccess, showWarning: _showWarning } = useNotification();
+  const {
+    showError: _showError,
+    showSuccess: _showSuccess,
+    showWarning: _showWarning,
+  } = useNotification();
 
   // Upload
   const [uploading, setUploading] = useState(false);
@@ -61,7 +65,7 @@ const FileManager: React.FC = () => {
     setError(null);
     try {
       const response = await fetch(
-        `/api/admin/files/list?folder=${encodeURIComponent(folder)}`,
+        `/api/admin/files/list?folder=${encodeURIComponent(folder)}`
       );
       const data: FileListResponse = await response.json();
 
@@ -212,7 +216,9 @@ const FileManager: React.FC = () => {
 
           xhr.open(
             'POST',
-            `/api/admin/files/upload?folder=${encodeURIComponent(currentFolder)}`,
+            `/api/admin/files/upload?folder=${encodeURIComponent(
+              currentFolder
+            )}`
           );
           xhr.send(formData);
         });
@@ -223,7 +229,11 @@ const FileManager: React.FC = () => {
         setUploadProgress(Math.round(((i + 1) / filesToUpload.length) * 100));
       } catch (err: unknown) {
         logger.error('Upload error', { file: file.name, error: err });
-        alert(`Błąd uploadu ${file.name}: ${err instanceof Error ? err.message : String(err)}`);
+        alert(
+          `Błąd uploadu ${file.name}: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
       }
     }
 
@@ -378,7 +388,7 @@ const FileManager: React.FC = () => {
 
   const handleFolderDragOver = (
     e: DragEvent<HTMLDivElement>,
-    folderPath: string,
+    folderPath: string
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -394,7 +404,7 @@ const FileManager: React.FC = () => {
 
   const handleFolderDrop = async (
     e: DragEvent<HTMLDivElement>,
-    targetFolder: string,
+    targetFolder: string
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -434,7 +444,7 @@ const FileManager: React.FC = () => {
   // Drop na breadcrumb (przeniesienie do folderu nadrzędnego)
   const handleBreadcrumbDrop = async (
     e: React.DragEvent<HTMLElement>,
-    targetFolder: string,
+    targetFolder: string
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -481,8 +491,6 @@ const FileManager: React.FC = () => {
 
   return (
     <section className="admin-section">
-      <h2 className="admin-section-title">Menedżer plików</h2>
-
       {/* Toolbar */}
       <div
         style={{
@@ -532,22 +540,6 @@ const FileManager: React.FC = () => {
             Usuń ({selectedItems.size})
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={() => fetchFiles(currentFolder)}
-          style={{
-            borderRadius: 4,
-            border: '1px solid #d1d5db',
-            padding: '8px 14px',
-            backgroundColor: '#ffffff',
-            color: '#111827',
-            cursor: 'pointer',
-          }}
-        >
-          <i className="las la-sync-alt" style={{ marginRight: 6 }} />
-          Odśwież
-        </button>
 
         <span style={{ color: '#666', fontSize: '12px', marginLeft: 'auto' }}>
           Przeciągnij pliki na stronę aby uploadować
@@ -769,10 +761,10 @@ const FileManager: React.FC = () => {
                     dropTarget === folder.path
                       ? '#e3f2fd'
                       : draggingItem === folder.path
-                        ? '#fff3e0'
-                        : selectedItems.has(folder.path)
-                          ? '#e8f5e9'
-                          : 'white',
+                      ? '#fff3e0'
+                      : selectedItems.has(folder.path)
+                      ? '#e8f5e9'
+                      : 'white',
                   opacity: processing === folder.path ? 0.5 : 1,
                   cursor: 'grab',
                 }}
@@ -854,7 +846,7 @@ const FileManager: React.FC = () => {
                           setConvertingFolder(
                             convertingFolder === folder.path
                               ? null
-                              : folder.path,
+                              : folder.path
                           )
                         }
                         className="admin-btn"
@@ -936,8 +928,8 @@ const FileManager: React.FC = () => {
                     draggingItem === file.path
                       ? '#fff3e0'
                       : selectedItems.has(file.path)
-                        ? '#e8f5e9'
-                        : 'white',
+                      ? '#e8f5e9'
+                      : 'white',
                   opacity: processing === file.path ? 0.5 : 1,
                   cursor: 'grab',
                 }}

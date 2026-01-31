@@ -44,6 +44,13 @@ interface ThumbnailConfig {
   storage: 'local' | 'remote';
 }
 
+interface EmailNotificationConfig {
+  enabled: boolean;
+  email: string;
+  notifyOnRebuild: boolean;
+  notifyOnError: boolean;
+}
+
 interface HistoryEntry {
   id: string;
   timestamp: string;
@@ -83,6 +90,21 @@ interface DiagnosticsData {
   errors: string[];
 }
 
+interface FolderHashRecord {
+  path: string;
+  currentHash: string;
+  previousHash: string | null;
+  timestamp: string;
+  fileCount: number;
+}
+
+interface HashStats {
+  total: number;
+  matching: number;
+  changed: number;
+  newFolders: number;
+}
+
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -111,13 +133,20 @@ export const CacheMonitorSection: React.FC = () => {
   const [status, setStatus] = useState<CacheStatus | null>(null);
   const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig | null>(null);
   const [thumbnailConfig, setThumbnailConfig] = useState<ThumbnailConfig | null>(null);
+  const [emailConfig, setEmailConfig] = useState<EmailNotificationConfig | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [changes, setChanges] = useState<ChangeEntry[]>([]);
   const [diagnostics, setDiagnostics] = useState<DiagnosticsData | null>(null);
   const [diagLoading, setDiagLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'status' | 'folders' | 'config' | 'history' | 'changes'>('status');
+  const [activeTab, setActiveTab] = useState<'status' | 'folders' | 'hashes' | 'config' | 'history' | 'changes'>('status');
+  const [cleaningHistory, setCleaningHistory] = useState(false);
+  const [rebuildingFolder, setRebuildingFolder] = useState<string | null>(null);
+  const [lastRebuiltFolder, setLastRebuiltFolder] = useState<{ path: string; timestamp: string } | null>(null);
+  const [folderHashes, setFolderHashes] = useState<FolderHashRecord[]>([]);
+  const [hashStats, setHashStats] = useState<HashStats | null>(null);
+  const [hashesLoading, setHashesLoading] = useState(false);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -127,6 +156,9 @@ export const CacheMonitorSection: React.FC = () => {
         setStatus(data.status);
         setSchedulerConfig(data.config.scheduler);
         setThumbnailConfig(data.config.thumbnails);
+        if (data.config.email) {
+          setEmailConfig(data.config.email);
+        }
       }
     } catch (error) {
       logger.error('Error fetching cache status', error);
@@ -228,6 +260,103 @@ export const CacheMonitorSection: React.FC = () => {
     }
   };
 
+  const handleCleanupHistory = async (retentionHours?: number) => {
+    setCleaningHistory(true);
+    try {
+      const response = await fetch('/api/admin/cache/cleanup-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cleanup', retentionHours: retentionHours ?? 24 }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        fetchHistory();
+      }
+    } catch (error) {
+      logger.error('Error cleaning up history', error);
+      alert('Błąd podczas czyszczenia historii');
+    } finally {
+      setCleaningHistory(false);
+    }
+  };
+
+  const handleClearAllHistory = async () => {
+    setCleaningHistory(true);
+    try {
+      const response = await fetch('/api/admin/cache/cleanup-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear' }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message);
+        fetchHistory();
+      }
+    } catch (error) {
+      logger.error('Error clearing history', error);
+      alert('Błąd podczas czyszczenia historii');
+    } finally {
+      setCleaningHistory(false);
+    }
+  };
+
+  const handleEmailConfigUpdate = async (updates: Partial<EmailNotificationConfig>) => {
+    try {
+      const response = await fetch('/api/admin/cache/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailNotificationConfig: updates }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setEmailConfig(data.emailNotificationConfig);
+      }
+    } catch (error) {
+      logger.error('Error updating email config', error);
+    }
+  };
+
+  const handleRebuildFolder = async (folderPath: string) => {
+    setRebuildingFolder(folderPath);
+    try {
+      const response = await fetch('/api/admin/cache/rebuild-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderPath }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setLastRebuiltFolder({ path: folderPath, timestamp: new Date().toISOString() });
+        alert(data.message);
+        fetchStatus();
+        fetchHistory();
+      }
+    } catch (error) {
+      logger.error('Error rebuilding folder', error);
+      alert('Błąd podczas przebudowy folderu');
+    } finally {
+      setRebuildingFolder(null);
+    }
+  };
+
+  const fetchFolderHashes = async () => {
+    setHashesLoading(true);
+    try {
+      const response = await fetch('/api/admin/cache/folder-hashes');
+      const data = await response.json();
+      if (data.success) {
+        setFolderHashes(data.records || []);
+        setHashStats(data.stats);
+      }
+    } catch (error) {
+      logger.error('Error fetching folder hashes', error);
+    } finally {
+      setHashesLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="admin-card">Ładowanie...</div>;
   }
@@ -236,13 +365,16 @@ export const CacheMonitorSection: React.FC = () => {
     <div style={{ display: 'grid', gap: '20px' }}>
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '5px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
-        {(['status', 'folders', 'config', 'history', 'changes'] as const).map((tab) => (
+        {(['status', 'folders', 'hashes', 'config', 'history', 'changes'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => {
               setActiveTab(tab);
               if (tab === 'folders' && !diagnostics) {
                 fetchDiagnostics();
+              }
+              if (tab === 'hashes' && folderHashes.length === 0) {
+                fetchFolderHashes();
               }
             }}
             className="admin-btn"
@@ -256,6 +388,7 @@ export const CacheMonitorSection: React.FC = () => {
           >
             {tab === 'status' && 'Status'}
             {tab === 'folders' && 'Foldery'}
+            {tab === 'hashes' && 'Hasze'}
             {tab === 'config' && 'Konfiguracja'}
             {tab === 'history' && 'Historia'}
             {tab === 'changes' && 'Zmiany plików'}
@@ -373,6 +506,15 @@ export const CacheMonitorSection: React.FC = () => {
               </div>
               <div style={{ fontSize: '12px', color: '#6b7280' }}>
                 Storage: {status?.thumbnails.storageLocation === 'local' ? 'Railway' : 'Remote'}
+              </div>
+              <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
+                <div style={{ fontWeight: 500, marginBottom: '4px' }}>Rozmiary na plik:</div>
+                <div>thumb: 300x300, q80</div>
+                <div>medium: 800x800, q85</div>
+                <div>large: 1920x1920, q90</div>
+                <div style={{ marginTop: '4px', color: '#059669', fontWeight: 500 }}>
+                  3 miniaturki / plik obrazu
+                </div>
               </div>
             </div>
           </div>
@@ -545,9 +687,10 @@ export const CacheMonitorSection: React.FC = () => {
                   <thead>
                     <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
                       <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Folder</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Obrazy</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Pliki</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Podfoldery</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Obrazy</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Pliki</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Podfoldery</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Akcje</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -581,6 +724,41 @@ export const CacheMonitorSection: React.FC = () => {
                         <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
                           {folder.subfolders.length}
                         </td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <button
+                              onClick={() => handleRebuildFolder(folder.path)}
+                              disabled={rebuildingFolder !== null || folder.imageCount === 0}
+                              title={folder.imageCount === 0 ? 'Brak obrazów' : 'Przebuduj miniaturki'}
+                              style={{
+                                padding: '4px 8px',
+                                fontSize: '11px',
+                                background: folder.imageCount === 0 ? '#f3f4f6' : '#e0e7ff',
+                                color: folder.imageCount === 0 ? '#9ca3af' : '#4338ca',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: folder.imageCount === 0 ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              {rebuildingFolder === folder.path ? (
+                                <i className="las la-spinner la-spin"></i>
+                              ) : (
+                                <i className="las la-sync-alt"></i>
+                              )}
+                            </button>
+                            {lastRebuiltFolder?.path === folder.path && (
+                              <span
+                                title={`Ostatnio przebudowany: ${formatDate(lastRebuiltFolder.timestamp)}`}
+                                style={{ color: '#059669', fontSize: '14px' }}
+                              >
+                                <i className="las la-check-circle"></i>
+                              </span>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -593,6 +771,105 @@ export const CacheMonitorSection: React.FC = () => {
             <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
               <i className="las la-folder-open" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
               <div>Kliknij &quot;Skanuj foldery&quot; aby zobaczyć strukturę</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hashes Tab */}
+      {activeTab === 'hashes' && (
+        <div className="admin-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3 style={{ margin: 0 }}>Weryfikacja hashy folderów</h3>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              {hashStats && (
+                <>
+                  <span style={{ fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="las la-check-circle"></i> Zgodne: {hashStats.matching}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="las la-exclamation-circle"></i> Zmienione: {hashStats.changed}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <i className="las la-plus-circle"></i> Nowe: {hashStats.newFolders}
+                  </span>
+                </>
+              )}
+              <button
+                onClick={fetchFolderHashes}
+                disabled={hashesLoading}
+                className="admin-btn"
+                style={{ fontSize: '12px', padding: '6px 12px' }}
+              >
+                {hashesLoading ? 'Ładowanie...' : 'Odśwież'}
+              </button>
+            </div>
+          </div>
+
+          {hashesLoading && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+              <i className="las la-spinner la-spin" style={{ fontSize: '32px' }}></i>
+              <div style={{ marginTop: '10px' }}>Ładowanie hashy folderów...</div>
+            </div>
+          )}
+
+          {!hashesLoading && folderHashes.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+              <i className="las la-fingerprint" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
+              <div>Brak danych o hashach. Uruchom skanowanie.</div>
+            </div>
+          )}
+
+          {!hashesLoading && folderHashes.length > 0 && (
+            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+                    <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Folder</th>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Plików</th>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Status</th>
+                    <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', width: '150px' }}>Aktualny hash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {folderHashes.map((record, i) => {
+                    const isMatch = record.previousHash && record.currentHash === record.previousHash;
+                    const isChanged = record.previousHash && record.currentHash !== record.previousHash;
+                    const isNew = !record.previousHash;
+
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '11px' }}>
+                          {record.path || '/'}
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          {record.fileCount}
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          {isMatch && (
+                            <span style={{ color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                              <i className="las la-check-circle"></i> Zgodny
+                            </span>
+                          )}
+                          {isChanged && (
+                            <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                              <i className="las la-exclamation-circle"></i> Zmieniony
+                            </span>
+                          )}
+                          {isNew && (
+                            <span style={{ color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                              <i className="las la-plus-circle"></i> Nowy
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '10px', color: '#6b7280' }}>
+                          {record.currentHash.substring(0, 12)}...
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -783,13 +1060,96 @@ export const CacheMonitorSection: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Email Notifications */}
+          <div className="admin-card" style={{ marginTop: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <div>
+                <h3 style={{ margin: '0 0 5px 0' }}>Powiadomienia email</h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                  Otrzymuj powiadomienia po zakończeniu operacji cache
+                </p>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={emailConfig?.enabled || false}
+                  onChange={() => handleEmailConfigUpdate({ enabled: !emailConfig?.enabled })}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span>{emailConfig?.enabled ? 'Włączone' : 'Wyłączone'}</span>
+              </label>
+            </div>
+            {emailConfig?.enabled && (
+              <div style={{ display: 'grid', gap: '15px' }}>
+                <label>
+                  <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                    Adres email (pozostaw pusty dla domyślnego admina)
+                  </span>
+                  <input
+                    type="email"
+                    value={emailConfig?.email || ''}
+                    onChange={(e) => handleEmailConfigUpdate({ email: e.target.value })}
+                    placeholder="domyślny: admin"
+                    className="admin-input"
+                    style={{ width: '100%', maxWidth: '300px' }}
+                  />
+                </label>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={emailConfig?.notifyOnRebuild ?? true}
+                      onChange={() => handleEmailConfigUpdate({ notifyOnRebuild: !emailConfig?.notifyOnRebuild })}
+                    />
+                    <span style={{ fontSize: '13px' }}>Po rebuild</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={emailConfig?.notifyOnError ?? true}
+                      onChange={() => handleEmailConfigUpdate({ notifyOnError: !emailConfig?.notifyOnError })}
+                    />
+                    <span style={{ fontSize: '13px' }}>Przy błędach</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* History Tab */}
       {activeTab === 'history' && (
         <div className="admin-card">
-          <h3 style={{ margin: '0 0 15px 0' }}>Historia operacji</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3 style={{ margin: 0 }}>Historia operacji</h3>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                Wpisów: {history.length} | Zmian: {changes.length}
+              </span>
+              <button
+                onClick={() => handleCleanupHistory(24)}
+                disabled={cleaningHistory}
+                className="admin-btn admin-btn--purple"
+                style={{ fontSize: '12px', padding: '6px 12px' }}
+              >
+                {cleaningHistory ? 'Czyszczenie...' : 'Wyczyść stare (24h)'}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Czy na pewno chcesz usunąć całą historię?')) {
+                    handleClearAllHistory();
+                  }
+                }}
+                disabled={cleaningHistory}
+                className="admin-btn admin-btn--danger"
+                style={{ fontSize: '12px', padding: '6px 12px' }}
+              >
+                Wyczyść całą
+              </button>
+            </div>
+          </div>
           {history.length === 0 ? (
             <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Brak historii</p>
           ) : (

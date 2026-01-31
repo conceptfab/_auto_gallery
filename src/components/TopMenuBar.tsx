@@ -66,14 +66,15 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
 
   const checkCacheStatus = async () => {
     try {
-      const response = await fetch('/api/admin/cache/status');
+      // Użyj publicznego endpointu dostępnego dla wszystkich użytkowników
+      const response = await fetch('/api/cache/status-public');
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
           setCacheStatus({
-            enabled: data.status.scheduler.enabled,
-            thumbnailsCount: data.status.thumbnails.totalGenerated || 0,
-            filesCount: data.status.hashChecker.totalFiles || 0,
+            enabled: data.cacheWorking,
+            thumbnailsCount: data.thumbnailsCount || 0,
+            filesCount: data.filesMonitored || 0,
           });
         }
       }
@@ -169,15 +170,15 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '6px',
-                backgroundColor:
-                  cacheStatus.thumbnailsCount > 0 ? 'transparent' : '#fee2e2',
+                backgroundColor: 'transparent',
                 marginRight: '4px',
               }}
             >
               <i
-                className="las la-microchip"
+                className="las la-database"
                 style={{
-                  color: cacheStatus.thumbnailsCount > 0 ? '#059669' : '#dc2626',
+                  color: cacheStatus.thumbnailsCount > 0 ? '#111827' : '#d1d5db',
+                  opacity: cacheStatus.thumbnailsCount > 0 ? 1 : 0.4,
                 }}
               ></i>
             </div>

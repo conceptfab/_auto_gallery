@@ -1,6 +1,10 @@
-statystyka - ile miniaturek na plik jest generowane
-na drzewie folderów jesli system zauwazy zmianę musi być zaznaczoneg który folder został własnie przebudowany i powinien byc przycsik do recznego przebudowania
-czyszczenie historii przebudowy reczne i automatyczne np zostawia zmiany z ostatnich 24h reszte usuwa
+- statystyka - ile miniaturek na plik jest generowane i jakie
+- ikona refresh do usunięcia
+- poprawka ikony cache - kolor czarny, normala widoczność gdy cache działa, szara-ledwie widoczna gdy cache nie działa, ikona ma i jej stany maja być widoczne dla wszystkich uzytkowników
+- mail kontrolny do admina jeśli przevudowa się udała lub nie udała - prosty panel kontrolny dla maili w admin panel
+- na drzewie folderów jesli system zauwazy zmianę musi być zaznaczone który folder został ostatnio przebudowany i powinien byc przycsik do recznego przebudowania
+- czyszczenie historii przebudowy reczne i automatyczne np zostawia zmiany z ostatnich 24h reszte usuwa
+- poprawki, optymalizacje - sprawdzenie czy kod za weryfikacje zmian działa - okno porównywania hashy dla każdego folderu - czy aktualny = się historyczny. zachowywany jest tylko ostatni hash
 
 
 # TODO - Content Browser

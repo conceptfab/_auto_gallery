@@ -8,6 +8,8 @@ import {
   CacheStorageData,
   CacheStatus,
   ThumbnailSize,
+  EmailNotificationConfig,
+  HistoryCleanupConfig,
 } from '@/src/types/cache';
 
 // Domyślne rozmiary miniaturek
@@ -37,6 +39,20 @@ export const DEFAULT_THUMBNAIL_CONFIG: ThumbnailConfig = {
   sizes: DEFAULT_THUMBNAIL_SIZES,
   format: 'webp',
   storage: 'local',
+};
+
+// Domyślna konfiguracja powiadomień email
+export const DEFAULT_EMAIL_NOTIFICATION_CONFIG: EmailNotificationConfig = {
+  enabled: false,
+  email: '', // Pusty = użyj ADMIN_EMAIL
+  notifyOnRebuild: true,
+  notifyOnError: true,
+};
+
+// Domyślna konfiguracja czyszczenia historii
+export const DEFAULT_HISTORY_CLEANUP_CONFIG: HistoryCleanupConfig = {
+  autoCleanupEnabled: true,
+  retentionHours: 24,
 };
 
 const defaultCacheData: CacheStorageData = {
@@ -169,4 +185,49 @@ function calculateNextRun(
  */
 export function resetCacheDataMemory(): void {
   cachedData = null;
+}
+
+/**
+ * Czyści historię starszą niż podana liczba godzin
+ */
+export async function cleanupHistory(retentionHours?: number): Promise<{
+  historyRemoved: number;
+  changesRemoved: number;
+}> {
+  const data = await getCacheData();
+  const config = data.historyCleanupConfig || DEFAULT_HISTORY_CLEANUP_CONFIG;
+  const hours = retentionHours ?? config.retentionHours;
+  const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+  const originalHistoryLength = data.history?.length || 0;
+  const originalChangesLength = data.changeHistory?.length || 0;
+
+  await updateCacheData((d) => {
+    // Filtruj wpisy historii
+    d.history = (d.history || []).filter(
+      (entry) => new Date(entry.timestamp) > cutoffTime
+    );
+
+    // Filtruj historię zmian
+    d.changeHistory = (d.changeHistory || []).filter(
+      (entry) => new Date(entry.timestamp) > cutoffTime
+    );
+  });
+
+  const newData = await getCacheData();
+
+  return {
+    historyRemoved: originalHistoryLength - (newData.history?.length || 0),
+    changesRemoved: originalChangesLength - (newData.changeHistory?.length || 0),
+  };
+}
+
+/**
+ * Usuwa całą historię
+ */
+export async function clearAllHistory(): Promise<void> {
+  await updateCacheData((data) => {
+    data.history = [];
+    data.changeHistory = [];
+  });
 }

@@ -5,15 +5,20 @@ import {
   scanRemoteFolderForHashes,
   detectChanges,
   getChangeStats,
+  computeAndStoreFolderHashes,
 } from './hashService';
 import { generateThumbnails } from './thumbnailService';
 import {
   getCacheData,
   updateCacheData,
   DEFAULT_SCHEDULER_CONFIG,
+  DEFAULT_HISTORY_CLEANUP_CONFIG,
+  DEFAULT_EMAIL_NOTIFICATION_CONFIG,
+  cleanupHistory,
 } from '@/src/utils/cacheStorage';
 import { logger } from '@/src/utils/logger';
 import { GALLERY_BASE_URL } from '@/src/config/constants';
+import { sendRebuildNotification } from '@/src/utils/email';
 
 let schedulerInterval: NodeJS.Timeout | null = null;
 let isRunning = false;
@@ -150,6 +155,9 @@ export async function runScan(): Promise<{
       data.changeHistory = [...changes, ...data.changeHistory].slice(0, 1000);
     });
 
+    // Oblicz i zapisz hashe folderów do weryfikacji
+    await computeAndStoreFolderHashes();
+
     if (changes.length > 0) {
       await addHistoryEntry(
         'changes_detected',
@@ -178,6 +186,12 @@ export async function runScan(): Promise<{
     logger.info(
       `Scan completed in ${duration}ms, ${changes.length} changes detected`
     );
+
+    // Auto-cleanup starej historii
+    const cleanupConfig = cacheData.historyCleanupConfig || DEFAULT_HISTORY_CLEANUP_CONFIG;
+    if (cleanupConfig.autoCleanupEnabled) {
+      await cleanupHistory(cleanupConfig.retentionHours);
+    }
 
     return {
       success: true,
@@ -361,16 +375,116 @@ export async function regenerateAllThumbnails(): Promise<{
       duration
     );
 
+    // Wyślij powiadomienie email jeśli włączone
+    const emailConfig = cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+    if (emailConfig.enabled && emailConfig.notifyOnRebuild) {
+      await sendRebuildNotification({
+        success: true,
+        duration,
+        filesProcessed: files.length,
+        thumbnailsGenerated: generated,
+        failed,
+      }, emailConfig.email || undefined);
+    }
+
     return { success: true, generated, failed, duration };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
     await addHistoryEntry('error', `Błąd regeneracji: ${errorMessage}`);
 
+    // Wyślij powiadomienie email o błędzie jeśli włączone
+    const cacheData = await getCacheData();
+    const emailConfig = cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+    if (emailConfig.enabled && emailConfig.notifyOnError) {
+      await sendRebuildNotification({
+        success: false,
+        duration: Date.now() - startTime,
+        filesProcessed: 0,
+        thumbnailsGenerated: generated,
+        failed,
+        error: errorMessage,
+      }, emailConfig.email || undefined);
+    }
+
     return {
       success: false,
       generated,
       failed,
+      duration: Date.now() - startTime,
+    };
+  }
+}
+
+/**
+ * Przebudowuje miniaturki dla konkretnego folderu
+ */
+export async function rebuildFolderThumbnails(folderPath: string): Promise<{
+  success: boolean;
+  filesProcessed: number;
+  thumbnailsGenerated: number;
+  duration: number;
+}> {
+  const startTime = Date.now();
+  let filesProcessed = 0;
+  let thumbnailsGenerated = 0;
+
+  try {
+    const cacheData = await getCacheData();
+    const config = cacheData.thumbnailConfig;
+
+    // Filtruj pliki w określonym folderze
+    const normalizedPath = folderPath.startsWith('/') ? folderPath : '/' + folderPath;
+    const files = cacheData.fileHashes.filter(
+      (f) =>
+        f.path.startsWith(normalizedPath) &&
+        /\.(jpg|jpeg|png|gif|webp)$/i.test(f.path)
+    );
+
+    logger.info(`Rebuilding thumbnails for folder ${folderPath}, ${files.length} files`);
+
+    const baseUrl = GALLERY_BASE_URL.endsWith('/')
+      ? GALLERY_BASE_URL
+      : GALLERY_BASE_URL + '/';
+
+    for (const file of files) {
+      try {
+        const sourceUrl = new URL(file.path.replace(/^\//, ''), baseUrl).href;
+        const results = await generateThumbnails(sourceUrl, file.path, config);
+        filesProcessed++;
+        if (results.size > 0) {
+          thumbnailsGenerated++;
+        }
+      } catch {
+        // Kontynuuj z pozostałymi plikami
+      }
+    }
+
+    const duration = Date.now() - startTime;
+
+    // Zapisz informację o ostatnio przebudowanym folderze
+    await updateCacheData((data) => {
+      data.lastRebuiltFolder = {
+        path: folderPath,
+        timestamp: new Date().toISOString(),
+        filesProcessed,
+        thumbnailsGenerated,
+      };
+    });
+
+    await addHistoryEntry(
+      'thumbnails_generated',
+      `Przebudowano folder ${folderPath}: ${thumbnailsGenerated} miniaturek`,
+      duration
+    );
+
+    return { success: true, filesProcessed, thumbnailsGenerated, duration };
+  } catch (error) {
+    logger.error(`Error rebuilding folder ${folderPath}:`, error);
+    return {
+      success: false,
+      filesProcessed,
+      thumbnailsGenerated,
       duration: Date.now() - startTime,
     };
   }

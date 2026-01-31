@@ -91,6 +91,37 @@ export interface CacheHistoryEntry {
   affectedPaths?: string[];
 }
 
+// Konfiguracja powiadomień email
+export interface EmailNotificationConfig {
+  enabled: boolean;
+  email: string; // Pusty = użyj ADMIN_EMAIL
+  notifyOnRebuild: boolean;
+  notifyOnError: boolean;
+}
+
+// Informacje o ostatnio przebudowanym folderze
+export interface LastRebuiltFolder {
+  path: string;
+  timestamp: string;
+  filesProcessed: number;
+  thumbnailsGenerated: number;
+}
+
+// Konfiguracja czyszczenia historii
+export interface HistoryCleanupConfig {
+  autoCleanupEnabled: boolean;
+  retentionHours: number; // Domyślnie 24
+}
+
+// Rekord hasha folderu do weryfikacji
+export interface FolderHashRecord {
+  path: string;
+  currentHash: string;
+  previousHash: string | null;
+  timestamp: string;
+  fileCount: number;
+}
+
 export interface CacheStorageData {
   schedulerConfig: SchedulerConfig;
   thumbnailConfig: ThumbnailConfig;
@@ -100,4 +131,9 @@ export interface CacheStorageData {
   lastSchedulerRun: string | null;
   lastScanChanges: number;
   lastScanDuration: number | null;
+  // Nowe pola
+  emailNotificationConfig?: EmailNotificationConfig;
+  lastRebuiltFolder?: LastRebuiltFolder;
+  historyCleanupConfig?: HistoryCleanupConfig;
+  folderHashRecords?: FolderHashRecord[];
 }

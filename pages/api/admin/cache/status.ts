@@ -3,7 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { isAdminLoggedIn } from '@/src/utils/storage';
 import { getAdminEmailFromCookie } from '@/src/utils/auth';
-import { getCacheStatus, getCacheData } from '@/src/utils/cacheStorage';
+import { getCacheStatus, getCacheData, DEFAULT_EMAIL_NOTIFICATION_CONFIG } from '@/src/utils/cacheStorage';
 import {
   isScanRunning,
   getSchedulerStatus,
@@ -45,6 +45,7 @@ export default async function handler(
       config: {
         scheduler: data.schedulerConfig,
         thumbnails: data.thumbnailConfig,
+        email: data.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG,
       },
       stats: {
         thumbnailsBySize: thumbnailStats.bySize,
