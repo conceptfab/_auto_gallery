@@ -1,5 +1,6 @@
 import { ImageFile } from '@/src/types/gallery';
 import { ThumbnailConfig } from '@/src/types/cache';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
 
 // Konfiguracja cache (będzie pobierana z API)
 let thumbnailCacheEnabled = false;
@@ -35,7 +36,7 @@ export async function initThumbnailCache(): Promise<void> {
 function getThumbnailPath(
   originalPath: string,
   sizeName: string,
-  format: string,
+  format: string
 ): string {
   const pathParts = originalPath.split('/');
   const filename = pathParts.pop() || 'image';
@@ -73,7 +74,7 @@ function extractPathFromUrl(url: string): string {
  */
 export function getOptimizedImageUrl(
   image: ImageFile,
-  size: 'thumb' | 'medium' | 'large' | 'full' = 'full',
+  size: 'thumb' | 'medium' | 'large' | 'full' = 'full'
 ): string {
   // Jeśli chcemy pełny rozmiar, zawsze użyj proxy
   if (size === 'full') {
@@ -86,19 +87,17 @@ export function getOptimizedImageUrl(
     const relativePath = getThumbnailPath(
       imagePath,
       size,
-      thumbnailConfig.format,
+      thumbnailConfig.format
     );
 
     if (thumbnailConfig.storage === 'local') {
       return `/api/thumbnails/${relativePath}`;
     } else {
-      // Remote storage - zakładamy GALLERY_BASE_URL
-      const baseUrl =
-        typeof window !== 'undefined'
-          ? (window as Window & { ENV_GALLERY_BASE_URL?: string })
-              .ENV_GALLERY_BASE_URL || ''
-          : '';
-      return `${baseUrl}thumbnails/${relativePath}`;
+      // Remote storage – jeden base z constants (NEXT_PUBLIC_ na kliencie)
+      const base = GALLERY_BASE_URL.endsWith('/')
+        ? GALLERY_BASE_URL
+        : GALLERY_BASE_URL + '/';
+      return `${base}thumbnails/${relativePath}`;
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "b 0.205 bughunter",
+  "version": "b 0.206 bughunter",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

@@ -1,5 +1,9 @@
 import { Resend } from 'resend';
-import { ADMIN_EMAIL, EMAIL_FROM, ADMIN_PANEL_URL } from '@/src/config/constants';
+import {
+  ADMIN_EMAIL,
+  EMAIL_FROM,
+  ADMIN_PANEL_URL,
+} from '@/src/config/constants';
 import { logger } from '@/src/utils/logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -10,20 +14,22 @@ const testConnection = async () => {
     logger.debug('Sprawdzanie konfiguracji Resend', {
       hasKey: !!process.env.RESEND_API_KEY,
       keyLength: process.env.RESEND_API_KEY?.length || 0,
-      startsWithRe: process.env.RESEND_API_KEY?.startsWith('re_')
+      startsWithRe: process.env.RESEND_API_KEY?.startsWith('re_'),
     });
-    
+
     if (!process.env.RESEND_API_KEY) {
       logger.error('Brak klucza API Resend w zmiennych środowiskowych');
       logger.info('Dodaj RESEND_API_KEY do zmiennych środowiskowych');
       return;
     }
-    
+
     if (!process.env.RESEND_API_KEY.startsWith('re_')) {
-      logger.error('Nieprawidłowy format klucza API Resend (powinien zaczynać się od "re_")');
+      logger.error(
+        'Nieprawidłowy format klucza API Resend (powinien zaczynać się od "re_")'
+      );
       return;
     }
-    
+
     logger.info('Resend API jest skonfigurowany');
   } catch (error) {
     logger.error('Błąd konfiguracji Resend', error);
@@ -33,9 +39,12 @@ const testConnection = async () => {
 // Uruchom test asynchronicznie
 testConnection();
 
-export async function sendAdminNotification(email: string, ip: string): Promise<void> {
+export async function sendAdminNotification(
+  email: string,
+  ip: string
+): Promise<void> {
   logger.emailEvent('sending admin notification', ADMIN_EMAIL);
-  
+
   try {
     const result = await resend.emails.send({
       from: EMAIL_FROM,
@@ -54,17 +63,24 @@ export async function sendAdminNotification(email: string, ip: string): Promise<
         </a>
       `,
     });
-    
-    logger.emailEvent('admin notification sent successfully', ADMIN_EMAIL, result.data?.id);
+
+    logger.emailEvent(
+      'admin notification sent successfully',
+      ADMIN_EMAIL,
+      result.data?.id
+    );
   } catch (error) {
     logger.error('Failed to send admin notification', error);
     throw error;
   }
 }
 
-export async function sendLoginCode(email: string, code: string): Promise<void> {
+export async function sendLoginCode(
+  email: string,
+  code: string
+): Promise<void> {
   logger.emailEvent('sending login code', email);
-  
+
   try {
     const result = await resend.emails.send({
       from: EMAIL_FROM,
@@ -88,7 +104,7 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
         </p>
       `,
     });
-    
+
     logger.emailEvent('login code sent successfully', email, result.data?.id);
   } catch (error) {
     logger.error('Failed to send login code to', email, error);
@@ -96,7 +112,10 @@ export async function sendLoginCode(email: string, code: string): Promise<void> 
   }
 }
 
-export async function sendAdminLoginCode(email: string, code: string): Promise<void> {
+export async function sendAdminLoginCode(
+  email: string,
+  code: string
+): Promise<void> {
   logger.emailEvent('sending admin login code', email);
 
   try {
@@ -121,7 +140,11 @@ export async function sendAdminLoginCode(email: string, code: string): Promise<v
       `,
     });
 
-    logger.emailEvent('admin login code sent successfully', email, result.data?.id);
+    logger.emailEvent(
+      'admin login code sent successfully',
+      email,
+      result.data?.id
+    );
   } catch (error) {
     logger.error('Failed to send admin login code to', email, error);
     throw error;
@@ -163,22 +186,32 @@ export async function sendRebuildNotification(
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Plików przetworzonych:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.filesProcessed}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${
+              data.filesProcessed
+            }</td>
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Miniaturek wygenerowanych:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.thumbnailsGenerated}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${
+              data.thumbnailsGenerated
+            }</td>
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Błędów:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.failed}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${
+              data.failed
+            }</td>
           </tr>
-          ${data.error ? `
+          ${
+            data.error
+              ? `
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Błąd:</strong></td>
             <td style="padding: 8px 12px; border: 1px solid #ddd; color: red;">${data.error}</td>
           </tr>
-          ` : ''}
+          `
+              : ''
+          }
         </table>
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
         <p style="margin-top: 20px;">
@@ -190,7 +223,11 @@ export async function sendRebuildNotification(
       `,
     });
 
-    logger.emailEvent('rebuild notification sent successfully', targetEmail, result.data?.id);
+    logger.emailEvent(
+      'rebuild notification sent successfully',
+      targetEmail,
+      result.data?.id
+    );
   } catch (error) {
     logger.error('Failed to send rebuild notification', error);
     // Nie rzucaj błędu - powiadomienie nie powinno blokować rebuild
@@ -198,53 +235,105 @@ export async function sendRebuildNotification(
 }
 
 // Dane do zgłoszenia błędu
+export interface BugReportAttachment {
+  filename: string;
+  content: Buffer;
+}
+
 export interface BugReportData {
   subject: string;
   message: string;
   userEmail: string;
   page: string;
   userAgent: string;
+  /** Aktualna wersja aplikacji – trafia do tytułu maila */
+  appVersion?: string;
+  attachments?: BugReportAttachment[];
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 export async function sendBugReport(data: BugReportData): Promise<void> {
   logger.emailEvent('sending bug report', ADMIN_EMAIL);
 
+  const versionLabel = data.appVersion?.trim()
+    ? ` [ver: ${data.appVersion}]`
+    : '';
+  const subject = `[BUG]${versionLabel} ${data.subject}`;
+
+  const attachments = (data.attachments ?? []).map((a) => ({
+    filename: a.filename,
+    content: a.content,
+  }));
+
   try {
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: ADMIN_EMAIL,
-      subject: `[BUG] ${data.subject}`,
+      subject,
+      attachments: attachments.length > 0 ? attachments : undefined,
       html: `
         <h2 style="color: #dc2626;">Zgłoszenie błędu</h2>
         <table style="border-collapse: collapse; margin: 20px 0; width: 100%; max-width: 500px;">
           <tr>
-            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9; width: 120px;"><strong>Temat:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.subject}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9; width: 120px;"><strong>Wersja:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(
+              data.appVersion || '—'
+            )}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Temat:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(
+              data.subject
+            )}</td>
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Użytkownik:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.userEmail}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(
+              data.userEmail
+            )}</td>
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Strona:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.page}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(
+              data.page
+            )}</td>
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Data:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${new Date().toLocaleString('pl-PL')}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${new Date().toLocaleString(
+              'pl-PL'
+            )}</td>
           </tr>
         </table>
         <div style="margin: 20px 0; padding: 15px; background: #f3f4f6; border-radius: 6px;">
           <strong>Opis problemu:</strong>
-          <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${data.message}</p>
+          <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${escapeHtml(
+            data.message
+          )}</p>
         </div>
+        ${
+          attachments.length > 0
+            ? `<p style="font-size: 12px; color: #6b7280;">Załączniki: ${attachments.length}</p>`
+            : ''
+        }
         <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
-          User-Agent: ${data.userAgent}
+          User-Agent: ${escapeHtml(data.userAgent)}
         </p>
       `,
     });
 
-    logger.emailEvent('bug report sent successfully', ADMIN_EMAIL, result.data?.id);
+    logger.emailEvent(
+      'bug report sent successfully',
+      ADMIN_EMAIL,
+      result.data?.id
+    );
   } catch (error) {
     logger.error('Failed to send bug report', error);
     throw error;

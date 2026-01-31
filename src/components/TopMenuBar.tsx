@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import { logger } from '../utils/logger';
 import { useNotification } from './GlobalNotification';
+
+const BUG_MAX_ATTACHMENTS = 5;
+const BUG_MAX_SIZE_BYTES = 1024 * 1024; // 1 MB
 
 interface TopMenuBarProps {
   clientName?: string;
@@ -34,7 +37,9 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
   const [cacheStatus, setCacheStatus] = useState<CacheStatusInfo | null>(null);
   const [showBugForm, setShowBugForm] = useState(false);
   const [bugReport, setBugReport] = useState({ subject: '', message: '' });
+  const [bugAttachments, setBugAttachments] = useState<File[]>([]);
   const [sendingBug, setSendingBug] = useState(false);
+  const bugFileInputRef = useRef<HTMLInputElement>(null);
   const { showError, showSuccess, showInfo: _showInfo } = useNotification();
 
   // Hide on login pages
@@ -102,6 +107,45 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
     return null;
   }
 
+  const addBugAttachments = (files: FileList | null) => {
+    if (!files?.length) return;
+    const next = [...bugAttachments];
+    for (
+      let i = 0;
+      i < files.length && next.length < BUG_MAX_ATTACHMENTS;
+      i++
+    ) {
+      const f = files[i];
+      if (f.size > BUG_MAX_SIZE_BYTES) {
+        showError(`Plik "${f.name}" przekracza 1 MB`, 'Błąd');
+        continue;
+      }
+      next.push(f);
+    }
+    if (next.length > BUG_MAX_ATTACHMENTS) {
+      showError(`Maksymalnie ${BUG_MAX_ATTACHMENTS} załączników`, 'Błąd');
+      next.splice(BUG_MAX_ATTACHMENTS);
+    }
+    setBugAttachments(next);
+    if (bugFileInputRef.current) bugFileInputRef.current.value = '';
+  };
+
+  const removeBugAttachment = (index: number) => {
+    setBugAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => {
+        const s = (r.result as string) ?? '';
+        const base64 = s.includes(',') ? s.split(',')[1] : s;
+        resolve(base64 ?? '');
+      };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+
   const handleSendBugReport = async () => {
     if (!bugReport.subject.trim() || !bugReport.message.trim()) {
       showError('Wypełnij temat i opis', 'Błąd');
@@ -109,6 +153,16 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
     }
     setSendingBug(true);
     try {
+      const attachments =
+        bugAttachments.length > 0
+          ? await Promise.all(
+              bugAttachments.map(async (f) => ({
+                filename: f.name,
+                content: await fileToBase64(f),
+              }))
+            )
+          : undefined;
+
       const response = await fetch('/api/bug-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,14 +171,22 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
           message: bugReport.message,
           userEmail: authStatus?.email || 'anonymous',
           page: router.pathname,
+          version: versionInfo?.message ?? '',
+          attachments,
         }),
       });
+
+      const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.ok) {
         showSuccess('Zgłoszenie wysłane');
         setShowBugForm(false);
         setBugReport({ subject: '', message: '' });
+        setBugAttachments([]);
       } else {
-        showError('Błąd wysyłania', 'Błąd');
+        showError(
+          typeof data?.error === 'string' ? data.error : 'Błąd wysyłania',
+          'Błąd'
+        );
       }
     } catch (error) {
       logger.error('Error sending bug report', error);
@@ -403,12 +465,101 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
                   padding: '10px 12px',
                   border: '1px solid #d1d5db',
                   borderRadius: '6px',
-                  marginBottom: '16px',
+                  marginBottom: '12px',
                   fontSize: '14px',
                   resize: 'vertical',
                   boxSizing: 'border-box',
                 }}
               />
+              {/* Załączniki: max 5 szt., 1 MB każdy */}
+              <div style={{ marginBottom: '16px' }}>
+                <input
+                  ref={bugFileInputRef}
+                  type="file"
+                  multiple
+                  accept="*/*"
+                  onChange={(e) => {
+                    addBugAttachments(e.target.files);
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => bugFileInputRef.current?.click()}
+                  disabled={bugAttachments.length >= BUG_MAX_ATTACHMENTS}
+                  style={{
+                    padding: '6px 12px',
+                    border: '1px dashed #d1d5db',
+                    borderRadius: '6px',
+                    backgroundColor: '#f9fafb',
+                    cursor:
+                      bugAttachments.length >= BUG_MAX_ATTACHMENTS
+                        ? 'not-allowed'
+                        : 'pointer',
+                    fontSize: '13px',
+                    color: '#6b7280',
+                  }}
+                >
+                  <i
+                    className="las la-paperclip"
+                    style={{ marginRight: '6px' }}
+                  ></i>
+                  Dodaj załącznik ({bugAttachments.length}/{BUG_MAX_ATTACHMENTS}
+                  , max 1 MB)
+                </button>
+                {bugAttachments.length > 0 && (
+                  <ul
+                    style={{
+                      margin: '8px 0 0 0',
+                      padding: 0,
+                      listStyle: 'none',
+                      fontSize: '13px',
+                    }}
+                  >
+                    {bugAttachments.map((f, i) => (
+                      <li
+                        key={`${f.name}-${i}`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '4px 0',
+                          borderBottom: '1px solid #f3f4f6',
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: '#374151',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '220px',
+                          }}
+                          title={f.name}
+                        >
+                          {f.name} ({(f.size / 1024).toFixed(1)} KB)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeBugAttachment(i)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '2px 6px',
+                            color: '#6b7280',
+                            fontSize: '16px',
+                          }}
+                          title="Usuń"
+                        >
+                          <i className="las la-times"></i>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <div
                 style={{
                   display: 'flex',

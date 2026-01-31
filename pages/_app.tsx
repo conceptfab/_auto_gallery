@@ -21,7 +21,6 @@ interface GroupInfo {
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const [refreshKey] = useState(0);
   const [clientName, setClientName] = useState<string | undefined>(undefined);
   const [showLandscapeWarning, setShowLandscapeWarning] = useState(false);
 
@@ -119,7 +118,7 @@ export default function App({ Component, pageProps }: AppProps) {
         {router.pathname !== '/folders' && (
           <DynamicTopMenuBar clientName={clientName} />
         )}
-        <Component {...pageProps} refreshKey={refreshKey} />
+        <Component {...pageProps} refreshKey={0} />
       </SettingsProvider>
     </NotificationProvider>
   );

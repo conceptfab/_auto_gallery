@@ -1,6 +1,9 @@
 // Centralized configuration constants
+// Na serwerze: GALLERY_BASE_URL lub NEXT_PUBLIC_*; w bundlu klienta tylko NEXT_PUBLIC_* jest dostępne
 export const GALLERY_BASE_URL =
-  process.env.GALLERY_BASE_URL || 'https://conceptfab.com/__metro/gallery/';
+  process.env.NEXT_PUBLIC_GALLERY_BASE_URL ||
+  process.env.GALLERY_BASE_URL ||
+  'https://conceptfab.com/__metro/gallery/';
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'michal@conceptfab.com';
 export const EMAIL_FROM =
   process.env.EMAIL_FROM || 'Content Browser <no-reply@conceptfab.com>';
