@@ -4,7 +4,6 @@ import { logger } from '../utils/logger';
 import { useNotification } from './GlobalNotification';
 
 interface TopMenuBarProps {
-  onRefresh?: () => void;
   clientName?: string;
 }
 
@@ -27,11 +26,14 @@ interface CacheStatusInfo {
   filesCount: number;
 }
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [cacheStatus, setCacheStatus] = useState<CacheStatusInfo | null>(null);
+  const [showBugForm, setShowBugForm] = useState(false);
+  const [bugReport, setBugReport] = useState({ subject: '', message: '' });
+  const [sendingBug, setSendingBug] = useState(false);
   const { showError, showSuccess, showInfo: _showInfo } = useNotification();
 
   // Hide on login pages
@@ -98,6 +100,38 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   if (isLoginPage) {
     return null;
   }
+
+  const handleSendBugReport = async () => {
+    if (!bugReport.subject.trim() || !bugReport.message.trim()) {
+      showError('Wypełnij temat i opis', 'Błąd');
+      return;
+    }
+    setSendingBug(true);
+    try {
+      const response = await fetch('/api/bug-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: bugReport.subject,
+          message: bugReport.message,
+          userEmail: authStatus?.email || 'anonymous',
+          page: router.pathname,
+        }),
+      });
+      if (response.ok) {
+        showSuccess('Zgłoszenie wysłane');
+        setShowBugForm(false);
+        setBugReport({ subject: '', message: '' });
+      } else {
+        showError('Błąd wysyłania', 'Błąd');
+      }
+    } catch (error) {
+      logger.error('Error sending bug report', error);
+      showError('Błąd wysyłania', 'Błąd');
+    } finally {
+      setSendingBug(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -183,26 +217,25 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
               ></i>
             </div>
           )}
-          {onRefresh && (
-            <button
-              onClick={onRefresh}
-              title="Odśwież"
-              style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: '6px',
-                cursor: 'pointer',
-                fontSize: '27px',
-                width: '48px',
-                height: '48px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <i className="las la-sync" style={{ color: '#5c5c5c' }}></i>
-            </button>
-          )}
+          {/* Bug report button */}
+          <button
+            onClick={() => setShowBugForm(true)}
+            title="Zgłoś błąd"
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              padding: '6px',
+              cursor: 'pointer',
+              fontSize: '22px',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <i className="las la-bug" style={{ color: '#6b7280' }}></i>
+          </button>
           {authStatus?.isLoggedIn && (
             <>
               {authStatus.isAdmin && router.pathname !== '/admin' && (
@@ -279,6 +312,112 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
           )}
         </div>
       </div>
+
+      {/* Bug report modal */}
+      {showBugForm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+          onClick={() => setShowBugForm(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              padding: '24px',
+              width: '100%',
+              maxWidth: '400px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#111827' }}>
+                <i className="las la-bug" style={{ marginRight: '8px', color: '#6b7280' }}></i>
+                Zgłoś błąd
+              </h3>
+              <button
+                onClick={() => setShowBugForm(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#6b7280' }}
+              >
+                <i className="las la-times"></i>
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="Temat"
+              value={bugReport.subject}
+              onChange={(e) => setBugReport({ ...bugReport, subject: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                marginBottom: '12px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+              }}
+            />
+            <textarea
+              placeholder="Opisz problem..."
+              value={bugReport.message}
+              onChange={(e) => setBugReport({ ...bugReport, message: e.target.value })}
+              rows={4}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                marginBottom: '16px',
+                fontSize: '14px',
+                resize: 'vertical',
+                boxSizing: 'border-box',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowBugForm(false)}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  backgroundColor: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={handleSendBugReport}
+                disabled={sendingBug}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  backgroundColor: '#7c3aed',
+                  color: 'white',
+                  cursor: sendingBug ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  opacity: sendingBug ? 0.7 : 1,
+                }}
+              >
+                {sendingBug ? 'Wysyłanie...' : 'Wyślij'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -196,3 +196,57 @@ export async function sendRebuildNotification(
     // Nie rzucaj błędu - powiadomienie nie powinno blokować rebuild
   }
 }
+
+// Dane do zgłoszenia błędu
+export interface BugReportData {
+  subject: string;
+  message: string;
+  userEmail: string;
+  page: string;
+  userAgent: string;
+}
+
+export async function sendBugReport(data: BugReportData): Promise<void> {
+  logger.emailEvent('sending bug report', ADMIN_EMAIL);
+
+  try {
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: ADMIN_EMAIL,
+      subject: `[BUG] ${data.subject}`,
+      html: `
+        <h2 style="color: #dc2626;">Zgłoszenie błędu</h2>
+        <table style="border-collapse: collapse; margin: 20px 0; width: 100%; max-width: 500px;">
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9; width: 120px;"><strong>Temat:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.subject}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Użytkownik:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.userEmail}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Strona:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.page}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Data:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${new Date().toLocaleString('pl-PL')}</td>
+          </tr>
+        </table>
+        <div style="margin: 20px 0; padding: 15px; background: #f3f4f6; border-radius: 6px;">
+          <strong>Opis problemu:</strong>
+          <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${data.message}</p>
+        </div>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+          User-Agent: ${data.userAgent}
+        </p>
+      `,
+    });
+
+    logger.emailEvent('bug report sent successfully', ADMIN_EMAIL, result.data?.id);
+  } catch (error) {
+    logger.error('Failed to send bug report', error);
+    throw error;
+  }
+}

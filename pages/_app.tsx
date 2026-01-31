@@ -21,19 +21,19 @@ interface GroupInfo {
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey] = useState(0);
   const [clientName, setClientName] = useState<string | undefined>(undefined);
   const [showLandscapeWarning, setShowLandscapeWarning] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
 
   // Funkcja do blokowania orientacji (wymaga fullscreen)
   const lockPortrait = useCallback(async () => {
     try {
       if (screen.orientation && 'lock' in screen.orientation) {
-        const lock = (screen.orientation as { lock?: (orientation: string) => Promise<void> }).lock;
+        const lock = (
+          screen.orientation as {
+            lock?: (orientation: string) => Promise<void>;
+          }
+        ).lock;
         if (typeof lock === 'function') {
           await lock('portrait');
         }
@@ -97,7 +97,7 @@ export default function App({ Component, pageProps }: AppProps) {
           }
         })
         .catch((err) =>
-          console.error('Error fetching folders client name:', err),
+          console.error('Error fetching folders client name:', err)
         );
     } else {
       setClientName(undefined);
@@ -117,10 +117,7 @@ export default function App({ Component, pageProps }: AppProps) {
           </div>
         )}
         {router.pathname !== '/folders' && (
-          <DynamicTopMenuBar
-            onRefresh={handleRefresh}
-            clientName={clientName}
-          />
+          <DynamicTopMenuBar clientName={clientName} />
         )}
         <Component {...pageProps} refreshKey={refreshKey} />
       </SettingsProvider>
