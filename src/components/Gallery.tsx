@@ -4,7 +4,7 @@ import ImageGrid from './ImageGrid';
 import ImageMetadata from './ImageMetadata';
 import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
-import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
+import { getOptimizedImageUrl, initThumbnailCache } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
 import decorConverter from '@/src/utils/decorConverter';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
@@ -224,6 +224,10 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
     // Nasłuchuj zmian (np. podłączenie myszy do tabletu)
     const mediaQuery = window.matchMedia('(pointer: coarse)');
     mediaQuery.addEventListener('change', checkTouchDevice);
+
+    // Inicjalizacja cache miniaturek
+    initThumbnailCache();
+
     return () => mediaQuery.removeEventListener('change', checkTouchDevice);
   }, []);
 
@@ -572,7 +576,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                   top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- dynamic gallery URLs */}
+                { }
                 <img
                   src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
                   alt={modalHoveredPreview.image.name}
@@ -582,7 +586,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
                 </span>
               </div>
             )}
-            {/* eslint-disable-next-line @next/next/no-img-element -- dynamic gallery URLs */}
+            { }
             <img
               src={getOptimizedImageUrl(selectedImage, 'full')}
               alt={selectedImage.name}

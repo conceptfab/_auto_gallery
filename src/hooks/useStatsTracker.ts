@@ -57,7 +57,7 @@ export function useStatsTracker(initialSessionId: string | null = null) {
         body: JSON.stringify({ sessionId }),
       }).catch((error) => {
         // Świadomie tylko logujemy do konsoli, bez przerywania UI
-        // eslint-disable-next-line no-console
+         
         console.error('Stats heartbeat failed:', error);
       });
     }, 60000);
@@ -87,7 +87,7 @@ export function useStatsTracker(initialSessionId: string | null = null) {
           }),
         });
       } catch (error) {
-        // eslint-disable-next-line no-console
+         
         console.error('trackView failed:', error);
       }
     },
@@ -112,7 +112,7 @@ export function useStatsTracker(initialSessionId: string | null = null) {
           }),
         });
       } catch (error) {
-        // eslint-disable-next-line no-console
+         
         console.error('trackDownload failed:', error);
       }
     },

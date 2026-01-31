@@ -1,6 +1,6 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "b 0.19 lintfix",
+  "version": "b 0.2",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -28,9 +28,11 @@
     "react-dom": "19.0.0",
     "resend": "^6.8.0",
     "sharp": "^0.33.5",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "xxhash-wasm": "^1.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
     "@types/node": "^20",
     "@types/react": "19.2.9",
     "@types/react-dom": "^19",

@@ -5,6 +5,7 @@ import FileManager from '../src/components/FileManager';
 import LoadingOverlay from '../src/components/LoadingOverlay';
 import { PendingRequestsSection } from '../src/components/admin/PendingRequestsSection';
 import { StatsOverview } from '../src/components/admin/StatsOverview';
+import { CacheMonitorSection } from '../src/components/admin/CacheMonitorSection';
 import { logger } from '../src/utils/logger';
 
 interface PendingEmail {
@@ -77,7 +78,7 @@ const AdminPanel: React.FC = () => {
 
   // Stan dla rozwiniętych sekcji
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['stats', 'whitelist', 'blacklist', 'groups', 'settings', 'files']),
+    new Set(['stats', 'whitelist', 'blacklist', 'groups', 'settings', 'cache', 'files']),
   );
 
   // Stan dla formularzy dodawania emaili
@@ -1122,6 +1123,22 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
           )}
+        </section>
+
+        {/* Cache i Miniaturki */}
+        <section className="admin-section">
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('cache')}
+          >
+            <span>Cache i Miniaturki</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('cache') ? '' : 'collapsed'
+              }`}
+            ></i>
+          </h2>
+          {expandedSections.has('cache') && <CacheMonitorSection />}
         </section>
 
         {/* Menedżer plików */}

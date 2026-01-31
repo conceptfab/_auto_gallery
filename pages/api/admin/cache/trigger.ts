@@ -1,0 +1,85 @@
+// pages/api/admin/cache/trigger.ts
+
+import { NextApiRequest, NextApiResponse } from 'next';
+import { isAdminLoggedIn } from '@/src/utils/storage';
+import { getAdminEmailFromCookie } from '@/src/utils/auth';
+import {
+  forceScan,
+  isScanRunning,
+  regenerateAllThumbnails,
+} from '@/src/services/schedulerService';
+import { clearAllThumbnails } from '@/src/services/thumbnailService';
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const adminEmail = getAdminEmailFromCookie(req);
+  if (!adminEmail || !(await isAdminLoggedIn(adminEmail))) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  const { action } = req.body as {
+    action?: 'scan' | 'regenerate' | 'clear';
+  };
+
+  if (isScanRunning() && action !== 'clear') {
+    return res.status(409).json({
+      error: 'Operacja już w toku',
+      inProgress: true,
+    });
+  }
+
+  try {
+    switch (action) {
+      case 'scan':
+      default: {
+        // Uruchom skan asynchronicznie dla szybkiej odpowiedzi
+        forceScan()
+          .then((result) => {
+            console.log('Scan completed:', result);
+          })
+          .catch((err) => {
+            console.error('Background scan error:', err);
+          });
+
+        return res.status(200).json({
+          success: true,
+          message: 'Skan uruchomiony',
+        });
+      }
+
+      case 'regenerate': {
+        // Regeneracja w tle
+        regenerateAllThumbnails()
+          .then((result) => {
+            console.log('Regeneration completed:', result);
+          })
+          .catch((err) => {
+            console.error('Background regeneration error:', err);
+          });
+
+        return res.status(200).json({
+          success: true,
+          message: 'Regeneracja miniaturek uruchomiona',
+        });
+      }
+
+      case 'clear': {
+        const deleted = await clearAllThumbnails();
+        return res.status(200).json({
+          success: true,
+          message: `Usunięto ${deleted} miniaturek`,
+          deleted,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error triggering action:', error);
+    return res.status(500).json({ error: 'Błąd wykonywania operacji' });
+  }
+}

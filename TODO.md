@@ -1,10 +1,63 @@
-chce w tym projkecie poprawic UX doswiadzenie uzytkownika. Od deliaktnych animacji UI po sposób ładowania plików w galerii. Oczekuje od ciebie propozycji.md  
- jak to zrobić. Aplikacja pracuje z plikami 4K więc może warto zrobić jakiś mechanizm weryfikacji czy w folderach galerii coś się zmieniło, jeśli nie to warto  
- by wykorzystać jakiś cache, buffor. Chce by pliki w galerii ładowały się miękko od lewego w górnym rzędzie, do prawego w dolnym rzędzie. Teraz jest to losowo.  
- Ale skoro mozna pobrac wczesniej ilość plików, ułożyć je w odpowiedniej kolejności, pobierać w tle, pobierać na początku te najważniejsze, to potem można to  
- fajnie, miękko wyświetlić w galerii.
+# TODO - Content Browser
 
+## WDROŻONE (2024-01-31)
 
+### System Hash Detection + Cache Miniaturek
 
+**Status: GOTOWE DO TESTOWANIA**
 
-Chce wprowadzić następująca funkcje do serwisu - co jakiś ustalony w panelu admina specjalny proces będzie sprawdzał za pomocą xxHash dla kazdego serwera czy zaszły zmiany w plikach/folderach -porównywał aktualny hash z historią to jest jedna funkcja. Druga to system cache/buforowania dla miniaturek. Inny proces przygotuje zestaw - wymaganych wielkosci miniaturek na dla serwisu. Serwis ma sprawdzac przy starcie czy jest zestaw miaturek i wczytywać z niego wszystkie wymagane pliki w odpowiedniej zooptymalizowanej wielkosc (będzie potrzebnych ich pewnie kilka), jesli z jakis powodów nie bedzie cache dostepny to wczyta oryginały. miejsce magazynowania ma być do wyboru, np: aktualny serwer hostujacy oryginały w dedykowanym folderze, albo dysk railway. W panelu admina musi byc specjalna zakładka umożliwiająca kontrolę całego procesu, jego monitorowanie, ustawianie częstotliwości sprawdzania zmian np w godzianch 9-17 co pół godziny, a 17-9 tylko raz albo wcale. Przeanalizuj kod i przygotuj dokument wdrozenie.md z precyzyjną instrukcją jak wprowadzić te zmiany. Jeśli masz jakieś sugestię to wal śmiało
+#### Co zostało utworzone:
+
+**Typy i konfiguracja:**
+- `src/types/cache.ts` - typy dla cache, schedulera, hashów
+- `src/utils/cacheStorage.ts` - storage dla konfiguracji cache
+- `data/cache-config.json` - domyślna konfiguracja
+
+**Serwisy:**
+- `src/services/hashService.ts` - xxHash do wykrywania zmian plików
+- `src/services/thumbnailService.ts` - generowanie miniaturek (Sharp)
+- `src/services/schedulerService.ts` - automatyczny scheduler
+
+**API Endpoints:**
+- `GET /api/admin/cache/status` - status cache, schedulera, miniaturek
+- `GET/POST /api/admin/cache/config` - konfiguracja schedulera i miniaturek
+- `POST /api/admin/cache/trigger` - ręczne uruchomienie skanu/regeneracji
+- `GET /api/admin/cache/history` - historia operacji
+- `GET /api/thumbnails/[...path]` - serwowanie miniaturek
+
+**UI Panel Admina:**
+- `src/components/admin/CacheMonitorSection.tsx` - pełny panel kontrolny
+- Nowa sekcja "Cache i Miniaturki" w panelu admina
+
+**Zmodyfikowane pliki:**
+- `pages/admin.tsx` - dodana sekcja cache
+- `src/utils/imageUtils.ts` - obsługa cache miniaturek
+- `src/components/Gallery.tsx` - inicjalizacja cache
+
+#### Funkcje w panelu admina:
+1. **Status** - podgląd schedulera, plików, miniaturek
+2. **Konfiguracja** - harmonogram 9-17/poza godzinami, format miniaturek, storage
+3. **Historia** - logi operacji z timestampami
+4. **Zmiany plików** - wykryte zmiany (dodane/zmodyfikowane/usunięte)
+
+#### Akcje:
+- Skanuj zmiany (ręcznie)
+- Regeneruj miniaturki
+- Wyczyść cache
+
+---
+
+## DO ZROBIENIA
+
+### Konfiguracja produkcyjna
+- [ ] Dodać zmienne środowiskowe dla cron (CRON_SECRET)
+- [ ] Skonfigurować Railway cron lub zewnętrzny cron service
+- [ ] Przetestować na produkcji
+
+### UX/Animacje (z pierwotnego TODO)
+- [ ] Animacje UI (miękkie ładowanie)
+- [ ] Sekwencyjne ładowanie obrazów (lewy-górny do prawy-dolny)
+- [ ] Progressive loading dla galerii
+
+### Inne
+- [ ] Naprawić konfigurację ESLint (migracja do v9)

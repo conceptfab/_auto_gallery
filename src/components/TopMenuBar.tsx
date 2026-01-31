@@ -21,10 +21,17 @@ interface VersionInfo {
   buildTime: string;
 }
 
+interface CacheStatusInfo {
+  enabled: boolean;
+  thumbnailsCount: number;
+  filesCount: number;
+}
+
 const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const [cacheStatus, setCacheStatus] = useState<CacheStatusInfo | null>(null);
   const { showError, showSuccess, showInfo: _showInfo } = useNotification();
 
   // Hide on login pages
@@ -57,9 +64,29 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
     }
   };
 
+  const checkCacheStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/cache/status');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setCacheStatus({
+            enabled: data.status.scheduler.enabled,
+            thumbnailsCount: data.status.thumbnails.totalGenerated || 0,
+            filesCount: data.status.hashChecker.totalFiles || 0,
+          });
+        }
+      }
+    } catch {
+      // Cache status niedostępny - nie loguj błędu
+      setCacheStatus({ enabled: false, thumbnailsCount: 0, filesCount: 0 });
+    }
+  };
+
   useEffect(() => {
     checkAuthStatus();
     loadVersionInfo();
+    checkCacheStatus();
   }, []);
 
   // Odśwież status autoryzacji przy zmianie strony
@@ -125,6 +152,36 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onRefresh, clientName }) => {
         </div>
 
         <div className="menu-right">
+          {/* Cache status indicator */}
+          {cacheStatus && (
+            <div
+              title={
+                cacheStatus.thumbnailsCount > 0
+                  ? `Cache aktywny: ${cacheStatus.thumbnailsCount} miniaturek, ${cacheStatus.filesCount} plików`
+                  : 'Cache nieaktywny - brak miniaturek'
+              }
+              style={{
+                padding: '6px',
+                fontSize: '20px',
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '6px',
+                backgroundColor:
+                  cacheStatus.thumbnailsCount > 0 ? 'transparent' : '#fee2e2',
+                marginRight: '4px',
+              }}
+            >
+              <i
+                className="las la-microchip"
+                style={{
+                  color: cacheStatus.thumbnailsCount > 0 ? '#059669' : '#dc2626',
+                }}
+              ></i>
+            </div>
+          )}
           {onRefresh && (
             <button
               onClick={onRefresh}

@@ -20,7 +20,7 @@ export async function downloadFile(
       try {
         await trackFn(url, filename, fileSize);
       } catch (trackError) {
-        // eslint-disable-next-line no-console
+         
         console.error('Błąd trackowania pobrania:', trackError);
       }
     }
@@ -36,7 +36,7 @@ export async function downloadFile(
 
     setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Błąd pobierania pliku:', error);
   }
 }

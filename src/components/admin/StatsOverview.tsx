@@ -74,7 +74,7 @@ export const StatsOverview: React.FC = () => {
           setData(null);
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
+         
         console.error('Error fetching stats:', error);
         setData(null);
       } finally {
@@ -104,7 +104,7 @@ export const StatsOverview: React.FC = () => {
           setUserDetails(null);
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
+         
         console.error('Error fetching user details:', error);
         setUserDetails(null);
       } finally {
