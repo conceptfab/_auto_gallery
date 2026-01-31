@@ -24,7 +24,7 @@ export default async function handler(
   }
 
   const { action } = req.body as {
-    action?: 'scan' | 'regenerate' | 'clear';
+    action?: 'scan' | 'regenerate' | 'clear' | 'build';
   };
 
   if (isScanRunning() && action !== 'clear') {
@@ -36,6 +36,28 @@ export default async function handler(
 
   try {
     switch (action) {
+      case 'build': {
+        // Pełne budowanie cache: skan + regeneracja miniaturek
+        (async () => {
+          try {
+            console.log('Build cache: starting scan...');
+            const scanResult = await forceScan();
+            console.log('Build cache: scan completed:', scanResult);
+
+            console.log('Build cache: starting thumbnail regeneration...');
+            const regenResult = await regenerateAllThumbnails();
+            console.log('Build cache: regeneration completed:', regenResult);
+          } catch (err) {
+            console.error('Build cache error:', err);
+          }
+        })();
+
+        return res.status(200).json({
+          success: true,
+          message: 'Budowanie cache uruchomione (skan + miniaturki)',
+        });
+      }
+
       case 'scan':
       default: {
         // Uruchom skan asynchronicznie dla szybkiej odpowiedzi

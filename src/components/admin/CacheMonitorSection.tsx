@@ -59,6 +59,30 @@ interface ChangeEntry {
   path: string;
 }
 
+interface FolderInfo {
+  path: string;
+  name: string;
+  fileCount: number;
+  imageCount: number;
+  subfolders: string[];
+  error?: string;
+}
+
+interface DiagnosticsData {
+  envCheck: {
+    FILE_LIST_URL: string;
+    FILE_PROXY_SECRET: string;
+    GALLERY_BASE_URL: string;
+  };
+  folders: FolderInfo[];
+  summary: {
+    totalFolders: number;
+    totalImages: number;
+    foldersWithImages: number;
+  };
+  errors: string[];
+}
+
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -89,9 +113,11 @@ export const CacheMonitorSection: React.FC = () => {
   const [thumbnailConfig, setThumbnailConfig] = useState<ThumbnailConfig | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [changes, setChanges] = useState<ChangeEntry[]>([]);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticsData | null>(null);
+  const [diagLoading, setDiagLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'status' | 'config' | 'history' | 'changes'>('status');
+  const [activeTab, setActiveTab] = useState<'status' | 'folders' | 'config' | 'history' | 'changes'>('status');
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -120,6 +146,21 @@ export const CacheMonitorSection: React.FC = () => {
     }
   }, []);
 
+  const fetchDiagnostics = useCallback(async () => {
+    setDiagLoading(true);
+    try {
+      const response = await fetch('/api/admin/cache/diagnostics');
+      const data = await response.json();
+      if (data.success) {
+        setDiagnostics(data);
+      }
+    } catch (error) {
+      logger.error('Error fetching diagnostics', error);
+    } finally {
+      setDiagLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     Promise.all([fetchStatus(), fetchHistory()]).finally(() =>
       setLoading(false),
@@ -133,7 +174,7 @@ export const CacheMonitorSection: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchStatus, fetchHistory]);
 
-  const handleTrigger = async (action: 'scan' | 'regenerate' | 'clear') => {
+  const handleTrigger = async (action: 'scan' | 'regenerate' | 'clear' | 'build') => {
     setTriggering(action);
     try {
       const response = await fetch('/api/admin/cache/trigger', {
@@ -195,10 +236,15 @@ export const CacheMonitorSection: React.FC = () => {
     <div style={{ display: 'grid', gap: '20px' }}>
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '5px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
-        {(['status', 'config', 'history', 'changes'] as const).map((tab) => (
+        {(['status', 'folders', 'config', 'history', 'changes'] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveTab(tab);
+              if (tab === 'folders' && !diagnostics) {
+                fetchDiagnostics();
+              }
+            }}
             className="admin-btn"
             style={{
               backgroundColor: activeTab === tab ? '#7c3aed' : '#f3f4f6',
@@ -209,6 +255,7 @@ export const CacheMonitorSection: React.FC = () => {
             }}
           >
             {tab === 'status' && 'Status'}
+            {tab === 'folders' && 'Foldery'}
             {tab === 'config' && 'Konfiguracja'}
             {tab === 'history' && 'Historia'}
             {tab === 'changes' && 'Zmiany plików'}
@@ -219,6 +266,52 @@ export const CacheMonitorSection: React.FC = () => {
       {/* Status Tab */}
       {activeTab === 'status' && (
         <>
+          {/* Alert - brak cache */}
+          {status && status.thumbnails.totalGenerated === 0 && (
+            <div
+              style={{
+                padding: '16px 20px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '15px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <i className="las la-exclamation-triangle" style={{ fontSize: '24px', color: '#dc2626' }}></i>
+                <div>
+                  <div style={{ fontWeight: 600, color: '#991b1b', marginBottom: '2px' }}>
+                    Cache miniaturek jest pusty!
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#b91c1c' }}>
+                    Aplikacja ładuje oryginalne pliki. Zbuduj cache żeby przyspieszyć ładowanie.
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => handleTrigger('build')}
+                disabled={triggering !== null || status?.scanInProgress}
+                style={{
+                  padding: '10px 20px',
+                  background: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  cursor: triggering ? 'not-allowed' : 'pointer',
+                  opacity: triggering ? 0.7 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {triggering === 'build' ? 'Budowanie...' : 'Zbuduj cache teraz'}
+              </button>
+            </div>
+          )}
+
           {/* Status cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
             {/* Scheduler */}
@@ -289,6 +382,26 @@ export const CacheMonitorSection: React.FC = () => {
             <h3 style={{ margin: '0 0 15px 0', fontSize: '14px' }}>Akcje</h3>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
+                onClick={() => handleTrigger('build')}
+                disabled={triggering !== null || status?.scanInProgress}
+                style={{
+                  padding: '8px 16px',
+                  background: status?.thumbnails.totalGenerated === 0 ? '#dc2626' : '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  cursor: triggering ? 'not-allowed' : 'pointer',
+                  opacity: triggering ? 0.7 : 1,
+                }}
+              >
+                {triggering === 'build'
+                  ? 'Budowanie...'
+                  : status?.scanInProgress
+                    ? 'W toku...'
+                    : 'Zbuduj cache'}
+              </button>
+              <button
                 onClick={() => handleTrigger('scan')}
                 disabled={triggering !== null || status?.scanInProgress}
                 className="admin-btn admin-btn--purple"
@@ -330,6 +443,159 @@ export const CacheMonitorSection: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Folders Tab */}
+      {activeTab === 'folders' && (
+        <div className="admin-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3 style={{ margin: 0 }}>Struktura folderów do cache&apos;owania</h3>
+            <button
+              onClick={fetchDiagnostics}
+              disabled={diagLoading}
+              className="admin-btn"
+            >
+              {diagLoading ? 'Skanowanie...' : 'Skanuj foldery'}
+            </button>
+          </div>
+
+          {diagLoading && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+              <i className="las la-spinner la-spin" style={{ fontSize: '32px' }}></i>
+              <div style={{ marginTop: '10px' }}>Skanowanie struktury folderów...</div>
+            </div>
+          )}
+
+          {!diagLoading && diagnostics && (
+            <>
+              {/* Env check */}
+              <div style={{
+                padding: '12px',
+                background: '#f9fafb',
+                borderRadius: '6px',
+                marginBottom: '15px',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <div style={{ fontWeight: 600, marginBottom: '8px' }}>Konfiguracja:</div>
+                <div style={{ color: diagnostics.envCheck.FILE_LIST_URL === 'SET' ? '#059669' : '#dc2626' }}>
+                  FILE_LIST_URL: {diagnostics.envCheck.FILE_LIST_URL}
+                </div>
+                <div style={{ color: diagnostics.envCheck.FILE_PROXY_SECRET === 'SET' ? '#059669' : '#dc2626' }}>
+                  FILE_PROXY_SECRET: {diagnostics.envCheck.FILE_PROXY_SECRET}
+                </div>
+                <div>GALLERY_BASE_URL: {diagnostics.envCheck.GALLERY_BASE_URL}</div>
+              </div>
+
+              {/* Summary */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '10px',
+                marginBottom: '15px'
+              }}>
+                <div style={{ padding: '15px', background: '#dbeafe', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#1e40af' }}>
+                    {diagnostics.summary.totalFolders}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#1e40af' }}>Folderów</div>
+                </div>
+                <div style={{ padding: '15px', background: '#d1fae5', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#065f46' }}>
+                    {diagnostics.summary.totalImages}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#065f46' }}>Obrazów do cache</div>
+                </div>
+                <div style={{ padding: '15px', background: '#fef3c7', borderRadius: '6px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#92400e' }}>
+                    {diagnostics.summary.foldersWithImages}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#92400e' }}>Folderów z obrazami</div>
+                </div>
+              </div>
+
+              {/* Errors */}
+              {diagnostics.errors.length > 0 && (
+                <div style={{
+                  padding: '12px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '6px',
+                  marginBottom: '15px'
+                }}>
+                  <div style={{ fontWeight: 600, color: '#991b1b', marginBottom: '8px' }}>
+                    Błędy ({diagnostics.errors.length}):
+                  </div>
+                  {diagnostics.errors.slice(0, 5).map((err, i) => (
+                    <div key={i} style={{ fontSize: '12px', color: '#b91c1c', marginBottom: '4px' }}>
+                      {err}
+                    </div>
+                  ))}
+                  {diagnostics.errors.length > 5 && (
+                    <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                      ...i {diagnostics.errors.length - 5} więcej
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Folder list */}
+              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Folder</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Obrazy</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Pliki</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Podfoldery</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {diagnostics.folders
+                      .filter(f => f.imageCount > 0 || f.error)
+                      .map((folder, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '10px' }}>
+                          <div style={{
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            color: folder.error ? '#dc2626' : '#374151'
+                          }}>
+                            {folder.path}
+                          </div>
+                          {folder.error && (
+                            <div style={{ fontSize: '11px', color: '#dc2626' }}>{folder.error}</div>
+                          )}
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          <span style={{
+                            fontWeight: folder.imageCount > 0 ? 600 : 400,
+                            color: folder.imageCount > 0 ? '#059669' : '#9ca3af'
+                          }}>
+                            {folder.imageCount}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
+                          {folder.fileCount}
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
+                          {folder.subfolders.length}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {!diagLoading && !diagnostics && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+              <i className="las la-folder-open" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
+              <div>Kliknij &quot;Skanuj foldery&quot; aby zobaczyć strukturę</div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Config Tab */}

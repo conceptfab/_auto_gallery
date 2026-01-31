@@ -4,6 +4,7 @@ import { FileHash, HashChangeEvent } from '@/src/types/cache';
 import { logger } from '@/src/utils/logger';
 import axios from 'axios';
 import xxhashInit from 'xxhash-wasm';
+import { generateListUrl } from '@/src/utils/fileToken';
 
 // Lazy-loaded xxhash API
 type XXHashAPI = Awaited<ReturnType<typeof xxhashInit>>;
@@ -104,12 +105,22 @@ export function detectChanges(
   return changes;
 }
 
+interface RemoteFolder {
+  name: string;
+  path: string;
+}
+
 interface RemoteFile {
   name: string;
   path: string;
-  type: 'file' | 'folder';
-  size?: number;
-  modified?: string;
+  size: number;
+  modified: string;
+}
+
+interface PHPListResponse {
+  folders: RemoteFolder[];
+  files: RemoteFile[];
+  error?: string;
 }
 
 /**
@@ -119,17 +130,10 @@ export async function scanRemoteFolderForHashes(
   basePath: string = '',
 ): Promise<FileHash[]> {
   const hashes: FileHash[] = [];
-  const fileListUrl = process.env.FILE_LIST_URL;
-  const secret = process.env.FILE_PROXY_SECRET;
-
-  if (!fileListUrl || !secret) {
-    logger.warn('FILE_LIST_URL or FILE_PROXY_SECRET not configured');
-    return hashes;
-  }
 
   try {
-    // Rekurencyjne skanowanie
-    await scanFolderRecursive(basePath, hashes, fileListUrl, secret);
+    // Rekurencyjne skanowanie z tokenami
+    await scanFolderRecursive(basePath, hashes);
     logger.info(`Scanned ${hashes.length} files from ${basePath || 'root'}`);
     return hashes;
   } catch (error) {
@@ -141,45 +145,47 @@ export async function scanRemoteFolderForHashes(
 async function scanFolderRecursive(
   folderPath: string,
   hashes: FileHash[],
-  fileListUrl: string,
-  secret: string,
 ): Promise<void> {
   try {
-    const response = await axios.post(
-      fileListUrl,
-      { path: folderPath, secret },
-      { timeout: 30000 },
-    );
+    // Użyj generateListUrl z tokenem HMAC
+    const listUrl = generateListUrl(folderPath);
+    logger.debug(`Scanning folder: ${folderPath || 'root'}, URL: ${listUrl.substring(0, 100)}...`);
 
-    if (!response.data.success) {
+    const response = await axios.get<PHPListResponse>(listUrl, { timeout: 30000 });
+
+    // PHP zwraca { folders: [], files: [] } lub { error: "..." }
+    if (response.data.error) {
       logger.warn(`Failed to list folder ${folderPath}: ${response.data.error}`);
       return;
     }
 
-    const items: RemoteFile[] = response.data.files || [];
+    const folders = response.data.folders || [];
+    const files = response.data.files || [];
 
-    for (const item of items) {
-      if (item.type === 'file') {
-        // Tylko obrazy
-        if (/\.(jpg|jpeg|png|gif|webp|avif)$/i.test(item.name)) {
-          const hash = await computeFileMetadataHash({
-            name: item.name,
-            size: item.size || 0,
-            lastModified: item.modified,
-          });
+    logger.debug(`Response for ${folderPath || 'root'}: folders=${folders.length}, files=${files.length}`);
 
-          hashes.push({
-            path: item.path,
-            hash,
-            size: item.size || 0,
-            lastModified: item.modified || '',
-            lastChecked: new Date().toISOString(),
-          });
-        }
-      } else if (item.type === 'folder') {
-        // Rekurencja do podfolderów
-        await scanFolderRecursive(item.path, hashes, fileListUrl, secret);
+    // Przetwarzaj pliki (tylko obrazy)
+    for (const file of files) {
+      if (/\.(jpg|jpeg|png|gif|webp|avif)$/i.test(file.name)) {
+        const hash = await computeFileMetadataHash({
+          name: file.name,
+          size: file.size || 0,
+          lastModified: file.modified,
+        });
+
+        hashes.push({
+          path: file.path,
+          hash,
+          size: file.size || 0,
+          lastModified: file.modified || '',
+          lastChecked: new Date().toISOString(),
+        });
       }
+    }
+
+    // Rekurencja do podfolderów
+    for (const folder of folders) {
+      await scanFolderRecursive(folder.path, hashes);
     }
   } catch (error) {
     logger.error(`Error scanning folder ${folderPath}:`, error);
