@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import { logger } from '../utils/logger';
 import { useNotification } from './GlobalNotification';
@@ -162,7 +163,10 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
             <h1>
               CONCEPTFAB Content Browser
               <span className="version">
-                ver: {versionInfo?.message?.split(':')[0] ?? versionInfo?.message ?? ''}
+                ver:{' '}
+                {versionInfo?.message?.split(':')[0] ??
+                  versionInfo?.message ??
+                  ''}
                 {versionInfo?.date ? ` ${versionInfo.date}` : ''}
               </span>
             </h1>
@@ -211,7 +215,8 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
               <i
                 className="las la-database"
                 style={{
-                  color: cacheStatus.thumbnailsCount > 0 ? '#111827' : '#d1d5db',
+                  color:
+                    cacheStatus.thumbnailsCount > 0 ? '#111827' : '#d1d5db',
                   opacity: cacheStatus.thumbnailsCount > 0 ? 1 : 0.4,
                 }}
               ></i>
@@ -313,111 +318,138 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
         </div>
       </div>
 
-      {/* Bug report modal */}
-      {showBugForm && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-          }}
-          onClick={() => setShowBugForm(false)}
-        >
+      {/* Bug report modal – portal do body, żeby fixed centrował się na ekranie (backdrop-filter w nav zmienia containing block) */}
+      {showBugForm &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <div
             style={{
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              padding: '24px',
-              width: '100%',
-              maxWidth: '400px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setShowBugForm(false)}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#111827' }}>
-                <i className="las la-bug" style={{ marginRight: '8px', color: '#6b7280' }}></i>
-                Zgłoś błąd
-              </h3>
-              <button
-                onClick={() => setShowBugForm(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#6b7280' }}
-              >
-                <i className="las la-times"></i>
-              </button>
-            </div>
-            <input
-              type="text"
-              placeholder="Temat"
-              value={bugReport.subject}
-              onChange={(e) => setBugReport({ ...bugReport, subject: e.target.value })}
+            <div
               style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                padding: '24px',
                 width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                marginBottom: '12px',
-                fontSize: '14px',
-                boxSizing: 'border-box',
+                maxWidth: '400px',
+                margin: '16px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
               }}
-            />
-            <textarea
-              placeholder="Opisz problem..."
-              value={bugReport.message}
-              onChange={(e) => setBugReport({ ...bugReport, message: e.target.value })}
-              rows={4}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                marginBottom: '16px',
-                fontSize: '14px',
-                resize: 'vertical',
-                boxSizing: 'border-box',
-              }}
-            />
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setShowBugForm(false)}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
                 style={{
-                  padding: '8px 16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '16px',
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#111827' }}>
+                  <i
+                    className="las la-bug"
+                    style={{ marginRight: '8px', color: '#6b7280' }}
+                  ></i>
+                  Zgłoś błąd
+                </h3>
+                <button
+                  onClick={() => setShowBugForm(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '20px',
+                    color: '#6b7280',
+                  }}
+                >
+                  <i className="las la-times"></i>
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="Temat"
+                value={bugReport.subject}
+                onChange={(e) =>
+                  setBugReport({ ...bugReport, subject: e.target.value })
+                }
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
                   border: '1px solid #d1d5db',
                   borderRadius: '6px',
-                  backgroundColor: 'white',
-                  cursor: 'pointer',
+                  marginBottom: '12px',
                   fontSize: '14px',
+                  boxSizing: 'border-box',
                 }}
-              >
-                Anuluj
-              </button>
-              <button
-                onClick={handleSendBugReport}
-                disabled={sendingBug}
+              />
+              <textarea
+                placeholder="Opisz problem..."
+                value={bugReport.message}
+                onChange={(e) =>
+                  setBugReport({ ...bugReport, message: e.target.value })
+                }
+                rows={4}
                 style={{
-                  padding: '8px 16px',
-                  border: 'none',
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
-                  backgroundColor: '#7c3aed',
-                  color: 'white',
-                  cursor: sendingBug ? 'not-allowed' : 'pointer',
+                  marginBottom: '16px',
                   fontSize: '14px',
-                  opacity: sendingBug ? 0.7 : 1,
+                  resize: 'vertical',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '10px',
+                  justifyContent: 'flex-end',
                 }}
               >
-                {sendingBug ? 'Wysyłanie...' : 'Wyślij'}
-              </button>
+                <button
+                  onClick={() => setShowBugForm(false)}
+                  style={{
+                    padding: '8px 16px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    backgroundColor: 'white',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                  }}
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleSendBugReport}
+                  disabled={sendingBug}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    backgroundColor: '#7c3aed',
+                    color: 'white',
+                    cursor: sendingBug ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    opacity: sendingBug ? 0.7 : 1,
+                  }}
+                >
+                  {sendingBug ? 'Wysyłanie...' : 'Wyślij'}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </nav>
   );
 };
