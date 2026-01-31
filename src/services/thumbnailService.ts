@@ -8,6 +8,11 @@ import FormData from 'form-data';
 import { ThumbnailConfig, ThumbnailSize } from '@/src/types/cache';
 import { logger } from '@/src/utils/logger';
 import { DEFAULT_THUMBNAIL_SIZES } from '@/src/utils/cacheStorage';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
+import {
+  isFileProtectionEnabled,
+  generateSignedUrl,
+} from '@/src/utils/fileToken';
 
 // Ścieżka do lokalnego cache (Railway volume)
 const LOCAL_CACHE_PATH = '/data-storage/thumbnails';
@@ -31,7 +36,7 @@ async function getCachePath(): Promise<string> {
 export function getThumbnailPath(
   originalPath: string,
   sizeName: string,
-  format: string,
+  format: string
 ): string {
   const pathParts = originalPath.split('/');
   const filename = pathParts.pop() || 'image';
@@ -50,13 +55,27 @@ export async function generateThumbnails(
     sizes: DEFAULT_THUMBNAIL_SIZES,
     format: 'webp',
     storage: 'local',
-  },
+  }
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
 
   try {
+    // Gdy ochrona plików jest włączona, serwer zwraca pliki tylko przez file-proxy.php (podpisany URL).
+    // Pobieramy tym samym URL-em co frontend – inaczej dostajemy 404 na GALLERY_BASE_URL.
+    const fetchUrl = isFileProtectionEnabled()
+      ? generateSignedUrl(originalPath)
+      : (() => {
+          const base = GALLERY_BASE_URL.endsWith('/')
+            ? GALLERY_BASE_URL
+            : GALLERY_BASE_URL + '/';
+          return sourceUrl.startsWith('http://') ||
+            sourceUrl.startsWith('https://')
+            ? sourceUrl
+            : new URL(sourceUrl.replace(/^\//, ''), base).href;
+        })();
+
     // Pobierz oryginalny obraz
-    const response = await axios.get(sourceUrl, {
+    const response = await axios.get(fetchUrl, {
       responseType: 'arraybuffer',
       timeout: 60000,
       headers: {
@@ -77,7 +96,7 @@ export async function generateThumbnails(
         const outputBuffer = await processImage(
           imageBuffer,
           size,
-          config.format,
+          config.format
         );
 
         // Zapisz do wybranego storage
@@ -86,14 +105,14 @@ export async function generateThumbnails(
           originalPath,
           size.name,
           config.format,
-          config.storage,
+          config.storage
         );
 
         results.set(size.name, thumbnailPath);
       } catch (sizeError) {
         logger.error(
           `Error generating ${size.name} for ${originalPath}:`,
-          sizeError,
+          sizeError
         );
       }
     }
@@ -104,6 +123,13 @@ export async function generateThumbnails(
 
     return results;
   } catch (error) {
+    const status = axios.isAxiosError(error)
+      ? error.response?.status
+      : undefined;
+    if (status === 404) {
+      logger.warn(`File not found on server (404), skipping: ${originalPath}`);
+      return results;
+    }
     logger.error(`Error generating thumbnails for ${originalPath}:`, error);
     throw error;
   }
@@ -115,7 +141,7 @@ export async function generateThumbnails(
 async function processImage(
   buffer: Buffer,
   size: ThumbnailSize,
-  format: 'webp' | 'avif' | 'jpeg',
+  format: 'webp' | 'avif' | 'jpeg'
 ): Promise<Buffer> {
   let pipeline = sharp(buffer).resize(size.width, size.height, {
     fit: 'inside',
@@ -145,7 +171,7 @@ async function saveThumbnail(
   originalPath: string,
   sizeName: string,
   format: string,
-  storage: 'local' | 'remote',
+  storage: 'local' | 'remote'
 ): Promise<string> {
   const relativePath = getThumbnailPath(originalPath, sizeName, format);
 
@@ -181,8 +207,10 @@ async function saveThumbnail(
       timeout: 30000,
     });
 
-    const baseUrl = process.env.GALLERY_BASE_URL || '';
-    return `${baseUrl}thumbnails/${relativePath}`;
+    const base = GALLERY_BASE_URL.endsWith('/')
+      ? GALLERY_BASE_URL
+      : GALLERY_BASE_URL + '/';
+    return `${base}thumbnails/${relativePath}`;
   }
 }
 
@@ -193,7 +221,7 @@ export async function thumbnailExists(
   originalPath: string,
   sizeName: string,
   format: string,
-  storage: 'local' | 'remote',
+  storage: 'local' | 'remote'
 ): Promise<boolean> {
   const relativePath = getThumbnailPath(originalPath, sizeName, format);
 
@@ -208,8 +236,10 @@ export async function thumbnailExists(
     }
   } else {
     // Sprawdź zdalnie przez HEAD request
-    const baseUrl = process.env.GALLERY_BASE_URL || '';
-    const url = `${baseUrl}thumbnails/${relativePath}`;
+    const base = GALLERY_BASE_URL.endsWith('/')
+      ? GALLERY_BASE_URL
+      : GALLERY_BASE_URL + '/';
+    const url = `${base}thumbnails/${relativePath}`;
     try {
       await axios.head(url, { timeout: 5000 });
       return true;
@@ -226,23 +256,29 @@ export async function getThumbnailUrl(
   originalUrl: string,
   originalPath: string,
   sizeName: 'thumb' | 'medium' | 'large',
-  config: ThumbnailConfig,
+  config: ThumbnailConfig
 ): Promise<string> {
   const exists = await thumbnailExists(
     originalPath,
     sizeName,
     config.format,
-    config.storage,
+    config.storage
   );
 
   if (exists) {
-    const relativePath = getThumbnailPath(originalPath, sizeName, config.format);
+    const relativePath = getThumbnailPath(
+      originalPath,
+      sizeName,
+      config.format
+    );
 
     if (config.storage === 'local') {
       return `/api/thumbnails/${relativePath}`;
     } else {
-      const baseUrl = process.env.GALLERY_BASE_URL || '';
-      return `${baseUrl}thumbnails/${relativePath}`;
+      const base = GALLERY_BASE_URL.endsWith('/')
+        ? GALLERY_BASE_URL
+        : GALLERY_BASE_URL + '/';
+      return `${base}thumbnails/${relativePath}`;
     }
   }
 
@@ -280,7 +316,7 @@ async function countFilesRecursive(
     totalFiles: number;
     totalSize: number;
     bySize: Record<string, number>;
-  },
+  }
 ): Promise<void> {
   try {
     const entries = await fsp.readdir(dir, { withFileTypes: true });
@@ -310,7 +346,7 @@ async function countFilesRecursive(
  */
 export async function deleteThumbnails(
   originalPath: string,
-  config: ThumbnailConfig,
+  config: ThumbnailConfig
 ): Promise<void> {
   if (config.storage !== 'local') {
     logger.warn('Remote thumbnail deletion not implemented');
@@ -320,7 +356,11 @@ export async function deleteThumbnails(
   const cachePath = await getCachePath();
 
   for (const size of config.sizes) {
-    const relativePath = getThumbnailPath(originalPath, size.name, config.format);
+    const relativePath = getThumbnailPath(
+      originalPath,
+      size.name,
+      config.format
+    );
     const fullPath = path.join(cachePath, relativePath);
 
     try {

@@ -13,6 +13,7 @@ import {
   DEFAULT_SCHEDULER_CONFIG,
 } from '@/src/utils/cacheStorage';
 import { logger } from '@/src/utils/logger';
+import { GALLERY_BASE_URL } from '@/src/config/constants';
 
 let schedulerInterval: NodeJS.Timeout | null = null;
 let isRunning = false;
@@ -125,7 +126,7 @@ export async function runScan(): Promise<{
 
     const cacheData = await getCacheData();
     const oldHashes = new Map(
-      (cacheData.fileHashes || []).map((h) => [h.path, h]),
+      (cacheData.fileHashes || []).map((h) => [h.path, h])
     );
 
     // Skanuj folder galerii
@@ -154,7 +155,7 @@ export async function runScan(): Promise<{
         'changes_detected',
         `Wykryto ${changes.length} zmian (dodane: ${stats.added}, zmodyfikowane: ${stats.modified}, usunięte: ${stats.deleted})`,
         duration,
-        changes.slice(0, 20).map((c) => c.path),
+        changes.slice(0, 20).map((c) => c.path)
       );
 
       // Regeneruj miniaturki dla zmienionych plików
@@ -163,19 +164,19 @@ export async function runScan(): Promise<{
       if (regenerated > 0) {
         await addHistoryEntry(
           'thumbnails_generated',
-          `Wygenerowano miniaturki dla ${regenerated} plików`,
+          `Wygenerowano miniaturki dla ${regenerated} plików`
         );
       }
     } else {
       await addHistoryEntry(
         'scan_completed',
         `Skanowanie zakończone - brak zmian (${newHashList.length} plików)`,
-        duration,
+        duration
       );
     }
 
     logger.info(
-      `Scan completed in ${duration}ms, ${changes.length} changes detected`,
+      `Scan completed in ${duration}ms, ${changes.length} changes detected`
     );
 
     return {
@@ -205,7 +206,7 @@ export async function runScan(): Promise<{
  * Regeneruje miniaturki dla zmienionych plików
  */
 async function regenerateThumbnailsForChanges(
-  changes: HashChangeEvent[],
+  changes: HashChangeEvent[]
 ): Promise<number> {
   const cacheData = await getCacheData();
   const config = cacheData.thumbnailConfig;
@@ -217,18 +218,22 @@ async function regenerateThumbnailsForChanges(
 
   let generated = 0;
 
+  const baseUrl = GALLERY_BASE_URL.endsWith('/')
+    ? GALLERY_BASE_URL
+    : GALLERY_BASE_URL + '/';
+
   for (const filePath of filesToRegenerate) {
     try {
-      // Buduj URL źródłowy
-      const baseUrl = process.env.GALLERY_BASE_URL || '';
-      const sourceUrl = `${baseUrl}${filePath}`;
+      const sourceUrl = new URL(filePath.replace(/^\//, ''), baseUrl).href;
 
       await generateThumbnails(sourceUrl, filePath, config);
       generated++;
 
       // Loguj co kilka plików
       if (generated % 10 === 0) {
-        logger.info(`Generated thumbnails for ${generated}/${filesToRegenerate.length} files`);
+        logger.info(
+          `Generated thumbnails for ${generated}/${filesToRegenerate.length} files`
+        );
       }
     } catch (error) {
       logger.error(`Failed to generate thumbnails for ${filePath}:`, error);
@@ -245,7 +250,7 @@ async function addHistoryEntry(
   action: CacheHistoryEntry['action'],
   details: string,
   duration?: number,
-  affectedPaths?: string[],
+  affectedPaths?: string[]
 ): Promise<void> {
   await updateCacheData((data) => {
     if (!data.history) data.history = [];
@@ -314,26 +319,33 @@ export async function regenerateAllThumbnails(): Promise<{
   try {
     await addHistoryEntry(
       'scan_started',
-      'Rozpoczęto regenerację wszystkich miniaturek',
+      'Rozpoczęto regenerację wszystkich miniaturek'
     );
 
     const cacheData = await getCacheData();
     const config = cacheData.thumbnailConfig;
     const files = cacheData.fileHashes.filter((f) =>
-      /\.(jpg|jpeg|png|gif|webp)$/i.test(f.path),
+      /\.(jpg|jpeg|png|gif|webp)$/i.test(f.path)
     );
 
     logger.info(`Regenerating thumbnails for ${files.length} files`);
 
+    const baseUrl = GALLERY_BASE_URL.endsWith('/')
+      ? GALLERY_BASE_URL
+      : GALLERY_BASE_URL + '/';
+
     for (const file of files) {
       try {
-        const baseUrl = process.env.GALLERY_BASE_URL || '';
-        const sourceUrl = `${baseUrl}${file.path}`;
+        const sourceUrl = new URL(file.path.replace(/^\//, ''), baseUrl).href;
 
-        await generateThumbnails(sourceUrl, file.path, config);
-        generated++;
+        const results = await generateThumbnails(sourceUrl, file.path, config);
+        if (results.size > 0) {
+          generated++;
+        } else {
+          failed++;
+        }
 
-        if (generated % 20 === 0) {
+        if (generated % 20 === 0 && generated > 0) {
           logger.info(`Progress: ${generated}/${files.length} files`);
         }
       } catch {
@@ -346,7 +358,7 @@ export async function regenerateAllThumbnails(): Promise<{
     await addHistoryEntry(
       'thumbnails_generated',
       `Regeneracja zakończona: ${generated} sukces, ${failed} błędów`,
-      duration,
+      duration
     );
 
     return { success: true, generated, failed, duration };

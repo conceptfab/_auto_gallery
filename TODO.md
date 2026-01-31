@@ -1,3 +1,8 @@
+statystyka - ile miniaturek na plik jest generowane
+na drzewie folderów jesli system zauwazy zmianę musi być zaznaczoneg który folder został własnie przebudowany i powinien byc przycsik do recznego przebudowania
+czyszczenie historii przebudowy reczne i automatyczne np zostawia zmiany z ostatnich 24h reszte usuwa
+
+
 # TODO - Content Browser
 
 ## WDROŻONE (2024-01-31)
