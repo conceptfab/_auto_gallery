@@ -459,34 +459,34 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
       )}
 
       {selectedImage && (
-        <div className="modal-overlay" onClick={closeModal}>
+        <div className="modal-overlay modal-overlay-fade-in" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            {/* UI controls - always visible */}
+            <button
+              className="modal-nav-button modal-nav-button-left"
+              onClick={(e) => {
+                e.stopPropagation();
+                showAdjacentImage(-1);
+              }}
+              title="Poprzedni obraz"
+            >
+              <i className="las la-angle-left"></i>
+            </button>
+            <button
+              className="modal-nav-button modal-nav-button-right"
+              onClick={(e) => {
+                e.stopPropagation();
+                showAdjacentImage(1);
+              }}
+              title="Następny obraz"
+            >
+              <i className="las la-angle-right"></i>
+            </button>
+            <button className="close-button" onClick={closeModal}>
+              <i className="las la-times"></i>
+            </button>
             {imageLoaded && (
-              <>
-                <button
-                  className="modal-nav-button modal-nav-button-left"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showAdjacentImage(-1);
-                  }}
-                  title="Poprzedni obraz"
-                >
-                  <i className="las la-angle-left"></i>
-                </button>
-                <button
-                  className="modal-nav-button modal-nav-button-right"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showAdjacentImage(1);
-                  }}
-                  title="Następny obraz"
-                >
-                  <i className="las la-angle-right"></i>
-                </button>
-                <button className="close-button" onClick={closeModal}>
-                  <i className="las la-times"></i>
-                </button>
-                <div className="modal-bottom-actions">
+              <div className="modal-bottom-actions">
                   {modalKeywordImages.map((item, idx) => (
                     <button
                       key={`modal-keyword-${idx}`}
@@ -573,7 +573,6 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
                     <i className="las la-download"></i>
                   </button>
                 </div>
-              </>
             )}
             {modalHoveredPreview && (
               <div
@@ -593,16 +592,19 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
                 </span>
               </div>
             )}
-            { }
-            <img
-              src={getOptimizedImageUrl(selectedImage, 'full')}
-              alt={selectedImage.name}
-              className="modal-image"
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)} // Pokazuj info nawet przy błędzie
-            />
-            {imageLoaded && (
-              <div className="modal-info">
+            {/* Wrapper na obraz - stały rozmiar */}
+            <div className="modal-image-wrapper">
+              <img
+                key={selectedImage.path}
+                src={getOptimizedImageUrl(selectedImage, 'full')}
+                alt={selectedImage.name}
+                className="modal-image"
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageLoaded(true)}
+              />
+            </div>
+            {/* Info o obrazie */}
+            <div className="modal-info">
                 <h3>{selectedImage.name}</h3>
                 <ImageMetadata
                   src={selectedImage.url}
@@ -649,8 +651,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
                     <i className="las la-angle-right"></i>
                   </button>
                 </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}

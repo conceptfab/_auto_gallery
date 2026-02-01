@@ -55,7 +55,7 @@ interface ImageItemProps {
 
 const ImageItem = memo(function ImageItem({
   image,
-  index: _index,
+  index,
   highlightedName,
   keywordItems,
   folderName,
@@ -105,7 +105,10 @@ const ImageItem = memo(function ImageItem({
   );
 
   return (
-    <div className="image-item">
+    <div
+      className="image-item"
+      style={{ '--item-index': index } as React.CSSProperties}
+    >
       <div
         className="image-container"
         onClick={() => onImageClick?.(image, images)}

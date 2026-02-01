@@ -10,8 +10,12 @@ export default async function handler(
     try {
       // GET jest publiczne - każdy może sprawdzić ustawienia
       const data = await getData();
-      const settings = data.settings || {
-        highlightKeywords: true,
+      const rawSettings = data.settings || {};
+      // Zwracamy obiekt z domyślnymi wartościami
+      const settings = {
+        highlightKeywords: rawSettings.highlightKeywords ?? true,
+        autoCleanupEnabled: rawSettings.autoCleanupEnabled ?? false,
+        autoCleanupDays: rawSettings.autoCleanupDays ?? 7,
       };
       return res.status(200).json({ success: true, settings });
     } catch (error: unknown) {
@@ -32,17 +36,32 @@ export default async function handler(
         return res.status(403).json({ error: 'Brak uprawnień administratora' });
       }
 
-      const { highlightKeywords } = req.body;
+      const { highlightKeywords, autoCleanupEnabled, autoCleanupDays } = req.body;
 
-      if (typeof highlightKeywords !== 'boolean') {
-        return res.status(400).json({ error: 'Nieprawidłowa wartość' });
+      // Walidacja
+      if (highlightKeywords !== undefined && typeof highlightKeywords !== 'boolean') {
+        return res.status(400).json({ error: 'Nieprawidłowa wartość highlightKeywords' });
+      }
+      if (autoCleanupEnabled !== undefined && typeof autoCleanupEnabled !== 'boolean') {
+        return res.status(400).json({ error: 'Nieprawidłowa wartość autoCleanupEnabled' });
+      }
+      if (autoCleanupDays !== undefined && (typeof autoCleanupDays !== 'number' || autoCleanupDays < 1 || autoCleanupDays > 365)) {
+        return res.status(400).json({ error: 'autoCleanupDays musi być liczbą od 1 do 365' });
       }
 
       await updateData((data) => {
         if (!data.settings) {
           data.settings = {};
         }
-        data.settings.highlightKeywords = highlightKeywords;
+        if (highlightKeywords !== undefined) {
+          data.settings.highlightKeywords = highlightKeywords;
+        }
+        if (autoCleanupEnabled !== undefined) {
+          data.settings.autoCleanupEnabled = autoCleanupEnabled;
+        }
+        if (autoCleanupDays !== undefined) {
+          data.settings.autoCleanupDays = autoCleanupDays;
+        }
       });
 
       const updatedData = await getData();

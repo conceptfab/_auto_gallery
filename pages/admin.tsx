@@ -72,13 +72,28 @@ const AdminPanel: React.FC = () => {
   >({});
 
   // Stan dla ustawień
-  const [settings, setSettings] = useState<{ highlightKeywords: boolean }>({
+  const [settings, setSettings] = useState<{
+    highlightKeywords: boolean;
+    autoCleanupEnabled: boolean;
+    autoCleanupDays: number;
+  }>({
     highlightKeywords: true,
+    autoCleanupEnabled: false,
+    autoCleanupDays: 7,
   });
+
+  // Stan dla ręcznego czyszczenia
+  const [cleanupProcessing, setCleanupProcessing] = useState(false);
+  const [lastCleanupResult, setLastCleanupResult] = useState<{
+    deletedLogins: number;
+    deletedSessions: number;
+    deletedViews: number;
+    deletedDownloads: number;
+  } | null>(null);
 
   // Stan dla rozwiniętych sekcji
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['stats', 'whitelist', 'blacklist', 'groups', 'settings', 'cache', 'files']),
+    new Set(['stats', 'whitelist', 'blacklist', 'groups', 'settings', 'data-cleanup', 'cache', 'files']),
   );
 
   // Stan dla formularzy dodawania emaili
@@ -196,9 +211,11 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const updateSettings = async (newSettings: {
+  const updateSettings = async (newSettings: Partial<{
     highlightKeywords: boolean;
-  }) => {
+    autoCleanupEnabled: boolean;
+    autoCleanupDays: number;
+  }>) => {
     try {
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -212,6 +229,33 @@ const AdminPanel: React.FC = () => {
     } catch (error) {
       logger.error('Error updating settings', error);
       alert('Błąd aktualizacji ustawień');
+    }
+  };
+
+  const handleManualCleanup = async () => {
+    if (!confirm(`Czy na pewno chcesz usunąć dane starsze niż ${settings.autoCleanupDays} dni? Ta operacja jest nieodwracalna.`)) {
+      return;
+    }
+
+    setCleanupProcessing(true);
+    setLastCleanupResult(null);
+    try {
+      const response = await fetch('/api/admin/stats/cleanup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ daysToKeep: settings.autoCleanupDays }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setLastCleanupResult(result.deleted);
+      } else {
+        alert(`Błąd: ${result.error}`);
+      }
+    } catch (error) {
+      logger.error('Error during manual cleanup', error);
+      alert('Błąd podczas czyszczenia danych');
+    } finally {
+      setCleanupProcessing(false);
     }
   };
 
@@ -1120,6 +1164,151 @@ const AdminPanel: React.FC = () => {
                     {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
                   </span>
                 </label>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Czyszczenie danych */}
+        <section className="admin-section">
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('data-cleanup')}
+          >
+            <span>Czyszczenie danych</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('data-cleanup') ? '' : 'collapsed'
+              }`}
+            ></i>
+          </h2>
+
+          {expandedSections.has('data-cleanup') && (
+            <div className="admin-card">
+              {/* Automatyczne czyszczenie */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                  paddingBottom: '15px',
+                  borderBottom: '1px solid #e5e7eb',
+                }}
+              >
+                <div>
+                  <h3 style={{ margin: '0 0 5px 0', color: '#111827' }}>
+                    Automatyczne czyszczenie historii
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                    Automatycznie usuwaj dane (logowania, sesje, wyświetlenia, pobrania) starsze niż określona liczba dni
+                  </p>
+                </div>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={settings.autoCleanupEnabled}
+                    onChange={(e) => {
+                      updateSettings({ autoCleanupEnabled: e.target.checked });
+                    }}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                    {settings.autoCleanupEnabled ? 'Włączone' : 'Wyłączone'}
+                  </span>
+                </label>
+              </div>
+
+              {/* Liczba dni */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '15px',
+                  marginBottom: '20px',
+                }}
+              >
+                <label style={{ fontSize: '14px', color: '#333' }}>
+                  Usuwaj dane starsze niż:
+                </label>
+                <select
+                  value={settings.autoCleanupDays}
+                  onChange={(e) => {
+                    updateSettings({ autoCleanupDays: parseInt(e.target.value, 10) });
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '14px',
+                  }}
+                >
+                  <option value={7}>7 dni</option>
+                  <option value={14}>14 dni</option>
+                  <option value={30}>30 dni</option>
+                  <option value={60}>60 dni</option>
+                  <option value={90}>90 dni</option>
+                </select>
+              </div>
+
+              {/* Ręczne czyszczenie */}
+              <div
+                style={{
+                  padding: '15px',
+                  backgroundColor: '#fef3c7',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '6px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
+                      Ręczne czyszczenie
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#a16207' }}>
+                      Usuń teraz wszystkie dane starsze niż {settings.autoCleanupDays} dni
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleManualCleanup}
+                    disabled={cleanupProcessing}
+                    className="admin-btn admin-btn--danger"
+                    style={{ minWidth: '120px' }}
+                  >
+                    {cleanupProcessing ? 'Czyszczenie...' : 'Wyczyść teraz'}
+                  </button>
+                </div>
+
+                {lastCleanupResult && (
+                  <div
+                    style={{
+                      marginTop: '15px',
+                      padding: '10px',
+                      backgroundColor: '#d1fae5',
+                      border: '1px solid #10b981',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      color: '#065f46',
+                    }}
+                  >
+                    <strong>Usunięto:</strong>{' '}
+                    {lastCleanupResult.deletedLogins} logowań,{' '}
+                    {lastCleanupResult.deletedSessions} sesji,{' '}
+                    {lastCleanupResult.deletedViews} wyświetleń,{' '}
+                    {lastCleanupResult.deletedDownloads} pobrań
+                  </div>
+                )}
               </div>
             </div>
           )}

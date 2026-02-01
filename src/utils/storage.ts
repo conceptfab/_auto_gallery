@@ -36,6 +36,8 @@ interface StorageData {
   groups: UserGroup[];
   settings?: {
     highlightKeywords?: boolean;
+    autoCleanupEnabled?: boolean;
+    autoCleanupDays?: number;
   };
   // Statystyki użytkowników
   stats?: StatsData;

@@ -1143,6 +1143,22 @@ a {
 .image-item {
   display: block;
   width: 100%;
+  /* Staggered fade-in animation for thumbnails */
+  opacity: 0;
+  animation: thumbnailFadeIn 0.35s ease-out forwards;
+  animation-delay: calc(var(--item-index, 0) * 40ms);
+}
+
+/* Thumbnail fade-in animation - European reading direction (left to right, top to bottom) */
+@keyframes thumbnailFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Container for image with hover effects */
@@ -1328,11 +1344,23 @@ a {
   padding: 20px;
 }
 
-/* Modal content container with shadow and border */
+/* Modal fade-in animation */
+.modal-overlay-fade-in {
+  animation: modalOverlayFadeIn 0.25s ease-out;
+}
+
+@keyframes modalOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal content container - proporcje obrazka */
 .modal-content {
   position: relative;
-  max-width: 95vw;
-  max-height: 95vh;
   background: #f8f8f8;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -1340,6 +1368,44 @@ a {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Szerokość bazowa - dopasowuje się do dostępnej przestrzeni */
+  width: auto;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+/* Kontener na obraz - STAŁE PROPORCJE obrazka (4:3) */
+.modal-image-wrapper {
+  width: 85vw;
+  max-width: 1100px;
+  /* Proporcje 4:3 - typowe dla zdjęć produktowych */
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Obraz - dopasowuje się do wrappera */
+.modal-content .modal-image {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  animation: imageSwapFadeIn 0.2s ease-out;
+}
+
+@keyframes imageSwapFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Info na dole - stały rozmiar */
+.modal-content .modal-info {
+  flex-shrink: 0;
+  width: 100%;
 }
 
 /* Small close button (X) in top right corner */
@@ -1686,16 +1752,11 @@ a {
     padding: 20px;
   }
 
-  /* Modal adjustments for tablet */
-  .modal-content {
-    margin: 5px;
-    max-width: calc(100vw - 10px);
-    max-height: calc(100vh - 10px);
-  }
-
-  /* Smaller modal image on tablet */
-  .modal-image {
-    max-height: 60vh;
+  /* Tablet - proporcje obrazka */
+  .modal-image-wrapper {
+    width: calc(100vw - 40px);
+    max-width: none;
+    aspect-ratio: 4 / 3;
   }
 
   /* Podgląd kolorystyki w modalu - tylko miniaturka 150x150px na tablecie */
@@ -1761,11 +1822,16 @@ a {
     font-size: 1.5rem;
   }
 
-  /* Powiększ okno modala na mobile */
+  /* Mobile - proporcje obrazka */
   .modal-content {
-    margin: 5px;
-    max-width: calc(100vw - 10px);
-    max-height: calc(100vh - 10px);
+    max-width: calc(100vw - 16px);
+    border-radius: 6px;
+  }
+
+  .modal-image-wrapper {
+    width: calc(100vw - 20px);
+    max-width: none;
+    aspect-ratio: 4 / 3;
   }
 
   /* Zmniejsz rozmiar nazwy pliku i opisów w modalu na mobile */
