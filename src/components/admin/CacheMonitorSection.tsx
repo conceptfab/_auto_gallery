@@ -163,7 +163,14 @@ const ScanProgressBar: React.FC<{
 
   if (!enabled) {
     return (
-      <div style={{ marginTop: '12px', padding: '10px', background: '#fef2f2', borderRadius: '6px' }}>
+      <div
+        style={{
+          marginTop: '12px',
+          padding: '10px',
+          background: '#fef2f2',
+          borderRadius: '6px',
+        }}
+      >
         <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 500 }}>
           <i className="las la-pause-circle" style={{ marginRight: '6px' }}></i>
           Automatyczne skanowanie wyłączone
@@ -174,25 +181,42 @@ const ScanProgressBar: React.FC<{
 
   if (scanInProgress) {
     return (
-      <div style={{ marginTop: '12px', padding: '10px', background: '#dbeafe', borderRadius: '6px' }}>
+      <div
+        style={{
+          marginTop: '12px',
+          padding: '10px',
+          background: '#dbeafe',
+          borderRadius: '6px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <i className="las la-spinner la-spin" style={{ color: '#2563eb' }}></i>
-          <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 500 }}>Skanowanie w toku...</span>
+          <i
+            className="las la-spinner la-spin"
+            style={{ color: '#2563eb' }}
+          ></i>
+          <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 500 }}>
+            Skanowanie w toku...
+          </span>
         </div>
-        <div style={{
-          marginTop: '8px',
-          height: '6px',
-          background: '#bfdbfe',
-          borderRadius: '3px',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            height: '100%',
-            background: 'linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, #2563eb 100%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s infinite linear',
-            width: '100%',
-          }} />
+        <div
+          style={{
+            marginTop: '8px',
+            height: '6px',
+            background: '#bfdbfe',
+            borderRadius: '3px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              background:
+                'linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, #2563eb 100%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s infinite linear',
+              width: '100%',
+            }}
+          />
         </div>
         <style>{`
           @keyframes shimmer {
@@ -206,7 +230,14 @@ const ScanProgressBar: React.FC<{
 
   if (!lastRun || !nextRun) {
     return (
-      <div style={{ marginTop: '12px', padding: '10px', background: '#fef3c7', borderRadius: '6px' }}>
+      <div
+        style={{
+          marginTop: '12px',
+          padding: '10px',
+          background: '#fef3c7',
+          borderRadius: '6px',
+        }}
+      >
         <div style={{ fontSize: '12px', color: '#92400e', fontWeight: 500 }}>
           <i className="las la-clock" style={{ marginRight: '6px' }}></i>
           Oczekiwanie na pierwszy skan...
@@ -242,21 +273,52 @@ const ScanProgressBar: React.FC<{
   // Jeśli scheduler utknął, pokaż alert
   if (isStuck) {
     return (
-      <div style={{ marginTop: '12px', padding: '12px', background: '#fef2f2', borderRadius: '6px', border: '2px solid #fca5a5' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <i className="las la-exclamation-triangle" style={{ color: '#dc2626', fontSize: '18px' }}></i>
+      <div
+        style={{
+          marginTop: '12px',
+          padding: '12px',
+          background: '#fef2f2',
+          borderRadius: '6px',
+          border: '2px solid #fca5a5',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '8px',
+          }}
+        >
+          <i
+            className="las la-exclamation-triangle"
+            style={{ color: '#dc2626', fontSize: '18px' }}
+          ></i>
           <span style={{ fontSize: '13px', color: '#991b1b', fontWeight: 600 }}>
             Scheduler nie działa!
           </span>
         </div>
-        <div style={{ fontSize: '12px', color: '#b91c1c', marginBottom: '8px' }}>
-          Ostatni skan: <strong>{stuckHours}h {stuckMinutes}m temu</strong>
+        <div
+          style={{ fontSize: '12px', color: '#b91c1c', marginBottom: '8px' }}
+        >
+          Ostatni skan:{' '}
+          <strong>
+            {stuckHours}h {stuckMinutes}m temu
+          </strong>
           <br />
           <span style={{ color: '#9ca3af' }}>
             ({new Date(lastRun).toLocaleString('pl-PL')})
           </span>
         </div>
-        <div style={{ fontSize: '11px', color: '#6b7280', background: '#fee2e2', padding: '8px', borderRadius: '4px' }}>
+        <div
+          style={{
+            fontSize: '11px',
+            color: '#6b7280',
+            background: '#fee2e2',
+            padding: '8px',
+            borderRadius: '4px',
+          }}
+        >
           <strong>Możliwe przyczyny:</strong>
           <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
             <li>Serwer został zrestartowany (deploy)</li>
@@ -271,52 +333,88 @@ const ScanProgressBar: React.FC<{
     );
   }
 
-  const progressColor = progress < 50 ? '#10b981' : progress < 80 ? '#f59e0b' : '#ef4444';
+  const progressColor =
+    progress < 50 ? '#10b981' : progress < 80 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div style={{ marginTop: '12px', padding: '12px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+    <div
+      style={{
+        marginTop: '12px',
+        padding: '12px',
+        background: '#f0fdf4',
+        borderRadius: '6px',
+        border: '1px solid #bbf7d0',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '8px',
+        }}
+      >
         <span style={{ fontSize: '12px', color: '#166534', fontWeight: 500 }}>
           <i className="las la-clock" style={{ marginRight: '6px' }}></i>
           Następny skan za:
         </span>
-        <span style={{
-          fontSize: '14px',
-          fontWeight: 700,
-          color: progressColor,
-          fontFamily: 'monospace',
-        }}>
+        <span
+          style={{
+            fontSize: '14px',
+            fontWeight: 700,
+            color: progressColor,
+            fontFamily: 'monospace',
+          }}
+        >
           {formatRemaining(remaining)}
         </span>
       </div>
-      <div style={{
-        height: '8px',
-        background: '#dcfce7',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        position: 'relative',
-      }}>
-        <div style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          height: '100%',
-          width: `${progress}%`,
-          background: `linear-gradient(90deg, #10b981 0%, ${progressColor} 100%)`,
+      <div
+        style={{
+          height: '8px',
+          background: '#dcfce7',
           borderRadius: '4px',
-          transition: 'width 1s linear',
-        }} />
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            height: '100%',
+            width: `${progress}%`,
+            background: `linear-gradient(90deg, #10b981 0%, ${progressColor} 100%)`,
+            borderRadius: '4px',
+            transition: 'width 1s linear',
+          }}
+        />
       </div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginTop: '6px',
-        fontSize: '10px',
-        color: '#6b7280',
-      }}>
-        <span>Ostatni: {new Date(lastRun).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginTop: '6px',
+          fontSize: '10px',
+          color: '#6b7280',
+        }}
+      >
+        <span>
+          Ostatni:{' '}
+          {new Date(lastRun).toLocaleTimeString('pl-PL', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </span>
         <span>{Math.round(progress)}%</span>
-        <span>Następny: {new Date(nextRun).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+        <span>
+          Następny:{' '}
+          {new Date(nextRun).toLocaleTimeString('pl-PL', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </span>
       </div>
     </div>
   );
@@ -324,25 +422,39 @@ const ScanProgressBar: React.FC<{
 
 export const CacheMonitorSection: React.FC = () => {
   const [status, setStatus] = useState<CacheStatus | null>(null);
-  const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig | null>(null);
-  const [thumbnailConfig, setThumbnailConfig] = useState<ThumbnailConfig | null>(null);
-  const [emailConfig, setEmailConfig] = useState<EmailNotificationConfig | null>(null);
+  const [schedulerConfig, setSchedulerConfig] =
+    useState<SchedulerConfig | null>(null);
+  const [thumbnailConfig, setThumbnailConfig] =
+    useState<ThumbnailConfig | null>(null);
+  const [emailConfig, setEmailConfig] =
+    useState<EmailNotificationConfig | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [changes, setChanges] = useState<ChangeEntry[]>([]);
   const [diagnostics, setDiagnostics] = useState<DiagnosticsData | null>(null);
   const [diagLoading, setDiagLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'status' | 'folders' | 'hashes' | 'config' | 'history' | 'changes'>('status');
+  const [activeTab, setActiveTab] = useState<
+    'status' | 'folders' | 'hashes' | 'config' | 'history' | 'changes'
+  >('status');
   const [cleaningHistory, setCleaningHistory] = useState(false);
   const [rebuildingFolder, setRebuildingFolder] = useState<string | null>(null);
-  const [lastRebuiltFolder, setLastRebuiltFolder] = useState<{ path: string; timestamp: string } | null>(null);
+  const [lastRebuiltFolder, setLastRebuiltFolder] = useState<{
+    path: string;
+    timestamp: string;
+  } | null>(null);
   const [folderHashes, setFolderHashes] = useState<FolderHashRecord[]>([]);
   const [hashStats, setHashStats] = useState<HashStats | null>(null);
   const [hashesLoading, setHashesLoading] = useState(false);
   const [expandedFolder, setExpandedFolder] = useState<string | null>(null);
-  const [folderCacheStatus, setFolderCacheStatus] = useState<Record<string, FolderCacheStatus>>({});
-  const [loadingCacheStatus, setLoadingCacheStatus] = useState<string | null>(null);
+  const [folderCacheStatus, setFolderCacheStatus] = useState<
+    Record<string, FolderCacheStatus>
+  >({});
+  const [loadingCacheStatus, setLoadingCacheStatus] = useState<string | null>(
+    null
+  );
+  const [testErrorSending, setTestErrorSending] = useState(false);
+  const [testErrorResult, setTestErrorResult] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -392,10 +504,14 @@ export const CacheMonitorSection: React.FC = () => {
   const fetchFolderCacheStatus = useCallback(async (folderPath: string) => {
     setLoadingCacheStatus(folderPath);
     try {
-      const response = await fetch(`/api/admin/cache/folder-status?folder=${encodeURIComponent(folderPath)}`);
+      const response = await fetch(
+        `/api/admin/cache/folder-status?folder=${encodeURIComponent(
+          folderPath
+        )}`
+      );
       const data = await response.json();
       if (data.success) {
-        setFolderCacheStatus(prev => ({
+        setFolderCacheStatus((prev) => ({
           ...prev,
           [folderPath]: {
             images: data.images,
@@ -410,20 +526,23 @@ export const CacheMonitorSection: React.FC = () => {
     }
   }, []);
 
-  const toggleFolderExpand = useCallback((folderPath: string) => {
-    if (expandedFolder === folderPath) {
-      setExpandedFolder(null);
-    } else {
-      setExpandedFolder(folderPath);
-      if (!folderCacheStatus[folderPath]) {
-        fetchFolderCacheStatus(folderPath);
+  const toggleFolderExpand = useCallback(
+    (folderPath: string) => {
+      if (expandedFolder === folderPath) {
+        setExpandedFolder(null);
+      } else {
+        setExpandedFolder(folderPath);
+        if (!folderCacheStatus[folderPath]) {
+          fetchFolderCacheStatus(folderPath);
+        }
       }
-    }
-  }, [expandedFolder, folderCacheStatus, fetchFolderCacheStatus]);
+    },
+    [expandedFolder, folderCacheStatus, fetchFolderCacheStatus]
+  );
 
   useEffect(() => {
     Promise.all([fetchStatus(), fetchHistory()]).finally(() =>
-      setLoading(false),
+      setLoading(false)
     );
 
     // Auto-refresh co 30 sekund
@@ -434,7 +553,9 @@ export const CacheMonitorSection: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchStatus, fetchHistory]);
 
-  const handleTrigger = async (action: 'scan' | 'regenerate' | 'clear' | 'build') => {
+  const handleTrigger = async (
+    action: 'scan' | 'regenerate' | 'clear' | 'build'
+  ) => {
     setTriggering(action);
     try {
       const response = await fetch('/api/admin/cache/trigger', {
@@ -462,7 +583,7 @@ export const CacheMonitorSection: React.FC = () => {
 
   const handleConfigUpdate = async (
     type: 'scheduler' | 'thumbnails',
-    updates: Partial<SchedulerConfig> | Partial<ThumbnailConfig>,
+    updates: Partial<SchedulerConfig> | Partial<ThumbnailConfig>
   ) => {
     try {
       const body: Record<string, unknown> = {};
@@ -494,7 +615,10 @@ export const CacheMonitorSection: React.FC = () => {
       const response = await fetch('/api/admin/cache/cleanup-history', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'cleanup', retentionHours: retentionHours ?? 24 }),
+        body: JSON.stringify({
+          action: 'cleanup',
+          retentionHours: retentionHours ?? 24,
+        }),
       });
       const data = await response.json();
       if (data.success) {
@@ -530,7 +654,9 @@ export const CacheMonitorSection: React.FC = () => {
     }
   };
 
-  const handleEmailConfigUpdate = async (updates: Partial<EmailNotificationConfig>) => {
+  const handleEmailConfigUpdate = async (
+    updates: Partial<EmailNotificationConfig>
+  ) => {
     try {
       const response = await fetch('/api/admin/cache/config', {
         method: 'POST',
@@ -556,7 +682,10 @@ export const CacheMonitorSection: React.FC = () => {
       });
       const data = await response.json();
       if (data.success) {
-        setLastRebuiltFolder({ path: folderPath, timestamp: new Date().toISOString() });
+        setLastRebuiltFolder({
+          path: folderPath,
+          timestamp: new Date().toISOString(),
+        });
         alert(data.message);
         fetchStatus();
         fetchHistory();
@@ -592,8 +721,24 @@ export const CacheMonitorSection: React.FC = () => {
   return (
     <div style={{ display: 'grid', gap: '20px' }}>
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '5px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
-        {(['status', 'folders', 'hashes', 'config', 'history', 'changes'] as const).map((tab) => (
+      <div
+        style={{
+          display: 'flex',
+          gap: '5px',
+          borderBottom: '1px solid #e5e7eb',
+          paddingBottom: '10px',
+        }}
+      >
+        {(
+          [
+            'status',
+            'folders',
+            'hashes',
+            'config',
+            'history',
+            'changes',
+          ] as const
+        ).map((tab) => (
           <button
             key={tab}
             onClick={() => {
@@ -642,14 +787,26 @@ export const CacheMonitorSection: React.FC = () => {
                 gap: '15px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <i className="las la-exclamation-triangle" style={{ fontSize: '24px', color: '#dc2626' }}></i>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+              >
+                <i
+                  className="las la-exclamation-triangle"
+                  style={{ fontSize: '24px', color: '#dc2626' }}
+                ></i>
                 <div>
-                  <div style={{ fontWeight: 600, color: '#991b1b', marginBottom: '2px' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: '#991b1b',
+                      marginBottom: '2px',
+                    }}
+                  >
                     Cache miniaturek jest pusty!
                   </div>
                   <div style={{ fontSize: '13px', color: '#b91c1c' }}>
-                    Aplikacja ładuje oryginalne pliki. Zbuduj cache żeby przyspieszyć ładowanie.
+                    Aplikacja ładuje oryginalne pliki. Zbuduj cache żeby
+                    przyspieszyć ładowanie.
                   </div>
                 </div>
               </div>
@@ -674,18 +831,41 @@ export const CacheMonitorSection: React.FC = () => {
           )}
 
           {/* Status cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '15px',
+            }}
+          >
             {/* Scheduler */}
-            <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div
+              style={{
+                padding: '20px',
+                background: '#f9fafb',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
                 Scheduler
               </div>
-              <div style={{
-                fontSize: '24px',
-                fontWeight: 700,
-                color: status?.scheduler.enabled ? '#059669' : '#dc2626',
-                marginBottom: '8px',
-              }}>
+              <div
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: status?.scheduler.enabled ? '#059669' : '#dc2626',
+                  marginBottom: '8px',
+                }}
+              >
                 {status?.scheduler.enabled ? 'Aktywny' : 'Wyłączony'}
               </div>
               {status?.scheduler.enabled && (
@@ -706,46 +886,118 @@ export const CacheMonitorSection: React.FC = () => {
                 nextRun={status?.scheduler.nextRun || null}
                 enabled={status?.scheduler.enabled || false}
                 scanInProgress={status?.scanInProgress || false}
-                intervalMinutes={schedulerConfig?.workHours.intervalMinutes || 30}
+                intervalMinutes={
+                  schedulerConfig?.workHours.intervalMinutes || 30
+                }
               />
             </div>
 
             {/* Files */}
-            <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div
+              style={{
+                padding: '20px',
+                background: '#f9fafb',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
                 Monitorowane pliki
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+              <div
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: '#111827',
+                  marginBottom: '8px',
+                }}
+              >
                 {status?.hashChecker.totalFiles || 0}
               </div>
               <div style={{ fontSize: '12px', color: '#6b7280' }}>
                 Foldery: {status?.hashChecker.totalFolders || 0}
               </div>
-              <div style={{ fontSize: '12px', color: status?.hashChecker.changesDetected ? '#f59e0b' : '#6b7280' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: status?.hashChecker.changesDetected
+                    ? '#f59e0b'
+                    : '#6b7280',
+                }}
+              >
                 Ostatnie zmiany: {status?.hashChecker.changesDetected || 0}
               </div>
             </div>
 
             {/* Thumbnails */}
-            <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div
+              style={{
+                padding: '20px',
+                background: '#f9fafb',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
                 Miniaturki
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+              <div
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: '#111827',
+                  marginBottom: '8px',
+                }}
+              >
                 {status?.thumbnails.totalGenerated || 0}
               </div>
               <div style={{ fontSize: '12px', color: '#6b7280' }}>
                 Rozmiar: {formatBytes(status?.thumbnails.storageUsed || 0)}
               </div>
               <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                Storage: {status?.thumbnails.storageLocation === 'local' ? 'Railway' : 'Remote'}
+                Storage:{' '}
+                {status?.thumbnails.storageLocation === 'local'
+                  ? 'Railway'
+                  : 'Remote'}
               </div>
-              <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
-                <div style={{ fontWeight: 500, marginBottom: '4px' }}>Rozmiary na plik:</div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: '#9ca3af',
+                  marginTop: '10px',
+                  borderTop: '1px solid #e5e7eb',
+                  paddingTop: '8px',
+                }}
+              >
+                <div style={{ fontWeight: 500, marginBottom: '4px' }}>
+                  Rozmiary na plik:
+                </div>
                 <div>thumb: 300x300, q80</div>
                 <div>medium: 800x800, q85</div>
                 <div>large: 1920x1920, q90</div>
-                <div style={{ marginTop: '4px', color: '#059669', fontWeight: 500 }}>
+                <div
+                  style={{
+                    marginTop: '4px',
+                    color: '#059669',
+                    fontWeight: 500,
+                  }}
+                >
                   3 miniaturki / plik obrazu
                 </div>
               </div>
@@ -761,7 +1013,10 @@ export const CacheMonitorSection: React.FC = () => {
                 disabled={triggering !== null || status?.scanInProgress}
                 style={{
                   padding: '8px 16px',
-                  background: status?.thumbnails.totalGenerated === 0 ? '#dc2626' : '#2563eb',
+                  background:
+                    status?.thumbnails.totalGenerated === 0
+                      ? '#dc2626'
+                      : '#2563eb',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',
@@ -773,8 +1028,8 @@ export const CacheMonitorSection: React.FC = () => {
                 {triggering === 'build'
                   ? 'Budowanie...'
                   : status?.scanInProgress
-                    ? 'W toku...'
-                    : 'Zbuduj cache'}
+                  ? 'W toku...'
+                  : 'Zbuduj cache'}
               </button>
               <button
                 onClick={() => handleTrigger('scan')}
@@ -784,15 +1039,17 @@ export const CacheMonitorSection: React.FC = () => {
                 {status?.scanInProgress
                   ? 'Skanowanie...'
                   : triggering === 'scan'
-                    ? 'Uruchamianie...'
-                    : 'Skanuj zmiany'}
+                  ? 'Uruchamianie...'
+                  : 'Skanuj zmiany'}
               </button>
               <button
                 onClick={() => handleTrigger('regenerate')}
                 disabled={triggering !== null || status?.scanInProgress}
                 className="admin-btn admin-btn--success"
               >
-                {triggering === 'regenerate' ? 'Uruchamianie...' : 'Regeneruj miniaturki'}
+                {triggering === 'regenerate'
+                  ? 'Uruchamianie...'
+                  : 'Regeneruj miniaturki'}
               </button>
               <button
                 onClick={() => {
@@ -823,8 +1080,17 @@ export const CacheMonitorSection: React.FC = () => {
       {/* Folders Tab */}
       {activeTab === 'folders' && (
         <div className="admin-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3 style={{ margin: 0 }}>Struktura folderów do cache&apos;owania</h3>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '15px',
+            }}
+          >
+            <h3 style={{ margin: 0 }}>
+              Struktura folderów do cache&apos;owania
+            </h3>
             <button
               onClick={fetchDiagnostics}
               disabled={diagLoading}
@@ -835,73 +1101,160 @@ export const CacheMonitorSection: React.FC = () => {
           </div>
 
           {diagLoading && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-              <i className="las la-spinner la-spin" style={{ fontSize: '32px' }}></i>
-              <div style={{ marginTop: '10px' }}>Skanowanie struktury folderów...</div>
+            <div
+              style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}
+            >
+              <i
+                className="las la-spinner la-spin"
+                style={{ fontSize: '32px' }}
+              ></i>
+              <div style={{ marginTop: '10px' }}>
+                Skanowanie struktury folderów...
+              </div>
             </div>
           )}
 
           {!diagLoading && diagnostics && (
             <>
               {/* Env check */}
-              <div style={{
-                padding: '12px',
-                background: '#f9fafb',
-                borderRadius: '6px',
-                marginBottom: '15px',
-                fontSize: '12px',
-                fontFamily: 'monospace'
-              }}>
-                <div style={{ fontWeight: 600, marginBottom: '8px' }}>Konfiguracja:</div>
-                <div style={{ color: diagnostics.envCheck.FILE_LIST_URL === 'SET' ? '#059669' : '#dc2626' }}>
+              <div
+                style={{
+                  padding: '12px',
+                  background: '#f9fafb',
+                  borderRadius: '6px',
+                  marginBottom: '15px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                }}
+              >
+                <div style={{ fontWeight: 600, marginBottom: '8px' }}>
+                  Konfiguracja:
+                </div>
+                <div
+                  style={{
+                    color:
+                      diagnostics.envCheck.FILE_LIST_URL === 'SET'
+                        ? '#059669'
+                        : '#dc2626',
+                  }}
+                >
                   FILE_LIST_URL: {diagnostics.envCheck.FILE_LIST_URL}
                 </div>
-                <div style={{ color: diagnostics.envCheck.FILE_PROXY_SECRET === 'SET' ? '#059669' : '#dc2626' }}>
+                <div
+                  style={{
+                    color:
+                      diagnostics.envCheck.FILE_PROXY_SECRET === 'SET'
+                        ? '#059669'
+                        : '#dc2626',
+                  }}
+                >
                   FILE_PROXY_SECRET: {diagnostics.envCheck.FILE_PROXY_SECRET}
                 </div>
               </div>
 
               {/* Summary */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '10px',
-                marginBottom: '15px'
-              }}>
-                <div style={{ padding: '15px', background: '#dbeafe', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#1e40af' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '10px',
+                  marginBottom: '15px',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '15px',
+                    background: '#dbeafe',
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 700,
+                      color: '#1e40af',
+                    }}
+                  >
                     {diagnostics.summary.totalFolders}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#1e40af' }}>Folderów</div>
+                  <div style={{ fontSize: '12px', color: '#1e40af' }}>
+                    Folderów
+                  </div>
                 </div>
-                <div style={{ padding: '15px', background: '#d1fae5', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#065f46' }}>
+                <div
+                  style={{
+                    padding: '15px',
+                    background: '#d1fae5',
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 700,
+                      color: '#065f46',
+                    }}
+                  >
                     {diagnostics.summary.totalImages}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#065f46' }}>Obrazów do cache</div>
+                  <div style={{ fontSize: '12px', color: '#065f46' }}>
+                    Obrazów do cache
+                  </div>
                 </div>
-                <div style={{ padding: '15px', background: '#fef3c7', borderRadius: '6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#92400e' }}>
+                <div
+                  style={{
+                    padding: '15px',
+                    background: '#fef3c7',
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 700,
+                      color: '#92400e',
+                    }}
+                  >
                     {diagnostics.summary.foldersWithImages}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#92400e' }}>Folderów z obrazami</div>
+                  <div style={{ fontSize: '12px', color: '#92400e' }}>
+                    Folderów z obrazami
+                  </div>
                 </div>
               </div>
 
               {/* Errors */}
               {diagnostics.errors.length > 0 && (
-                <div style={{
-                  padding: '12px',
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '6px',
-                  marginBottom: '15px'
-                }}>
-                  <div style={{ fontWeight: 600, color: '#991b1b', marginBottom: '8px' }}>
+                <div
+                  style={{
+                    padding: '12px',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '6px',
+                    marginBottom: '15px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: '#991b1b',
+                      marginBottom: '8px',
+                    }}
+                  >
                     Błędy ({diagnostics.errors.length}):
                   </div>
                   {diagnostics.errors.slice(0, 5).map((err, i) => (
-                    <div key={i} style={{ fontSize: '12px', color: '#b91c1c', marginBottom: '4px' }}>
+                    <div
+                      key={i}
+                      style={{
+                        fontSize: '12px',
+                        color: '#b91c1c',
+                        marginBottom: '4px',
+                      }}
+                    >
                       {err}
                     </div>
                   ))}
@@ -915,209 +1268,431 @@ export const CacheMonitorSection: React.FC = () => {
 
               {/* Folder list */}
               <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    fontSize: '13px',
+                  }}
+                >
                   <thead>
-                    <tr style={{ background: '#f9fafb', position: 'sticky', top: 0, zIndex: 1 }}>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Folder</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Obrazy</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Cache</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Podfoldery</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Akcje</th>
+                    <tr
+                      style={{
+                        background: '#f9fafb',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 1,
+                      }}
+                    >
+                      <th
+                        style={{
+                          padding: '10px',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        Folder
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px',
+                          textAlign: 'center',
+                          borderBottom: '1px solid #e5e7eb',
+                          width: '80px',
+                        }}
+                      >
+                        Obrazy
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px',
+                          textAlign: 'center',
+                          borderBottom: '1px solid #e5e7eb',
+                          width: '100px',
+                        }}
+                      >
+                        Cache
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px',
+                          textAlign: 'center',
+                          borderBottom: '1px solid #e5e7eb',
+                          width: '80px',
+                        }}
+                      >
+                        Podfoldery
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px',
+                          textAlign: 'center',
+                          borderBottom: '1px solid #e5e7eb',
+                          width: '100px',
+                        }}
+                      >
+                        Akcje
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {diagnostics.folders
-                      .filter(f => f.imageCount > 0 || f.error)
+                      .filter((f) => f.imageCount > 0 || f.error)
                       .map((folder, i) => (
-                      <React.Fragment key={i}>
-                        <tr
-                          style={{
-                            borderBottom: expandedFolder === folder.path ? 'none' : '1px solid #f3f4f6',
-                            cursor: folder.imageCount > 0 ? 'pointer' : 'default',
-                            background: expandedFolder === folder.path ? '#f0f9ff' : 'transparent',
-                          }}
-                          onClick={() => folder.imageCount > 0 && toggleFolderExpand(folder.path)}
-                        >
-                          <td style={{ padding: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {folder.imageCount > 0 && (
-                                <i
-                                  className={`las ${expandedFolder === folder.path ? 'la-chevron-down' : 'la-chevron-right'}`}
-                                  style={{ fontSize: '12px', color: '#6b7280' }}
-                                ></i>
-                              )}
-                              <div style={{
-                                fontFamily: 'monospace',
-                                fontSize: '12px',
-                                color: folder.error ? '#dc2626' : '#374151'
-                              }}>
-                                {folder.path}
-                              </div>
-                            </div>
-                            {folder.error && (
-                              <div style={{ fontSize: '11px', color: '#dc2626', marginLeft: '20px' }}>{folder.error}</div>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px', textAlign: 'center' }}>
-                            <span style={{
-                              fontWeight: folder.imageCount > 0 ? 600 : 400,
-                              color: folder.imageCount > 0 ? '#059669' : '#9ca3af'
-                            }}>
-                              {folder.imageCount}
-                            </span>
-                          </td>
-                          <td style={{ padding: '10px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                            {loadingCacheStatus === folder.path ? (
-                              <i className="las la-spinner la-spin" style={{ color: '#6b7280' }}></i>
-                            ) : folderCacheStatus[folder.path] ? (
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                <span style={{
-                                  fontSize: '12px',
-                                  fontWeight: 600,
-                                  color: folderCacheStatus[folder.path].summary.percentage === 100 ? '#059669'
-                                    : folderCacheStatus[folder.path].summary.percentage > 0 ? '#f59e0b'
-                                    : '#dc2626'
-                                }}>
-                                  {folderCacheStatus[folder.path].summary.cached}/{folderCacheStatus[folder.path].summary.total}
-                                </span>
-                                <i
-                                  className={`las ${
-                                    folderCacheStatus[folder.path].summary.percentage === 100 ? 'la-check-circle'
-                                    : folderCacheStatus[folder.path].summary.percentage > 0 ? 'la-exclamation-circle'
-                                    : 'la-times-circle'
-                                  }`}
-                                  style={{
-                                    color: folderCacheStatus[folder.path].summary.percentage === 100 ? '#059669'
-                                      : folderCacheStatus[folder.path].summary.percentage > 0 ? '#f59e0b'
-                                      : '#dc2626',
-                                    fontSize: '14px'
-                                  }}
-                                ></i>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => fetchFolderCacheStatus(folder.path)}
-                                disabled={folder.imageCount === 0}
+                        <React.Fragment key={i}>
+                          <tr
+                            style={{
+                              borderBottom:
+                                expandedFolder === folder.path
+                                  ? 'none'
+                                  : '1px solid #f3f4f6',
+                              cursor:
+                                folder.imageCount > 0 ? 'pointer' : 'default',
+                              background:
+                                expandedFolder === folder.path
+                                  ? '#f0f9ff'
+                                  : 'transparent',
+                            }}
+                            onClick={() =>
+                              folder.imageCount > 0 &&
+                              toggleFolderExpand(folder.path)
+                            }
+                          >
+                            <td style={{ padding: '10px' }}>
+                              <div
                                 style={{
-                                  padding: '2px 6px',
-                                  fontSize: '10px',
-                                  background: '#f3f4f6',
-                                  color: '#6b7280',
-                                  border: 'none',
-                                  borderRadius: '3px',
-                                  cursor: folder.imageCount === 0 ? 'not-allowed' : 'pointer',
-                                }}
-                              >
-                                Sprawdź
-                              </button>
-                            )}
-                          </td>
-                          <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
-                            {folder.subfolders.length}
-                          </td>
-                          <td style={{ padding: '10px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                              <button
-                                onClick={() => handleRebuildFolder(folder.path)}
-                                disabled={rebuildingFolder !== null || folder.imageCount === 0}
-                                title={folder.imageCount === 0 ? 'Brak obrazów' : 'Przebuduj miniaturki'}
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: '11px',
-                                  background: folder.imageCount === 0 ? '#f3f4f6' : '#e0e7ff',
-                                  color: folder.imageCount === 0 ? '#9ca3af' : '#4338ca',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: folder.imageCount === 0 ? 'not-allowed' : 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: '4px',
+                                  gap: '8px',
                                 }}
                               >
-                                {rebuildingFolder === folder.path ? (
-                                  <i className="las la-spinner la-spin"></i>
-                                ) : (
-                                  <i className="las la-sync-alt"></i>
+                                {folder.imageCount > 0 && (
+                                  <i
+                                    className={`las ${
+                                      expandedFolder === folder.path
+                                        ? 'la-chevron-down'
+                                        : 'la-chevron-right'
+                                    }`}
+                                    style={{
+                                      fontSize: '12px',
+                                      color: '#6b7280',
+                                    }}
+                                  ></i>
                                 )}
-                              </button>
-                              {lastRebuiltFolder?.path === folder.path && (
-                                <span
-                                  title={`Ostatnio przebudowany: ${formatDate(lastRebuiltFolder.timestamp)}`}
-                                  style={{ color: '#059669', fontSize: '14px' }}
+                                <div
+                                  style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: '12px',
+                                    color: folder.error ? '#dc2626' : '#374151',
+                                  }}
                                 >
-                                  <i className="las la-check-circle"></i>
-                                </span>
+                                  {folder.path}
+                                </div>
+                              </div>
+                              {folder.error && (
+                                <div
+                                  style={{
+                                    fontSize: '11px',
+                                    color: '#dc2626',
+                                    marginLeft: '20px',
+                                  }}
+                                >
+                                  {folder.error}
+                                </div>
                               )}
-                            </div>
-                          </td>
-                        </tr>
-                        {/* Rozwinięty widok obrazów */}
-                        {expandedFolder === folder.path && (
-                          <tr>
-                            <td colSpan={5} style={{ padding: 0, background: '#f8fafc' }}>
-                              <div style={{
-                                padding: '12px 20px',
-                                borderBottom: '1px solid #e5e7eb',
-                                maxHeight: '300px',
-                                overflowY: 'auto'
-                              }}>
-                                {loadingCacheStatus === folder.path ? (
-                                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
-                                    <i className="las la-spinner la-spin" style={{ fontSize: '24px' }}></i>
-                                    <div style={{ marginTop: '8px', fontSize: '12px' }}>Sprawdzanie cache...</div>
-                                  </div>
-                                ) : folderCacheStatus[folder.path] ? (
-                                  <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                                    gap: '8px'
-                                  }}>
-                                    {folderCacheStatus[folder.path].images.map((img, idx) => (
-                                      <div
-                                        key={idx}
-                                        style={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: '8px',
-                                          padding: '6px 10px',
-                                          background: img.cached ? '#ecfdf5' : '#fef2f2',
-                                          borderRadius: '4px',
-                                          fontSize: '11px',
-                                        }}
-                                      >
-                                        <i
-                                          className={`las ${img.cached ? 'la-check-circle' : 'la-times-circle'}`}
-                                          style={{
-                                            color: img.cached ? '#059669' : '#dc2626',
-                                            fontSize: '16px',
-                                            flexShrink: 0,
-                                          }}
-                                        ></i>
-                                        <span
-                                          style={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            color: img.cached ? '#065f46' : '#991b1b',
-                                          }}
-                                          title={img.name}
-                                        >
-                                          {img.name}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '12px' }}>
-                                    Kliknij &quot;Sprawdź&quot; aby zobaczyć status cache
-                                  </div>
+                            </td>
+                            <td
+                              style={{ padding: '10px', textAlign: 'center' }}
+                            >
+                              <span
+                                style={{
+                                  fontWeight: folder.imageCount > 0 ? 600 : 400,
+                                  color:
+                                    folder.imageCount > 0
+                                      ? '#059669'
+                                      : '#9ca3af',
+                                }}
+                              >
+                                {folder.imageCount}
+                              </span>
+                            </td>
+                            <td
+                              style={{ padding: '10px', textAlign: 'center' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {loadingCacheStatus === folder.path ? (
+                                <i
+                                  className="las la-spinner la-spin"
+                                  style={{ color: '#6b7280' }}
+                                ></i>
+                              ) : folderCacheStatus[folder.path] ? (
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '4px',
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: '12px',
+                                      fontWeight: 600,
+                                      color:
+                                        folderCacheStatus[folder.path].summary
+                                          .percentage === 100
+                                          ? '#059669'
+                                          : folderCacheStatus[folder.path]
+                                              .summary.percentage > 0
+                                          ? '#f59e0b'
+                                          : '#dc2626',
+                                    }}
+                                  >
+                                    {
+                                      folderCacheStatus[folder.path].summary
+                                        .cached
+                                    }
+                                    /
+                                    {
+                                      folderCacheStatus[folder.path].summary
+                                        .total
+                                    }
+                                  </span>
+                                  <i
+                                    className={`las ${
+                                      folderCacheStatus[folder.path].summary
+                                        .percentage === 100
+                                        ? 'la-check-circle'
+                                        : folderCacheStatus[folder.path].summary
+                                            .percentage > 0
+                                        ? 'la-exclamation-circle'
+                                        : 'la-times-circle'
+                                    }`}
+                                    style={{
+                                      color:
+                                        folderCacheStatus[folder.path].summary
+                                          .percentage === 100
+                                          ? '#059669'
+                                          : folderCacheStatus[folder.path]
+                                              .summary.percentage > 0
+                                          ? '#f59e0b'
+                                          : '#dc2626',
+                                      fontSize: '14px',
+                                    }}
+                                  ></i>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() =>
+                                    fetchFolderCacheStatus(folder.path)
+                                  }
+                                  disabled={folder.imageCount === 0}
+                                  style={{
+                                    padding: '2px 6px',
+                                    fontSize: '10px',
+                                    background: '#f3f4f6',
+                                    color: '#6b7280',
+                                    border: 'none',
+                                    borderRadius: '3px',
+                                    cursor:
+                                      folder.imageCount === 0
+                                        ? 'not-allowed'
+                                        : 'pointer',
+                                  }}
+                                >
+                                  Sprawdź
+                                </button>
+                              )}
+                            </td>
+                            <td
+                              style={{
+                                padding: '10px',
+                                textAlign: 'center',
+                                color: '#6b7280',
+                              }}
+                            >
+                              {folder.subfolders.length}
+                            </td>
+                            <td
+                              style={{ padding: '10px', textAlign: 'center' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                }}
+                              >
+                                <button
+                                  onClick={() =>
+                                    handleRebuildFolder(folder.path)
+                                  }
+                                  disabled={
+                                    rebuildingFolder !== null ||
+                                    folder.imageCount === 0
+                                  }
+                                  title={
+                                    folder.imageCount === 0
+                                      ? 'Brak obrazów'
+                                      : 'Przebuduj miniaturki'
+                                  }
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '11px',
+                                    background:
+                                      folder.imageCount === 0
+                                        ? '#f3f4f6'
+                                        : '#e0e7ff',
+                                    color:
+                                      folder.imageCount === 0
+                                        ? '#9ca3af'
+                                        : '#4338ca',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor:
+                                      folder.imageCount === 0
+                                        ? 'not-allowed'
+                                        : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                  }}
+                                >
+                                  {rebuildingFolder === folder.path ? (
+                                    <i className="las la-spinner la-spin"></i>
+                                  ) : (
+                                    <i className="las la-sync-alt"></i>
+                                  )}
+                                </button>
+                                {lastRebuiltFolder?.path === folder.path && (
+                                  <span
+                                    title={`Ostatnio przebudowany: ${formatDate(
+                                      lastRebuiltFolder.timestamp
+                                    )}`}
+                                    style={{
+                                      color: '#059669',
+                                      fontSize: '14px',
+                                    }}
+                                  >
+                                    <i className="las la-check-circle"></i>
+                                  </span>
                                 )}
                               </div>
                             </td>
                           </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
+                          {/* Rozwinięty widok obrazów */}
+                          {expandedFolder === folder.path && (
+                            <tr>
+                              <td
+                                colSpan={5}
+                                style={{ padding: 0, background: '#f8fafc' }}
+                              >
+                                <div
+                                  style={{
+                                    padding: '12px 20px',
+                                    borderBottom: '1px solid #e5e7eb',
+                                    maxHeight: '300px',
+                                    overflowY: 'auto',
+                                  }}
+                                >
+                                  {loadingCacheStatus === folder.path ? (
+                                    <div
+                                      style={{
+                                        textAlign: 'center',
+                                        padding: '20px',
+                                        color: '#6b7280',
+                                      }}
+                                    >
+                                      <i
+                                        className="las la-spinner la-spin"
+                                        style={{ fontSize: '24px' }}
+                                      ></i>
+                                      <div
+                                        style={{
+                                          marginTop: '8px',
+                                          fontSize: '12px',
+                                        }}
+                                      >
+                                        Sprawdzanie cache...
+                                      </div>
+                                    </div>
+                                  ) : folderCacheStatus[folder.path] ? (
+                                    <div
+                                      style={{
+                                        display: 'grid',
+                                        gridTemplateColumns:
+                                          'repeat(auto-fill, minmax(200px, 1fr))',
+                                        gap: '8px',
+                                      }}
+                                    >
+                                      {folderCacheStatus[
+                                        folder.path
+                                      ].images.map((img, idx) => (
+                                        <div
+                                          key={idx}
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '6px 10px',
+                                            background: img.cached
+                                              ? '#ecfdf5'
+                                              : '#fef2f2',
+                                            borderRadius: '4px',
+                                            fontSize: '11px',
+                                          }}
+                                        >
+                                          <i
+                                            className={`las ${
+                                              img.cached
+                                                ? 'la-check-circle'
+                                                : 'la-times-circle'
+                                            }`}
+                                            style={{
+                                              color: img.cached
+                                                ? '#059669'
+                                                : '#dc2626',
+                                              fontSize: '16px',
+                                              flexShrink: 0,
+                                            }}
+                                          ></i>
+                                          <span
+                                            style={{
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              whiteSpace: 'nowrap',
+                                              color: img.cached
+                                                ? '#065f46'
+                                                : '#991b1b',
+                                            }}
+                                            title={img.name}
+                                          >
+                                            {img.name}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div
+                                      style={{
+                                        textAlign: 'center',
+                                        padding: '20px',
+                                        color: '#6b7280',
+                                        fontSize: '12px',
+                                      }}
+                                    >
+                                      Kliknij &quot;Sprawdź&quot; aby zobaczyć
+                                      status cache
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -1125,9 +1700,16 @@ export const CacheMonitorSection: React.FC = () => {
           )}
 
           {!diagLoading && !diagnostics && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-              <i className="las la-folder-open" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
-              <div>Kliknij &quot;Skanuj foldery&quot; aby zobaczyć strukturę</div>
+            <div
+              style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}
+            >
+              <i
+                className="las la-folder-open"
+                style={{ fontSize: '48px', marginBottom: '10px' }}
+              ></i>
+              <div>
+                Kliknij &quot;Skanuj foldery&quot; aby zobaczyć strukturę
+              </div>
             </div>
           )}
         </div>
@@ -1136,19 +1718,53 @@ export const CacheMonitorSection: React.FC = () => {
       {/* Hashes Tab */}
       {activeTab === 'hashes' && (
         <div className="admin-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '15px',
+            }}
+          >
             <h3 style={{ margin: 0 }}>Weryfikacja hashy folderów</h3>
             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
               {hashStats && (
                 <>
-                  <span style={{ fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="las la-check-circle"></i> Zgodne: {hashStats.matching}
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color: '#059669',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <i className="las la-check-circle"></i> Zgodne:{' '}
+                    {hashStats.matching}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="las la-exclamation-circle"></i> Zmienione: {hashStats.changed}
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color: '#f59e0b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <i className="las la-exclamation-circle"></i> Zmienione:{' '}
+                    {hashStats.changed}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="las la-plus-circle"></i> Nowe: {hashStats.newFolders}
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <i className="las la-plus-circle"></i> Nowe:{' '}
+                    {hashStats.newFolders}
                   </span>
                 </>
               )}
@@ -1164,39 +1780,108 @@ export const CacheMonitorSection: React.FC = () => {
           </div>
 
           {hashesLoading && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-              <i className="las la-spinner la-spin" style={{ fontSize: '32px' }}></i>
-              <div style={{ marginTop: '10px' }}>Ładowanie hashy folderów...</div>
+            <div
+              style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}
+            >
+              <i
+                className="las la-spinner la-spin"
+                style={{ fontSize: '32px' }}
+              ></i>
+              <div style={{ marginTop: '10px' }}>
+                Ładowanie hashy folderów...
+              </div>
             </div>
           )}
 
           {!hashesLoading && folderHashes.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-              <i className="las la-fingerprint" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
+            <div
+              style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}
+            >
+              <i
+                className="las la-fingerprint"
+                style={{ fontSize: '48px', marginBottom: '10px' }}
+              ></i>
               <div>Brak danych o hashach. Uruchom skanowanie.</div>
             </div>
           )}
 
           {!hashesLoading && folderHashes.length > 0 && (
             <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontSize: '12px',
+                }}
+              >
                 <thead>
-                  <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Folder</th>
-                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Plików</th>
-                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Status</th>
-                    <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', width: '150px' }}>Aktualny hash</th>
+                  <tr
+                    style={{
+                      background: '#f9fafb',
+                      position: 'sticky',
+                      top: 0,
+                    }}
+                  >
+                    <th
+                      style={{
+                        padding: '10px',
+                        textAlign: 'left',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      Folder
+                    </th>
+                    <th
+                      style={{
+                        padding: '10px',
+                        textAlign: 'center',
+                        borderBottom: '1px solid #e5e7eb',
+                        width: '80px',
+                      }}
+                    >
+                      Plików
+                    </th>
+                    <th
+                      style={{
+                        padding: '10px',
+                        textAlign: 'center',
+                        borderBottom: '1px solid #e5e7eb',
+                        width: '100px',
+                      }}
+                    >
+                      Status
+                    </th>
+                    <th
+                      style={{
+                        padding: '10px',
+                        textAlign: 'left',
+                        borderBottom: '1px solid #e5e7eb',
+                        width: '150px',
+                      }}
+                    >
+                      Aktualny hash
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {folderHashes.map((record, i) => {
-                    const isMatch = record.previousHash && record.currentHash === record.previousHash;
-                    const isChanged = record.previousHash && record.currentHash !== record.previousHash;
+                    const isMatch =
+                      record.previousHash &&
+                      record.currentHash === record.previousHash;
+                    const isChanged =
+                      record.previousHash &&
+                      record.currentHash !== record.previousHash;
                     const isNew = !record.previousHash;
 
                     return (
                       <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '11px' }}>
+                        <td
+                          style={{
+                            padding: '10px',
+                            fontFamily: 'monospace',
+                            fontSize: '11px',
+                          }}
+                        >
                           {record.path || '/'}
                         </td>
                         <td style={{ padding: '10px', textAlign: 'center' }}>
@@ -1204,22 +1889,54 @@ export const CacheMonitorSection: React.FC = () => {
                         </td>
                         <td style={{ padding: '10px', textAlign: 'center' }}>
                           {isMatch && (
-                            <span style={{ color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                            <span
+                              style={{
+                                color: '#059669',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                              }}
+                            >
                               <i className="las la-check-circle"></i> Zgodny
                             </span>
                           )}
                           {isChanged && (
-                            <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                              <i className="las la-exclamation-circle"></i> Zmieniony
+                            <span
+                              style={{
+                                color: '#f59e0b',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <i className="las la-exclamation-circle"></i>{' '}
+                              Zmieniony
                             </span>
                           )}
                           {isNew && (
-                            <span style={{ color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                            <span
+                              style={{
+                                color: '#6b7280',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                              }}
+                            >
                               <i className="las la-plus-circle"></i> Nowy
                             </span>
                           )}
                         </td>
-                        <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '10px', color: '#6b7280' }}>
+                        <td
+                          style={{
+                            padding: '10px',
+                            fontFamily: 'monospace',
+                            fontSize: '10px',
+                            color: '#6b7280',
+                          }}
+                        >
                           {record.currentHash.substring(0, 12)}...
                         </td>
                       </tr>
@@ -1237,18 +1954,35 @@ export const CacheMonitorSection: React.FC = () => {
         <div style={{ display: 'grid', gap: '20px' }}>
           {/* Scheduler toggle */}
           <div className="admin-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Automatyczne skanowanie</h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
                   Włącz automatyczne sprawdzanie zmian w plikach
                 </p>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={schedulerConfig.enabled}
-                  onChange={() => handleConfigUpdate('scheduler', { enabled: !schedulerConfig.enabled })}
+                  onChange={() =>
+                    handleConfigUpdate('scheduler', {
+                      enabled: !schedulerConfig.enabled,
+                    })
+                  }
                   style={{ width: '20px', height: '20px' }}
                 />
                 <span style={{ fontWeight: 500 }}>
@@ -1261,16 +1995,32 @@ export const CacheMonitorSection: React.FC = () => {
           {/* Work hours */}
           <div className="admin-card">
             <h3 style={{ margin: '0 0 15px 0' }}>Godziny pracy</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '15px',
+              }}
+            >
               <label>
-                <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '5px',
+                  }}
+                >
                   Od godziny
                 </span>
                 <select
                   value={schedulerConfig.workHours.start}
                   onChange={(e) =>
                     handleConfigUpdate('scheduler', {
-                      workHours: { ...schedulerConfig.workHours, start: parseInt(e.target.value) },
+                      workHours: {
+                        ...schedulerConfig.workHours,
+                        start: parseInt(e.target.value),
+                      },
                     })
                   }
                   className="admin-input"
@@ -1284,14 +2034,24 @@ export const CacheMonitorSection: React.FC = () => {
                 </select>
               </label>
               <label>
-                <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '5px',
+                  }}
+                >
                   Do godziny
                 </span>
                 <select
                   value={schedulerConfig.workHours.end}
                   onChange={(e) =>
                     handleConfigUpdate('scheduler', {
-                      workHours: { ...schedulerConfig.workHours, end: parseInt(e.target.value) },
+                      workHours: {
+                        ...schedulerConfig.workHours,
+                        end: parseInt(e.target.value),
+                      },
                     })
                   }
                   className="admin-input"
@@ -1305,14 +2065,24 @@ export const CacheMonitorSection: React.FC = () => {
                 </select>
               </label>
               <label>
-                <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '5px',
+                  }}
+                >
                   Interwał (minuty)
                 </span>
                 <select
                   value={schedulerConfig.workHours.intervalMinutes}
                   onChange={(e) =>
                     handleConfigUpdate('scheduler', {
-                      workHours: { ...schedulerConfig.workHours, intervalMinutes: parseInt(e.target.value) },
+                      workHours: {
+                        ...schedulerConfig.workHours,
+                        intervalMinutes: parseInt(e.target.value),
+                      },
                     })
                   }
                   className="admin-input"
@@ -1330,37 +2100,67 @@ export const CacheMonitorSection: React.FC = () => {
 
           {/* Off hours */}
           <div className="admin-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '15px',
+              }}
+            >
               <div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Poza godzinami pracy</h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
-                  Sprawdzanie w godzinach {schedulerConfig.workHours.end}:00 - {schedulerConfig.workHours.start}:00
+                  Sprawdzanie w godzinach {schedulerConfig.workHours.end}:00 -{' '}
+                  {schedulerConfig.workHours.start}:00
                 </p>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={schedulerConfig.offHours.enabled}
                   onChange={() =>
                     handleConfigUpdate('scheduler', {
-                      offHours: { ...schedulerConfig.offHours, enabled: !schedulerConfig.offHours.enabled },
+                      offHours: {
+                        ...schedulerConfig.offHours,
+                        enabled: !schedulerConfig.offHours.enabled,
+                      },
                     })
                   }
                   style={{ width: '18px', height: '18px' }}
                 />
-                <span>{schedulerConfig.offHours.enabled ? 'Włączone' : 'Wyłączone'}</span>
+                <span>
+                  {schedulerConfig.offHours.enabled ? 'Włączone' : 'Wyłączone'}
+                </span>
               </label>
             </div>
             {schedulerConfig.offHours.enabled && (
               <label>
-                <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    marginBottom: '5px',
+                  }}
+                >
                   Interwał (minuty)
                 </span>
                 <select
                   value={schedulerConfig.offHours.intervalMinutes || 120}
                   onChange={(e) =>
                     handleConfigUpdate('scheduler', {
-                      offHours: { ...schedulerConfig.offHours, intervalMinutes: parseInt(e.target.value) },
+                      offHours: {
+                        ...schedulerConfig.offHours,
+                        intervalMinutes: parseInt(e.target.value),
+                      },
                     })
                   }
                   className="admin-input"
@@ -1380,15 +2180,30 @@ export const CacheMonitorSection: React.FC = () => {
           {thumbnailConfig && (
             <div className="admin-card">
               <h3 style={{ margin: '0 0 15px 0' }}>Miniaturki</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '15px',
+                }}
+              >
                 <label>
-                  <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      marginBottom: '5px',
+                    }}
+                  >
                     Format
                   </span>
                   <select
                     value={thumbnailConfig.format}
                     onChange={(e) =>
-                      handleConfigUpdate('thumbnails', { format: e.target.value as 'webp' | 'avif' | 'jpeg' })
+                      handleConfigUpdate('thumbnails', {
+                        format: e.target.value as 'webp' | 'avif' | 'jpeg',
+                      })
                     }
                     className="admin-input"
                     style={{ width: '100%' }}
@@ -1399,13 +2214,22 @@ export const CacheMonitorSection: React.FC = () => {
                   </select>
                 </label>
                 <label>
-                  <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      marginBottom: '5px',
+                    }}
+                  >
                     Lokalizacja
                   </span>
                   <select
                     value={thumbnailConfig.storage}
                     onChange={(e) =>
-                      handleConfigUpdate('thumbnails', { storage: e.target.value as 'local' | 'remote' })
+                      handleConfigUpdate('thumbnails', {
+                        storage: e.target.value as 'local' | 'remote',
+                      })
                     }
                     className="admin-input"
                     style={{ width: '100%' }}
@@ -1420,18 +2244,35 @@ export const CacheMonitorSection: React.FC = () => {
 
           {/* Email Notifications */}
           <div className="admin-card" style={{ marginTop: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '15px',
+              }}
+            >
               <div>
                 <h3 style={{ margin: '0 0 5px 0' }}>Powiadomienia email</h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
-                  Otrzymuj powiadomienia po zakończeniu operacji cache
+                  Otrzymuj maile po zakończeniu rebuild/regeneracji oraz przy
+                  awarii (błąd skanowania, błąd regeneracji).
                 </p>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={emailConfig?.enabled || false}
-                  onChange={() => handleEmailConfigUpdate({ enabled: !emailConfig?.enabled })}
+                  onChange={() =>
+                    handleEmailConfigUpdate({ enabled: !emailConfig?.enabled })
+                  }
                   style={{ width: '18px', height: '18px' }}
                 />
                 <span>{emailConfig?.enabled ? 'Włączone' : 'Wyłączone'}</span>
@@ -1440,35 +2281,115 @@ export const CacheMonitorSection: React.FC = () => {
             {emailConfig?.enabled && (
               <div style={{ display: 'grid', gap: '15px' }}>
                 <label>
-                  <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      marginBottom: '5px',
+                    }}
+                  >
                     Adres email (pozostaw pusty dla domyślnego admina)
                   </span>
                   <input
                     type="email"
                     value={emailConfig?.email || ''}
-                    onChange={(e) => handleEmailConfigUpdate({ email: e.target.value })}
+                    onChange={(e) =>
+                      handleEmailConfigUpdate({ email: e.target.value })
+                    }
                     placeholder="domyślny: admin"
                     className="admin-input"
                     style={{ width: '100%', maxWidth: '300px' }}
                   />
                 </label>
                 <div style={{ display: 'flex', gap: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={emailConfig?.notifyOnRebuild ?? true}
-                      onChange={() => handleEmailConfigUpdate({ notifyOnRebuild: !emailConfig?.notifyOnRebuild })}
+                      onChange={() =>
+                        handleEmailConfigUpdate({
+                          notifyOnRebuild: !emailConfig?.notifyOnRebuild,
+                        })
+                      }
                     />
                     <span style={{ fontSize: '13px' }}>Po rebuild</span>
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={emailConfig?.notifyOnError ?? true}
-                      onChange={() => handleEmailConfigUpdate({ notifyOnError: !emailConfig?.notifyOnError })}
+                      onChange={() =>
+                        handleEmailConfigUpdate({
+                          notifyOnError: !emailConfig?.notifyOnError,
+                        })
+                      }
                     />
                     <span style={{ fontSize: '13px' }}>Przy błędach</span>
                   </label>
+                </div>
+                <div style={{ marginTop: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setTestErrorResult(null);
+                      setTestErrorSending(true);
+                      try {
+                        const r = await fetch(
+                          '/api/admin/cache/test-error-notification',
+                          { method: 'POST' }
+                        );
+                        const data = await r.json();
+                        if (data.success) {
+                          setTestErrorResult('Wysłano. Sprawdź skrzynkę.');
+                        } else {
+                          setTestErrorResult(
+                            `Błąd: ${data.error || 'nieznany'}`
+                          );
+                        }
+                      } catch (e) {
+                        setTestErrorResult(
+                          `Błąd: ${e instanceof Error ? e.message : 'nieznany'}`
+                        );
+                      } finally {
+                        setTestErrorSending(false);
+                      }
+                    }}
+                    disabled={testErrorSending}
+                    className="admin-btn admin-btn--secondary"
+                    style={{ fontSize: '13px', padding: '6px 14px' }}
+                  >
+                    {testErrorSending
+                      ? 'Wysyłanie...'
+                      : 'Wyślij testowe powiadomienie o błędzie'}
+                  </button>
+                  {testErrorResult && (
+                    <span
+                      style={{
+                        marginLeft: '10px',
+                        fontSize: '13px',
+                        color: testErrorResult.startsWith('Błąd')
+                          ? '#dc2626'
+                          : '#059669',
+                      }}
+                    >
+                      {testErrorResult}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -1479,7 +2400,14 @@ export const CacheMonitorSection: React.FC = () => {
       {/* History Tab */}
       {activeTab === 'history' && (
         <div className="admin-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '15px',
+            }}
+          >
             <h3 style={{ margin: 0 }}>Historia operacji</h3>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <span style={{ fontSize: '12px', color: '#6b7280' }}>
@@ -1508,7 +2436,9 @@ export const CacheMonitorSection: React.FC = () => {
             </div>
           </div>
           {history.length === 0 ? (
-            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Brak historii</p>
+            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>
+              Brak historii
+            </p>
           ) : (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {history.map((entry) => (
@@ -1523,10 +2453,22 @@ export const CacheMonitorSection: React.FC = () => {
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>
+                    <div
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: '#111827',
+                      }}
+                    >
                       {entry.details}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '3px' }}>
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        color: '#9ca3af',
+                        marginTop: '3px',
+                      }}
+                    >
                       {formatDate(entry.timestamp)}
                       {entry.duration && ` • ${formatDuration(entry.duration)}`}
                     </div>
@@ -1541,18 +2483,18 @@ export const CacheMonitorSection: React.FC = () => {
                         entry.action === 'error'
                           ? '#fee2e2'
                           : entry.action === 'changes_detected'
-                            ? '#fef3c7'
-                            : entry.action === 'thumbnails_generated'
-                              ? '#dbeafe'
-                              : '#d1fae5',
+                          ? '#fef3c7'
+                          : entry.action === 'thumbnails_generated'
+                          ? '#dbeafe'
+                          : '#d1fae5',
                       color:
                         entry.action === 'error'
                           ? '#991b1b'
                           : entry.action === 'changes_detected'
-                            ? '#92400e'
-                            : entry.action === 'thumbnails_generated'
-                              ? '#1e40af'
-                              : '#065f46',
+                          ? '#92400e'
+                          : entry.action === 'thumbnails_generated'
+                          ? '#1e40af'
+                          : '#065f46',
                     }}
                   >
                     {entry.action.replace(/_/g, ' ')}
@@ -1569,7 +2511,9 @@ export const CacheMonitorSection: React.FC = () => {
         <div className="admin-card">
           <h3 style={{ margin: '0 0 15px 0' }}>Ostatnie zmiany w plikach</h3>
           {changes.length === 0 ? (
-            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Brak wykrytych zmian</p>
+            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>
+              Brak wykrytych zmian
+            </p>
           ) : (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {changes.map((change) => (
@@ -1612,21 +2556,21 @@ export const CacheMonitorSection: React.FC = () => {
                         change.type === 'file_added'
                           ? '#d1fae5'
                           : change.type === 'file_deleted'
-                            ? '#fee2e2'
-                            : '#fef3c7',
+                          ? '#fee2e2'
+                          : '#fef3c7',
                       color:
                         change.type === 'file_added'
                           ? '#065f46'
                           : change.type === 'file_deleted'
-                            ? '#991b1b'
-                            : '#92400e',
+                          ? '#991b1b'
+                          : '#92400e',
                     }}
                   >
                     {change.type === 'file_added'
                       ? 'Nowy'
                       : change.type === 'file_deleted'
-                        ? 'Usunięty'
-                        : 'Zmieniony'}
+                      ? 'Usunięty'
+                      : 'Zmieniony'}
                   </span>
                 </div>
               ))}

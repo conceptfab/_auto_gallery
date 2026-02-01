@@ -165,8 +165,21 @@ export async function sendRebuildNotification(
   data: RebuildNotificationData,
   customEmail?: string
 ): Promise<void> {
-  const targetEmail = customEmail || ADMIN_EMAIL;
+  const targetEmail = (customEmail?.trim() || ADMIN_EMAIL).trim();
+  if (!targetEmail) {
+    console.error(
+      '[Email] Nie wysłano powiadomienia o rebuild: brak adresu (ustaw ADMIN_EMAIL lub email w konfiguracji)'
+    );
+    return;
+  }
+  if (!process.env.RESEND_API_KEY?.trim()) {
+    console.error(
+      '[Email] Nie wysłano powiadomienia o rebuild: brak RESEND_API_KEY w zmiennych środowiskowych (Railway Variables)'
+    );
+    return;
+  }
   logger.emailEvent('sending rebuild notification', targetEmail);
+  console.log('[Email] Wysyłam powiadomienie o rebuild do:', targetEmail);
 
   try {
     const statusColor = data.success ? '#4CAF50' : '#f44336';
@@ -228,8 +241,13 @@ export async function sendRebuildNotification(
       targetEmail,
       result.data?.id
     );
+    console.log(
+      '[Email] Powiadomienie o rebuild wysłane pomyślnie, id:',
+      result.data?.id
+    );
   } catch (error) {
     logger.error('Failed to send rebuild notification', error);
+    console.error('[Email] Błąd wysyłki powiadomienia o rebuild:', error);
     // Nie rzucaj błędu - powiadomienie nie powinno blokować rebuild
   }
 }

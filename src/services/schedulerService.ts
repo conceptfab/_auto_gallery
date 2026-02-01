@@ -129,7 +129,10 @@ export async function runScan(isScheduled = false): Promise<{
   const triggerSource = isScheduled ? '[CYKLICZNE]' : '[RĘCZNE]';
 
   try {
-    await addHistoryEntry('scan_started', `${triggerSource} Rozpoczęto skanowanie zmian`);
+    await addHistoryEntry(
+      'scan_started',
+      `${triggerSource} Rozpoczęto skanowanie zmian`
+    );
 
     const cacheData = await getCacheData();
     const oldHashes = new Map(
@@ -190,7 +193,8 @@ export async function runScan(isScheduled = false): Promise<{
     );
 
     // Auto-cleanup starej historii
-    const cleanupConfig = cacheData.historyCleanupConfig || DEFAULT_HISTORY_CLEANUP_CONFIG;
+    const cleanupConfig =
+      cacheData.historyCleanupConfig || DEFAULT_HISTORY_CLEANUP_CONFIG;
     if (cleanupConfig.autoCleanupEnabled) {
       await cleanupHistory(cleanupConfig.retentionHours);
     }
@@ -203,13 +207,43 @@ export async function runScan(isScheduled = false): Promise<{
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
-    await addHistoryEntry('error', `${triggerSource} Błąd skanowania: ${errorMessage}`);
+    const duration = Date.now() - startTime;
+    await addHistoryEntry(
+      'error',
+      `${triggerSource} Błąd skanowania: ${errorMessage}`
+    );
     logger.error('Scan error:', error);
+
+    // Wyślij powiadomienie email o błędzie skanowania (tak samo jak przy awarii regeneracji)
+    try {
+      const cacheData = await getCacheData();
+      const emailConfig =
+        cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+      if (emailConfig.enabled && emailConfig.notifyOnError) {
+        console.log(
+          '[Scan] Wysyłam powiadomienie email o błędzie skanowania...'
+        );
+        await sendRebuildNotification(
+          {
+            success: false,
+            duration,
+            filesProcessed: 0,
+            thumbnailsGenerated: 0,
+            failed: 0,
+            error: `Błąd skanowania: ${errorMessage}`,
+          },
+          emailConfig.email || undefined
+        );
+      }
+    } catch (emailErr) {
+      logger.error('Failed to send scan error notification', emailErr);
+      console.error('[Scan] Błąd wysyłki powiadomienia o błędzie:', emailErr);
+    }
 
     return {
       success: false,
       changes: 0,
-      duration: Date.now() - startTime,
+      duration,
       error: errorMessage,
     };
   } finally {
@@ -378,15 +412,26 @@ export async function regenerateAllThumbnails(): Promise<{
     );
 
     // Wyślij powiadomienie email jeśli włączone
-    const emailConfig = cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
-    if (emailConfig.enabled && emailConfig.notifyOnRebuild) {
-      await sendRebuildNotification({
-        success: true,
-        duration,
-        filesProcessed: files.length,
-        thumbnailsGenerated: generated,
-        failed,
-      }, emailConfig.email || undefined);
+    const emailConfig =
+      cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+    if (!emailConfig.enabled || !emailConfig.notifyOnRebuild) {
+      console.log(
+        '[Rebuild] Powiadomienie email pominięte (włącz je w Konfiguracja → Powiadomienia email)'
+      );
+    } else {
+      console.log(
+        '[Rebuild] Wysyłam powiadomienie email o zakończeniu regeneracji...'
+      );
+      await sendRebuildNotification(
+        {
+          success: true,
+          duration,
+          filesProcessed: files.length,
+          thumbnailsGenerated: generated,
+          failed,
+        },
+        emailConfig.email || undefined
+      );
     }
 
     return { success: true, generated, failed, duration };
@@ -397,16 +442,27 @@ export async function regenerateAllThumbnails(): Promise<{
 
     // Wyślij powiadomienie email o błędzie jeśli włączone
     const cacheData = await getCacheData();
-    const emailConfig = cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
-    if (emailConfig.enabled && emailConfig.notifyOnError) {
-      await sendRebuildNotification({
-        success: false,
-        duration: Date.now() - startTime,
-        filesProcessed: 0,
-        thumbnailsGenerated: generated,
-        failed,
-        error: errorMessage,
-      }, emailConfig.email || undefined);
+    const emailConfig =
+      cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+    if (!emailConfig.enabled || !emailConfig.notifyOnError) {
+      console.log(
+        '[Rebuild] Powiadomienie email o błędzie pominięte (włącz w Konfiguracja → Powiadomienia email)'
+      );
+    } else {
+      console.log(
+        '[Rebuild] Wysyłam powiadomienie email o błędzie regeneracji...'
+      );
+      await sendRebuildNotification(
+        {
+          success: false,
+          duration: Date.now() - startTime,
+          filesProcessed: 0,
+          thumbnailsGenerated: generated,
+          failed,
+          error: errorMessage,
+        },
+        emailConfig.email || undefined
+      );
     }
 
     return {
@@ -436,14 +492,18 @@ export async function rebuildFolderThumbnails(folderPath: string): Promise<{
     const config = cacheData.thumbnailConfig;
 
     // Filtruj pliki w określonym folderze
-    const normalizedPath = folderPath.startsWith('/') ? folderPath : '/' + folderPath;
+    const normalizedPath = folderPath.startsWith('/')
+      ? folderPath
+      : '/' + folderPath;
     const files = cacheData.fileHashes.filter(
       (f) =>
         f.path.startsWith(normalizedPath) &&
         /\.(jpg|jpeg|png|gif|webp)$/i.test(f.path)
     );
 
-    logger.info(`Rebuilding thumbnails for folder ${folderPath}, ${files.length} files`);
+    logger.info(
+      `Rebuilding thumbnails for folder ${folderPath}, ${files.length} files`
+    );
 
     const baseUrl = GALLERY_BASE_URL.endsWith('/')
       ? GALLERY_BASE_URL
@@ -482,12 +542,45 @@ export async function rebuildFolderThumbnails(folderPath: string): Promise<{
 
     return { success: true, filesProcessed, thumbnailsGenerated, duration };
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    const duration = Date.now() - startTime;
     logger.error(`Error rebuilding folder ${folderPath}:`, error);
+
+    // Wyślij powiadomienie email o błędzie (przy awarii przebudowy folderu)
+    try {
+      const cacheData = await getCacheData();
+      const emailConfig =
+        cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+      if (emailConfig.enabled && emailConfig.notifyOnError) {
+        console.log(
+          '[Rebuild folder] Wysyłam powiadomienie email o błędzie...'
+        );
+        await sendRebuildNotification(
+          {
+            success: false,
+            duration,
+            filesProcessed,
+            thumbnailsGenerated: thumbnailsGenerated,
+            failed: 0,
+            error: `Błąd przebudowy folderu ${folderPath}: ${errorMessage}`,
+          },
+          emailConfig.email || undefined
+        );
+      }
+    } catch (emailErr) {
+      logger.error(
+        'Failed to send folder rebuild error notification',
+        emailErr
+      );
+      console.error('[Rebuild folder] Błąd wysyłki powiadomienia:', emailErr);
+    }
+
     return {
       success: false,
       filesProcessed,
       thumbnailsGenerated,
-      duration: Date.now() - startTime,
+      duration,
     };
   }
 }
