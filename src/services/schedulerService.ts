@@ -180,6 +180,33 @@ export async function runScan(isScheduled = false): Promise<{
           `${triggerSource} Wygenerowano miniaturki dla ${regenerated} plików`
         );
       }
+
+      // Wyślij powiadomienie email do admina o wykrytych zmianach
+      const emailConfig =
+        cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
+      if (emailConfig.enabled && emailConfig.notifyOnRebuild) {
+        try {
+          console.log(
+            '[Scan] Wysyłam powiadomienie email o wykrytych zmianach...'
+          );
+          await sendRebuildNotification(
+            {
+              success: true,
+              duration: Date.now() - startTime,
+              filesProcessed: changes.length,
+              thumbnailsGenerated: regenerated,
+              failed: 0,
+            },
+            emailConfig.email || undefined
+          );
+        } catch (emailErr) {
+          logger.error('Failed to send scan changes notification', emailErr);
+          console.error(
+            '[Scan] Błąd wysyłki powiadomienia o wykrytych zmianach:',
+            emailErr
+          );
+        }
+      }
     } else {
       await addHistoryEntry(
         'scan_completed',
