@@ -3,6 +3,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
+import { validateFilePath } from '@/src/utils/pathValidation';
+import { logger } from '@/src/utils/logger';
 
 async function getCachePath(): Promise<string> {
   try {
@@ -15,7 +17,7 @@ async function getCachePath(): Promise<string> {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -30,9 +32,11 @@ export default async function handler(
 
     const relativePath = pathSegments.join('/');
 
-    // Zabezpieczenie przed path traversal
-    if (relativePath.includes('..') || relativePath.includes('~')) {
-      return res.status(400).json({ error: 'Invalid path' });
+    const pathResult = validateFilePath(relativePath);
+    if (!pathResult.valid) {
+      return res
+        .status(400)
+        .json({ error: pathResult.error ?? 'Invalid path' });
     }
 
     // Sprawdź rozszerzenie
@@ -45,14 +49,18 @@ export default async function handler(
     const cachePath = await getCachePath();
     const fullPath = path.join(cachePath, relativePath);
 
-    // Sprawdź czy plik istnieje
+    const realCachePath = await fsp.realpath(cachePath).catch(() => cachePath);
+    let realFullPath: string;
     try {
-      await fsp.access(fullPath);
+      realFullPath = await fsp.realpath(fullPath);
     } catch {
       return res.status(404).json({ error: 'Thumbnail not found' });
     }
+    if (!realFullPath.startsWith(realCachePath)) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
 
-    const buffer = await fsp.readFile(fullPath);
+    const buffer = await fsp.readFile(realFullPath);
 
     // Określ content-type na podstawie rozszerzenia
     const contentTypes: Record<string, string> = {
@@ -65,14 +73,14 @@ export default async function handler(
 
     res.setHeader(
       'Content-Type',
-      contentTypes[ext] || 'application/octet-stream',
+      contentTypes[ext] || 'application/octet-stream'
     );
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.setHeader('Content-Length', buffer.length);
 
     res.send(buffer);
   } catch (error) {
-    console.error('Thumbnail serve error:', error);
+    logger.error('Thumbnail serve error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }

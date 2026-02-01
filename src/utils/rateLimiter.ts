@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 const requests = new Map<string, { count: number; reset: number }>();
+const MAX_ENTRIES = 10_000;
+let cleanupCounter = 0;
 
 function getClientId(req: NextApiRequest): string {
   const forwarded = req.headers['x-forwarded-for'];
@@ -10,22 +12,29 @@ function getClientId(req: NextApiRequest): string {
   return req.socket.remoteAddress || 'unknown';
 }
 
+function cleanupExpired(now: number): void {
+  for (const [key, entry] of requests.entries()) {
+    if (now > entry.reset) requests.delete(key);
+  }
+}
+
 /**
  * Sprawdza limit żądań. Zwraca true jeśli dozwolone, false jeśli przekroczono.
- * Wywołanie czyści wygasłe wpisy (lazy cleanup).
+ * Czyści wygasłe wpisy co ~50 żądań lub gdy mapa przekracza MAX_ENTRIES.
  */
 export function checkRateLimit(
   req: NextApiRequest,
   maxRequests: number,
-  windowMs: number,
+  windowMs: number
 ): boolean {
   const clientId = getClientId(req);
   const now = Date.now();
 
-  // Lazy cleanup: usuń wygasłe wpisy przy okazji
-  requests.forEach((entry, key) => {
-    if (now > entry.reset) requests.delete(key);
-  });
+  cleanupCounter++;
+  if (requests.size > MAX_ENTRIES || cleanupCounter % 50 === 0) {
+    cleanupExpired(now);
+    if (cleanupCounter >= 50) cleanupCounter = 0;
+  }
 
   const entry = requests.get(clientId);
 
@@ -54,13 +63,10 @@ function getResetTime(req: NextApiRequest, windowMs: number): number {
 
 export function withRateLimit(
   maxRequests: number = 10,
-  windowMs: number = 60000,
+  windowMs: number = 60000
 ) {
   return function rateLimitMiddleware(
-    handler: (
-      req: NextApiRequest,
-      res: NextApiResponse,
-    ) => Promise<void> | void,
+    handler: (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void
   ) {
     return async function (req: NextApiRequest, res: NextApiResponse) {
       const isAllowed = checkRateLimit(req, maxRequests, windowMs);

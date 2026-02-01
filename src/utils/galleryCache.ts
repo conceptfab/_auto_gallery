@@ -38,7 +38,7 @@ export function generateETag(folders: GalleryFolder[]): string {
   }));
 
   const sortedFolders = [...folderData].sort((a, b) =>
-    a.path.localeCompare(b.path),
+    a.path.localeCompare(b.path)
   );
   const hashString = sortedFolders
     .map((folder) => `${folder.path}:${folder.imageCount}`)
@@ -56,7 +56,7 @@ export function generateETag(folders: GalleryFolder[]): string {
  */
 export async function getCachedGallery(
   folder: string,
-  groupId?: string,
+  groupId?: string
 ): Promise<GalleryFolder[] | null> {
   if (!redis) {
     return null; // Fallback - brak cache
@@ -67,7 +67,7 @@ export async function getCachedGallery(
     const cached = await redis.get<GalleryFolder[]>(key);
     return cached;
   } catch (error) {
-    console.error('Redis get error:', error);
+    logger.error('Redis get error:', error);
     return null; // Graceful degradation
   }
 }
@@ -78,7 +78,7 @@ export async function getCachedGallery(
 export async function setCachedGallery(
   folder: string,
   data: GalleryFolder[],
-  groupId?: string,
+  groupId?: string
 ): Promise<void> {
   if (!redis) {
     return; // Fallback - brak cache
@@ -88,7 +88,7 @@ export async function setCachedGallery(
     const key = getCacheKey(folder, groupId);
     await redis.set(key, data, { ex: CACHE_TTL });
   } catch (error) {
-    console.error('Redis set error:', error);
+    logger.error('Redis set error:', error);
     // Graceful degradation - nie przerywamy działania
   }
 }
@@ -98,7 +98,7 @@ export async function setCachedGallery(
  */
 export async function clearCachedGallery(
   folder: string,
-  groupId?: string,
+  groupId?: string
 ): Promise<void> {
   if (!redis) {
     return;
@@ -108,7 +108,7 @@ export async function clearCachedGallery(
     const key = getCacheKey(folder, groupId);
     await redis.del(key);
   } catch (error) {
-    console.error('Redis del error:', error);
+    logger.error('Redis del error:', error);
   }
 }
 

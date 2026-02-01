@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
   loginUser as storageLogin,
@@ -5,6 +6,9 @@ import {
   isUserLoggedIn as storageIsLoggedIn,
 } from './storage';
 import { ADMIN_EMAIL } from '../config/constants';
+
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieSecure = isProduction ? '; Secure' : '';
 
 export async function loginUser(email: string): Promise<void> {
   await storageLogin(email);
@@ -20,17 +24,17 @@ export async function isUserLoggedIn(email: string): Promise<boolean> {
 
 export function setAuthCookie(res: NextApiResponse, email: string): void {
   res.setHeader('Set-Cookie', [
-    `auth_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict`,
-    `auth_logged=true; Path=/; Max-Age=43200; SameSite=Strict`,
+    `auth_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict${cookieSecure}`,
+    `auth_logged=true; Path=/; Max-Age=43200; SameSite=Strict${cookieSecure}`,
   ]);
 }
 
 export function clearAuthCookie(res: NextApiResponse): void {
   res.setHeader('Set-Cookie', [
-    'auth_email=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
-    'auth_logged=; Path=/; Max-Age=0; SameSite=Strict',
-    'session_id=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
-    'stats_session_id=; Path=/; Max-Age=0; SameSite=Strict',
+    `auth_email=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict${cookieSecure}`,
+    `auth_logged=; Path=/; Max-Age=0; SameSite=Strict${cookieSecure}`,
+    `session_id=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict${cookieSecure}`,
+    `stats_session_id=; Path=/; Max-Age=0; SameSite=Strict${cookieSecure}`,
   ]);
 }
 
@@ -76,7 +80,7 @@ export function getAdminEmailFromCookie(req: NextApiRequest): string | null {
   return null;
 }
 
-/** Generuje 6-znakowy kod do logowania (np. email). */
+/** Generuje 6-znakowy kod do logowania (kryptograficznie bezpieczny). */
 export function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  return crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
 }

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateUploadToken } from '../../../../src/utils/fileToken';
 import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
+import { validateFilePath } from '../../../../src/utils/pathValidation';
 
 export const config = {
   api: {
@@ -15,6 +16,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { folder = '' } = req.query;
   const folderPath = typeof folder === 'string' ? folder : '';
+
+  const pathResult = validateFilePath(folderPath);
+  if (!pathResult.valid) {
+    return res.status(400).json({ error: pathResult.error });
+  }
 
   try {
     // Generuj token

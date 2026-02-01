@@ -1,6 +1,7 @@
 // pages/api/cron/wake.ts
 // GET – tylko uruchamia scheduler (np. po deployu). Dla Railway Cron: wywołuj co 5 min.
-// Bez logowania; opcjonalnie nagłówek x-cron-secret jeśli ustawisz CRON_SECRET.
+// Bez logowania. Gdy CRON_SECRET jest pusty, endpoint jest publiczny (każdy może wywołać GET).
+// Gdy CRON_SECRET jest ustawiony, wymagany jest nagłówek x-cron-secret lub Authorization: Bearer <CRON_SECRET>.
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSchedulerStatus } from '@/src/services/schedulerService';

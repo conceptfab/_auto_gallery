@@ -5,7 +5,7 @@ import { logger } from '../../../../src/utils/logger';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -20,9 +20,10 @@ export default async function handler(
     }
 
     // Wyczyść admin cookies
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
-      'admin_email=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict',
-      'admin_logged=; Path=/; Max-Age=0; SameSite=Strict',
+      `admin_email=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict${secure}`,
+      `admin_logged=; Path=/; Max-Age=0; SameSite=Strict${secure}`,
     ]);
 
     res.status(200).json({

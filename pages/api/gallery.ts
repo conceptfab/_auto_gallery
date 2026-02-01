@@ -22,7 +22,7 @@ import { logger } from '@/src/utils/logger';
  */
 function convertFolderUrls(
   folders: GalleryFolder[],
-  baseUrl: string,
+  baseUrl: string
 ): GalleryFolder[] {
   if (!isFileProtectionEnabled()) {
     return folders; // Bez zmian jeśli ochrona wyłączona
@@ -61,7 +61,7 @@ function collectDecorsImages(folders: GalleryFolder[]): ImageFile[] {
           'Znaleziono folder decors:',
           folder.name,
           'Obrazów:',
-          folder.images.length,
+          folder.images.length
         );
         // Dodaj wszystkie obrazy z folderu decors bezpośrednio do kategorii Kolorystyka
         decorsImages.push(...folder.images);
@@ -83,13 +83,13 @@ function collectDecorsImages(folders: GalleryFolder[]): ImageFile[] {
  * Usuwa rekurencyjnie z drzewa każdy folder o nazwie _folders lub ścieżce zawierającej _folders.
  */
 function removeFoldersHiddenFromGallery(
-  folders: GalleryFolder[],
+  folders: GalleryFolder[]
 ): GalleryFolder[] {
   return folders
     .filter(
       (f) =>
         f.name.toLowerCase() !== '_folders' &&
-        !String(f.path).toLowerCase().includes('_folders'),
+        !String(f.path).toLowerCase().includes('_folders')
     )
     .map((folder) => ({
       ...folder,
@@ -125,21 +125,17 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
       name: f.name,
       path: f.path,
       subfolders: f.subfolders?.map((s) => s.name),
-    })),
+    }))
   );
 
-  // Jeśli "Kolorystyka" już istnieje (np. zapisane w cache), potraktuj jej podfoldery
-  // jako już zebrane "decors", żeby funkcja była idempotentna.
-  const _existingKolorystyka = folders.find(
-    (f) => f.name.toLowerCase() === 'kolorystyka',
-  );
+  // Idempotentność: wykluczamy "Kolorystykę" z processedRoots i dopisujemy na końcu (poniżej).
 
   // Zbierz wszystkie obrazy z folderów "decors" z całego drzewa
   const decorsImages = collectDecorsImages(folders);
 
   // Usuń wszystkie foldery "decors" z oryginalnych miejsc i wyklucz "Kolorystykę"
   const processedRoots = removeDecorsFolders(
-    folders.filter((f) => f.name.toLowerCase() !== 'kolorystyka'),
+    folders.filter((f) => f.name.toLowerCase() !== 'kolorystyka')
   );
 
   logger.debug('Zebrane obrazy z folderów decors:', decorsImages.length);
@@ -149,7 +145,7 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
 
   if (decorsImages.length === 0) {
     logger.debug(
-      'Brak obrazów w folderach decors - nie tworzę kategorii Kolorystyka',
+      'Brak obrazów w folderach decors - nie tworzę kategorii Kolorystyka'
     );
     return processedRoots;
   }
@@ -164,7 +160,7 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
 
   logger.debug(
     'Tworzę galerię Kolorystyka z obrazami:',
-    kolorystykaFolder.images.length,
+    kolorystykaFolder.images.length
   );
 
   // "Kolorystyka" zawsze na samym dole
@@ -173,7 +169,7 @@ function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
 
 async function galleryHandler(
   req: NextApiRequest,
-  res: NextApiResponse<GalleryResponse>,
+  res: NextApiResponse<GalleryResponse>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -191,18 +187,18 @@ async function galleryHandler(
     // Funkcja pomocnicza do skanowania (wybiera metodę)
     const scanFolder = async (
       folder: string,
-      useCache: boolean = true,
+      useCache: boolean = true
     ): Promise<GalleryFolder[]> => {
       // Sprawdź cache tylko dla publicznych galerii (nie dla private scanning)
       if (useCache && !usePrivateScanning) {
         const cached = await getCachedGallery(
           folder,
-          groupId as string | undefined,
+          groupId as string | undefined
         );
         if (cached) {
           // _folders nigdy z cache do galerii; potem Kolorystyka
           return attachDecorsAsKolorystyka(
-            removeFoldersHiddenFromGallery(cached),
+            removeFoldersHiddenFromGallery(cached)
           );
         }
       }
@@ -306,7 +302,7 @@ async function galleryHandler(
     // Ustaw HTTP cache headers
     res.setHeader(
       'Cache-Control',
-      'public, s-maxage=300, stale-while-revalidate=600',
+      'public, s-maxage=300, stale-while-revalidate=600'
     );
     res.setHeader('ETag', etag);
     res.setHeader('Vary', 'Cookie'); // Cache różni się w zależności od użytkownika/grupy

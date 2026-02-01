@@ -10,7 +10,7 @@ import { ADMIN_EMAIL } from '../../../../src/config/constants';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -68,9 +68,10 @@ export default async function handler(
     }
 
     // Ustaw admin cookie
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
-      `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict`,
-      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict`,
+      `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict${secure}`,
+      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict${secure}`,
     ]);
 
     console.log('👑 Administrator zalogowany:', email);

@@ -11,11 +11,9 @@ import {
 } from '../../../src/utils/storage';
 import { logger } from '../../../src/utils/logger';
 import { generateCode } from '../../../src/utils/auth';
+import { withRateLimit } from '../../../src/utils/rateLimiter';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -64,7 +62,7 @@ export default async function handler(
         await sendLoginCode(email, code);
         logger.info(
           'Kod wysłany automatycznie do użytkownika z białej listy:',
-          email,
+          email
         );
 
         res.status(200).json({
@@ -101,7 +99,7 @@ export default async function handler(
       'Dodano pending email:',
       email,
       'Total pending:',
-      updatedPendingEmails.length,
+      updatedPendingEmails.length
     );
 
     // Wyślij powiadomienie do admina
@@ -122,3 +120,6 @@ export default async function handler(
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// 5 żądań na 15 minut na IP (ograniczenie spamu i powiadomień)
+export default withRateLimit(5, 15 * 60 * 1000)(requestCodeHandler);

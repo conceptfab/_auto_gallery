@@ -13,10 +13,6 @@ export const ADMIN_PANEL_URL =
 // Email code expiration time in minutes
 export const LOGIN_CODE_EXPIRY_MINUTES = 15;
 
-// Rate limiting configuration
-export const RATE_LIMIT_REQUESTS = 10;
-export const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-
 // API timeouts (in milliseconds)
 export const API_TIMEOUT_SHORT = 15000; // 15 seconds
 export const API_TIMEOUT_LONG = 30000; // 30 seconds
@@ -27,11 +23,9 @@ export const UI_DELAY_MEDIUM = 500; // 500ms
 export const PREVIEW_TIMEOUT = 2000; // 2 seconds
 
 // Loading progress values (percentages)
-export const LOADING_PROGRESS_START = 10;
 export const LOADING_PROGRESS_FETCH = 30;
 export const LOADING_PROGRESS_MID = 60;
 export const LOADING_PROGRESS_PARSE = 80;
-export const LOADING_PROGRESS_FINAL = 90;
 export const LOADING_PROGRESS_COMPLETE = 100;
 
 // UI position offsets (in pixels)

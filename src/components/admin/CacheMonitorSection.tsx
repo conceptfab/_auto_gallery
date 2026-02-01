@@ -1964,7 +1964,7 @@ export const CacheMonitorSection: React.FC = () => {
       {activeTab === 'config' && schedulerConfig && (
         <div style={{ display: 'grid', gap: '20px' }}>
           {/* Scheduler toggle */}
-          <div className="admin-card">
+          <div className="admin-form-box">
             <div
               style={{
                 display: 'flex',
@@ -1973,8 +1973,8 @@ export const CacheMonitorSection: React.FC = () => {
               }}
             >
               <div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Automatyczne skanowanie</h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                <h3>Automatyczne skanowanie</h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
                   Włącz automatyczne sprawdzanie zmian w plikach
                 </p>
               </div>
@@ -1994,9 +1994,9 @@ export const CacheMonitorSection: React.FC = () => {
                       enabled: !schedulerConfig.enabled,
                     })
                   }
-                  style={{ width: '20px', height: '20px' }}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <span style={{ fontWeight: 500 }}>
+                <span style={{ fontSize: '14px', fontWeight: 500 }}>
                   {schedulerConfig.enabled ? 'Włączony' : 'Wyłączony'}
                 </span>
               </label>
@@ -2004,8 +2004,8 @@ export const CacheMonitorSection: React.FC = () => {
           </div>
 
           {/* Work hours */}
-          <div className="admin-card">
-            <h3 style={{ margin: '0 0 15px 0' }}>Godziny pracy</h3>
+          <div className="admin-form-box">
+            <h3>Godziny pracy</h3>
             <div
               style={{
                 display: 'grid',
@@ -2110,18 +2110,18 @@ export const CacheMonitorSection: React.FC = () => {
           </div>
 
           {/* Off hours */}
-          <div className="admin-card">
+          <div className="admin-form-box">
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '15px',
+                marginBottom: '16px',
               }}
             >
               <div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Poza godzinami pracy</h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                <h3>Poza godzinami pracy</h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
                   Sprawdzanie w godzinach {schedulerConfig.workHours.end}:00 -{' '}
                   {schedulerConfig.workHours.start}:00
                 </p>
@@ -2145,9 +2145,9 @@ export const CacheMonitorSection: React.FC = () => {
                       },
                     })
                   }
-                  style={{ width: '18px', height: '18px' }}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <span>
+                <span style={{ fontSize: '14px', fontWeight: 500 }}>
                   {schedulerConfig.offHours.enabled ? 'Włączone' : 'Wyłączone'}
                 </span>
               </label>
@@ -2189,8 +2189,8 @@ export const CacheMonitorSection: React.FC = () => {
 
           {/* Thumbnail config */}
           {thumbnailConfig && (
-            <div className="admin-card">
-              <h3 style={{ margin: '0 0 15px 0' }}>Miniaturki</h3>
+            <div className="admin-form-box">
+              <h3>Miniaturki</h3>
               <div
                 style={{
                   display: 'grid',
@@ -2254,18 +2254,18 @@ export const CacheMonitorSection: React.FC = () => {
           )}
 
           {/* Email Notifications */}
-          <div className="admin-card" style={{ marginTop: '20px' }}>
+          <div className="admin-form-box">
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '15px',
+                marginBottom: '16px',
               }}
             >
               <div>
-                <h3 style={{ margin: '0 0 5px 0' }}>Powiadomienia email</h3>
-                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                <h3>Powiadomienia email</h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
                   Otrzymuj maile po zakończeniu rebuild/regeneracji oraz przy
                   awarii (błąd skanowania, błąd regeneracji).
                 </p>
@@ -2284,9 +2284,11 @@ export const CacheMonitorSection: React.FC = () => {
                   onChange={() =>
                     handleEmailConfigUpdate({ enabled: !emailConfig?.enabled })
                   }
-                  style={{ width: '18px', height: '18px' }}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <span>{emailConfig?.enabled ? 'Włączone' : 'Wyłączone'}</span>
+                <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                  {emailConfig?.enabled ? 'Włączone' : 'Wyłączone'}
+                </span>
               </label>
             </div>
             {emailConfig?.enabled && (

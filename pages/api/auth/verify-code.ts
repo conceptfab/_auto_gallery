@@ -60,8 +60,9 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     // Dodaj cookie z session_id (HttpOnly) oraz stats_session_id (widoczne dla frontu),
     // nie nadpisując istniejących
     const existingCookies = res.getHeader('Set-Cookie');
-    const sessionCookie = `session_id=${session.id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=43200`;
-    const statsSessionCookie = `stats_session_id=${session.id}; Path=/; SameSite=Strict; Max-Age=43200`;
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+    const sessionCookie = `session_id=${session.id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=43200${secure}`;
+    const statsSessionCookie = `stats_session_id=${session.id}; Path=/; SameSite=Strict; Max-Age=43200${secure}`;
 
     if (Array.isArray(existingCookies)) {
       res.setHeader('Set-Cookie', [
