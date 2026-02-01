@@ -373,6 +373,92 @@ export async function deleteThumbnails(
 }
 
 /**
+ * Zwraca zbiór ścieżek folderów, które są w użyciu (katalogi plików z fileHashes + rodzice).
+ * Ścieżki znormalizowane do '/' (bez leading/trailing).
+ */
+function getValidThumbnailFolderPaths(
+  fileHashes: Array<{ path: string }>
+): Set<string> {
+  const valid = new Set<string>();
+  for (const f of fileHashes) {
+    const p = f.path.replace(/\\/g, '/').replace(/\/+$/, '');
+    if (!p) continue;
+    const parts = p.split('/');
+    parts.pop(); // plik – zostają tylko segmenty katalogu
+    let prefix = '';
+    for (const part of parts) {
+      prefix = prefix ? `${prefix}/${part}` : part;
+      valid.add(prefix);
+    }
+  }
+  return valid;
+}
+
+/**
+ * Listuje rekurencyjnie wszystkie katalogi pod rootDir; zwraca ścieżki względne (z '/').
+ */
+async function listThumbnailDirsRecursive(
+  rootDir: string,
+  baseRel: string = ''
+): Promise<string[]> {
+  const dirs: string[] = [];
+  try {
+    const fullPath = baseRel ? path.join(rootDir, baseRel) : rootDir;
+    const entries = await fsp.readdir(fullPath, { withFileTypes: true });
+    for (const e of entries) {
+      if (e.isDirectory()) {
+        const rel = baseRel ? `${baseRel}/${e.name}` : e.name;
+        dirs.push(rel);
+        const sub = await listThumbnailDirsRecursive(rootDir, rel);
+        dirs.push(...sub);
+      }
+    }
+  } catch {
+    // katalog może nie istnieć lub brak dostępu
+  }
+  return dirs;
+}
+
+/**
+ * Usuwa z dysku foldery miniaturek, których nie ma w aktualnej strukturze galerii
+ * (1:1 z fileHashes – jeśli folder został usunięty w źródle, jego kopia z miniaturkami znika).
+ * Działa tylko przy storage === 'local'.
+ * Zwraca liczbę usuniętych katalogów.
+ */
+export async function cleanupOrphanThumbnailFolders(
+  fileHashes: Array<{ path: string }>
+): Promise<number> {
+  const cachePath = await getCachePath();
+  const validPaths = getValidThumbnailFolderPaths(fileHashes);
+  const allDirs = await listThumbnailDirsRecursive(cachePath);
+  const toRemove = allDirs.filter((d) => !validPaths.has(d));
+  if (toRemove.length === 0) {
+    return 0;
+  }
+  // Usuwaj od najgłębszych, żeby nie usuwać rodzica przed dziećmi
+  toRemove.sort((a, b) => b.split('/').length - a.split('/').length);
+  let removed = 0;
+  for (const rel of toRemove) {
+    const fullPath = path.join(cachePath, rel);
+    try {
+      await fsp.rm(fullPath, { recursive: true });
+      removed++;
+      logger.info(`Removed orphan thumbnail folder: ${rel}`);
+    } catch (err) {
+      logger.error(`Failed to remove thumbnail folder ${rel}:`, err);
+    }
+  }
+  if (removed > 0) {
+    logger.info(
+      `Cleanup orphan thumbnails: removed ${removed} folder(s), ${
+        toRemove.length - removed
+      } failed`
+    );
+  }
+  return removed;
+}
+
+/**
  * Czyści cały cache miniaturek
  */
 export async function clearAllThumbnails(): Promise<number> {

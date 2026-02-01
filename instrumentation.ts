@@ -1,6 +1,8 @@
 // instrumentation.ts
-// Inicjalizacja serwisów przy starcie serwera Next.js
-// Na Railway: jeśli nie widzisz tych logów, scheduler i tak wystartuje przy pierwszym wejściu w panel (lazy init w /api/admin/cache/status).
+// Inicjalizacja serwisów przy starcie serwera Next.js.
+// Scheduler startuje tutaj; jeśli po deployu nie zadziała (np. inny worker),
+// uruchomi się automatycznie przy pierwszym żądaniu do /api/auth/status (strona główna, login)
+// lub /api/cron/scan albo /api/admin/cache/status.
 
 export async function register() {
   // Tylko na serwerze (nie w edge runtime)

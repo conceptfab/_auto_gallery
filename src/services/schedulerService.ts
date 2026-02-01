@@ -7,7 +7,10 @@ import {
   getChangeStats,
   computeAndStoreFolderHashes,
 } from './hashService';
-import { generateThumbnails } from './thumbnailService';
+import {
+  generateThumbnails,
+  cleanupOrphanThumbnailFolders,
+} from './thumbnailService';
 import {
   getCacheData,
   updateCacheData,
@@ -164,6 +167,23 @@ export async function runScan(isScheduled = false): Promise<{
 
     // Oblicz i zapisz hashe folderów do weryfikacji
     await computeAndStoreFolderHashes();
+
+    // Usuń foldery miniaturek dla folderów usuniętych w galerii (struktura 1:1)
+    const thumbConfig = (await getCacheData()).thumbnailConfig;
+    if (thumbConfig?.storage === 'local') {
+      try {
+        const removed = await cleanupOrphanThumbnailFolders(newHashList);
+        if (removed > 0) {
+          await addHistoryEntry(
+            'scan_completed',
+            `Usunięto ${removed} nieaktualnych folderów miniaturek (usunięte w galerii)`,
+            undefined
+          );
+        }
+      } catch (cleanupErr) {
+        logger.error('Cleanup orphan thumbnail folders failed:', cleanupErr);
+      }
+    }
 
     if (changes.length > 0) {
       await addHistoryEntry(

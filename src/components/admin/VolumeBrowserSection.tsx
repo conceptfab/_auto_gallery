@@ -35,6 +35,7 @@ export const VolumeBrowserSection: React.FC = () => {
   const [files, setFiles] = useState<VolumeFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState<string | null>(null);
 
   const fetchVolume = useCallback(async (path: string) => {
     setLoading(true);
@@ -81,6 +82,40 @@ export const VolumeBrowserSection: React.FC = () => {
     setCurrentPath(path);
     fetchVolume(path);
   };
+
+  const handleDelete = async (
+    itemPath: string,
+    type: 'file' | 'folder',
+    name: string
+  ) => {
+    const msg =
+      type === 'folder'
+        ? `Usunąć folder „${name}” i całą jego zawartość?`
+        : `Usunąć plik „${name}”?`;
+    if (!confirm(msg)) return;
+    setProcessing(itemPath);
+    try {
+      const response = await fetch('/api/admin/volume/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: itemPath, type }),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        fetchVolume(currentPath);
+      } else {
+        setError(data.error || data.message || 'Błąd usuwania');
+      }
+    } catch (err) {
+      logger.error('Volume delete error', err);
+      setError('Błąd połączenia');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const downloadUrl = (itemPath: string) =>
+    `/api/admin/volume/download?path=${encodeURIComponent(itemPath)}`;
 
   return (
     <div className="admin-form-box">
@@ -155,18 +190,62 @@ export const VolumeBrowserSection: React.FC = () => {
                     padding: '8px 12px',
                     backgroundColor: '#f3f4f6',
                     borderRadius: '6px',
-                    cursor: 'pointer',
                     border: '1px solid #e5e7eb',
                   }}
-                  onClick={() => goToPath(f.path)}
-                  onKeyDown={(e) => e.key === 'Enter' && goToPath(f.path)}
-                  role="button"
-                  tabIndex={0}
                 >
-                  <span style={{ fontSize: '18px' }}>📁</span>
-                  <span style={{ fontWeight: 500, fontSize: '14px' }}>
-                    {f.name}
-                  </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      minWidth: 0,
+                    }}
+                    onClick={() => goToPath(f.path)}
+                    onKeyDown={(e) => e.key === 'Enter' && goToPath(f.path)}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span style={{ fontSize: '18px' }}>📁</span>
+                    <span style={{ fontWeight: 500, fontSize: '14px' }}>
+                      {f.name}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <a
+                      href={downloadUrl(f.path)}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="admin-btn"
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        minHeight: 'auto',
+                        textDecoration: 'none',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Pobierz (ZIP)
+                    </a>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--danger-sm"
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        minHeight: 'auto',
+                      }}
+                      disabled={processing === f.path}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(f.path, 'folder', f.name);
+                      }}
+                    >
+                      {processing === f.path ? '…' : 'Usuń'}
+                    </button>
+                  </div>
                 </div>
               ))}
               {files.map((file) => (
@@ -184,12 +263,44 @@ export const VolumeBrowserSection: React.FC = () => {
                   }}
                 >
                   <span style={{ fontSize: '16px' }}>📄</span>
-                  <span style={{ flex: 1, wordBreak: 'break-all' }}>
+                  <span
+                    style={{ flex: 1, wordBreak: 'break-all', minWidth: 0 }}
+                  >
                     {file.name}
                   </span>
                   <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>
                     {formatBytes(file.size)}
                   </span>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <a
+                      href={downloadUrl(file.path)}
+                      download={file.name}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="admin-btn"
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        minHeight: 'auto',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Pobierz
+                    </a>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--danger-sm"
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        minHeight: 'auto',
+                      }}
+                      disabled={processing === file.path}
+                      onClick={() => handleDelete(file.path, 'file', file.name)}
+                    >
+                      {processing === file.path ? '…' : 'Usuń'}
+                    </button>
+                  </div>
                 </div>
               ))}
               {!loading && folders.length === 0 && files.length === 0 && (

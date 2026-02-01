@@ -3,7 +3,12 @@
 // W Railway: ustaw CRON_SECRET w Variables, dodaj Cron job: POST do tego URL z nagłówkiem x-cron-secret: <CRON_SECRET>.
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { forceScan, isScanRunning } from '@/src/services/schedulerService';
+import {
+  forceScan,
+  isScanRunning,
+  initScheduler,
+  getSchedulerStatus,
+} from '@/src/services/schedulerService';
 
 const CRON_SECRET = process.env.CRON_SECRET || '';
 
@@ -33,6 +38,11 @@ export default async function handler(
   const secret = getSecretFromRequest(req);
   if (secret !== CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Upewnij się, że scheduler jest uruchomiony (po deployu interval może nie istnieć)
+  if (!getSchedulerStatus().intervalActive) {
+    initScheduler();
   }
 
   if (isScanRunning()) {
