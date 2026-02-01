@@ -3,16 +3,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { isAdminLoggedIn } from '@/src/utils/storage';
 import { getAdminEmailFromCookie } from '@/src/utils/auth';
-import { getCacheStatus, getCacheData, DEFAULT_EMAIL_NOTIFICATION_CONFIG } from '@/src/utils/cacheStorage';
+import {
+  getCacheStatus,
+  getCacheData,
+  DEFAULT_EMAIL_NOTIFICATION_CONFIG,
+} from '@/src/utils/cacheStorage';
 import {
   isScanRunning,
   getSchedulerStatus,
+  initScheduler,
 } from '@/src/services/schedulerService';
 import { getThumbnailStats } from '@/src/services/thumbnailService';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -24,10 +29,16 @@ export default async function handler(
   }
 
   try {
-    const [status, data, schedulerStatus, thumbnailStats] = await Promise.all([
+    let schedulerStatus = getSchedulerStatus();
+    // Lazy init: jeśli scheduler nie wystartował (np. instrumentation nie zadziałało na Railway), uruchom go przy pierwszym wejściu w panel
+    if (!schedulerStatus.intervalActive) {
+      initScheduler();
+      schedulerStatus = getSchedulerStatus();
+    }
+
+    const [status, data, thumbnailStats] = await Promise.all([
       getCacheStatus(),
       getCacheData(),
-      Promise.resolve(getSchedulerStatus()),
       getThumbnailStats(),
     ]);
 
@@ -45,7 +56,8 @@ export default async function handler(
       config: {
         scheduler: data.schedulerConfig,
         thumbnails: data.thumbnailConfig,
-        email: data.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG,
+        email:
+          data.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG,
       },
       stats: {
         thumbnailsBySize: thumbnailStats.bySize,
