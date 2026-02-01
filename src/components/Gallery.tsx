@@ -520,86 +520,89 @@ const Gallery: React.FC<GalleryProps> = ({
             >
               <i className="las la-angle-right"></i>
             </button>
-            <button className="close-button" onClick={closeModal}>
-              <i className="las la-times"></i>
-            </button>
+            {currentFolderPath !== 'Kolorystyka' && (
+              <button className="close-button" onClick={closeModal}>
+                <i className="las la-times"></i>
+              </button>
+            )}
             {imageLoaded && (
               <div className="modal-bottom-actions">
-                {modalKeywordImages.map((item, idx) => (
-                  <button
-                    key={`modal-keyword-${idx}`}
-                    className="modal-color-button"
-                    onTouchStart={(e) => {
-                      // Na tablecie obsłuż touch event
-                      if (isTouchDevice) {
+                {currentFolderPath !== 'Kolorystyka' &&
+                  modalKeywordImages.map((item, idx) => (
+                    <button
+                      key={`modal-keyword-${idx}`}
+                      className="modal-color-button"
+                      onTouchStart={(e) => {
+                        // Na tablecie obsłuż touch event
+                        if (isTouchDevice) {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setModalHoveredPreview({
+                            image: item.image,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                          setTimeout(
+                            () => setModalHoveredPreview(null),
+                            PREVIEW_TIMEOUT
+                          );
+                        }
+                      }}
+                      onClick={(e) => {
                         e.stopPropagation();
-                        e.preventDefault();
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setModalHoveredPreview({
-                          image: item.image,
-                          x: rect.left + rect.width / 2,
-                          y: rect.top,
-                        });
-                        setTimeout(
-                          () => setModalHoveredPreview(null),
-                          PREVIEW_TIMEOUT
-                        );
-                      }
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
-                      if (isTouchDevice) {
-                        e.preventDefault();
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setModalHoveredPreview({
-                          image: item.image,
-                          x: rect.left + rect.width / 2,
-                          y: rect.top,
-                        });
-                        // Ukryj podgląd po określonym czasie
-                        setTimeout(
-                          () => setModalHoveredPreview(null),
-                          PREVIEW_TIMEOUT
-                        );
-                        return; // WAŻNE: return early - nie wykonuj dalszego kodu!
-                      }
-                      // Na desktopie zmień obraz
-                      setModalHoveredPreview(null);
-                      const index = kolorystykaImages.findIndex(
-                        (img) => img.path === item.image.path
-                      );
-                      setCurrentImageList(kolorystykaImages);
-                      setCurrentImageIndex(index >= 0 ? index : 0);
-                      setSelectedImage(item.image);
-                      setCurrentFolderPath('Kolorystyka');
-                    }}
-                    onMouseEnter={(e) => {
-                      // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
-                      if (!isTouchDevice) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setModalHoveredPreview({
-                          image: item.image,
-                          x: rect.left + rect.width / 2,
-                          y: rect.top,
-                        });
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      // Na tablecie nie ukrywaj podglądu przy mouseLeave
-                      if (!isTouchDevice) {
+                        // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
+                        if (isTouchDevice) {
+                          e.preventDefault();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setModalHoveredPreview({
+                            image: item.image,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                          // Ukryj podgląd po określonym czasie
+                          setTimeout(
+                            () => setModalHoveredPreview(null),
+                            PREVIEW_TIMEOUT
+                          );
+                          return; // WAŻNE: return early - nie wykonuj dalszego kodu!
+                        }
+                        // Na desktopie zmień obraz
                         setModalHoveredPreview(null);
-                      }
-                    }}
-                    title={getDisplayName(item.image.name)}
-                    style={{
-                      backgroundImage: `url(${getOptimizedImageUrl(
-                        item.image,
-                        'thumb'
-                      )})`,
-                    }}
-                  />
-                ))}
+                        const index = kolorystykaImages.findIndex(
+                          (img) => img.path === item.image.path
+                        );
+                        setCurrentImageList(kolorystykaImages);
+                        setCurrentImageIndex(index >= 0 ? index : 0);
+                        setSelectedImage(item.image);
+                        setCurrentFolderPath('Kolorystyka');
+                      }}
+                      onMouseEnter={(e) => {
+                        // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
+                        if (!isTouchDevice) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setModalHoveredPreview({
+                            image: item.image,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        // Na tablecie nie ukrywaj podglądu przy mouseLeave
+                        if (!isTouchDevice) {
+                          setModalHoveredPreview(null);
+                        }
+                      }}
+                      title={getDisplayName(item.image.name)}
+                      style={{
+                        backgroundImage: `url(${getOptimizedImageUrl(
+                          item.image,
+                          'thumb'
+                        )})`,
+                      }}
+                    />
+                  ))}
                 <button
                   className="modal-download-button"
                   onClick={(e) => {
@@ -616,7 +619,7 @@ const Gallery: React.FC<GalleryProps> = ({
                 </button>
               </div>
             )}
-            {modalHoveredPreview && (
+            {modalHoveredPreview && currentFolderPath !== 'Kolorystyka' && (
               <div
                 className="modal-color-preview"
                 style={{
