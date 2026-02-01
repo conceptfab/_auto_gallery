@@ -2,10 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../src/utils/auth';
 import { getUserGroup } from '../../../src/utils/storage';
 import { ADMIN_EMAIL } from '../../../src/config/constants';
-import {
-  initScheduler,
-  getSchedulerStatus,
-} from '../../../src/services/schedulerService';
+import { getSchedulerStatus } from '../../../src/services/schedulerService';
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,10 +12,8 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Uruchom scheduler przy pierwszym żądaniu (po deployu instrumentation może nie zadziałać)
-  if (!getSchedulerStatus().intervalActive) {
-    initScheduler();
-  }
+  // Odczyt statusu uruchamia scheduler przy pierwszym wywołaniu (po deployu)
+  getSchedulerStatus();
 
   const email = getEmailFromCookie(req);
 

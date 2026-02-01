@@ -30,7 +30,8 @@ let isRunning = false;
 let lastCheckTime: Date | null = null;
 
 /**
- * Inicjalizuje scheduler przy starcie aplikacji
+ * Inicjalizuje scheduler przy starcie aplikacji.
+ * Deploy = początek odliczania: od razu uruchamia pierwszy check (i skan jeśli config na to pozwala).
  */
 export function initScheduler(): void {
   if (schedulerInterval) {
@@ -39,6 +40,11 @@ export function initScheduler(): void {
 
   // Sprawdzaj co minutę czy trzeba uruchomić skan
   schedulerInterval = setInterval(checkAndRun, 60 * 1000);
+
+  // Od razu pierwszy check – udany deploy to początek odliczania
+  checkAndRun().catch((err) =>
+    logger.error('Scheduler initial check error:', err)
+  );
 
   logger.info('Cache scheduler initialized');
 }
@@ -387,13 +393,18 @@ export function isScanRunning(): boolean {
 }
 
 /**
- * Pobiera status schedulera
+ * Pobiera status schedulera.
+ * Przy pierwszym wywołaniu (po deployu) automatycznie uruchamia scheduler,
+ * żeby nie zależeć od instrumentation ani od konkretnego endpointu.
  */
 export function getSchedulerStatus(): {
   isRunning: boolean;
   lastCheckTime: string | null;
   intervalActive: boolean;
 } {
+  if (schedulerInterval === null) {
+    initScheduler();
+  }
   return {
     isRunning,
     lastCheckTime: lastCheckTime?.toISOString() || null,

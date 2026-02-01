@@ -11,7 +11,6 @@ import {
 import {
   isScanRunning,
   getSchedulerStatus,
-  initScheduler,
 } from '@/src/services/schedulerService';
 import { getThumbnailStats } from '@/src/services/thumbnailService';
 
@@ -29,12 +28,8 @@ export default async function handler(
   }
 
   try {
-    let schedulerStatus = getSchedulerStatus();
-    // Lazy init: jeśli scheduler nie wystartował (np. instrumentation nie zadziałało na Railway), uruchom go przy pierwszym wejściu w panel
-    if (!schedulerStatus.intervalActive) {
-      initScheduler();
-      schedulerStatus = getSchedulerStatus();
-    }
+    // getSchedulerStatus() automatycznie uruchamia scheduler przy pierwszym wywołaniu (po deployu)
+    const schedulerStatus = getSchedulerStatus();
 
     const [status, data, thumbnailStats] = await Promise.all([
       getCacheStatus(),
