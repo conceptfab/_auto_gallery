@@ -8,7 +8,8 @@ let thumbnailConfig: ThumbnailConfig | null = null;
 let cacheInitialized = false;
 
 /**
- * Inicjalizuje konfigurację cache przy starcie (tylko client-side)
+ * Inicjalizuje konfigurację cache przy starcie (tylko client-side).
+ * Używa publicznego API – dostępne dla wszystkich użytkowników galerii (nie tylko admin).
  */
 export async function initThumbnailCache(): Promise<void> {
   if (typeof window === 'undefined' || cacheInitialized) {
@@ -16,12 +17,15 @@ export async function initThumbnailCache(): Promise<void> {
   }
 
   try {
-    const response = await fetch('/api/admin/cache/status');
+    const response = await fetch('/api/cache/status-public');
     const data = await response.json();
 
-    if (data.success && data.config) {
-      thumbnailCacheEnabled = data.status.thumbnails.totalGenerated > 0;
+    if (data.success && data.config?.thumbnails) {
+      thumbnailCacheEnabled =
+        (data.status?.thumbnails?.totalGenerated ?? 0) > 0;
       thumbnailConfig = data.config.thumbnails;
+      cacheInitialized = true;
+    } else {
       cacheInitialized = true;
     }
   } catch {
