@@ -77,11 +77,9 @@ export default async function handler(
           thumbnailAnimationDelay < 0 ||
           thumbnailAnimationDelay > 1000)
       ) {
-        return res
-          .status(400)
-          .json({
-            error: 'thumbnailAnimationDelay musi być liczbą od 0 do 1000',
-          });
+        return res.status(400).json({
+          error: 'thumbnailAnimationDelay musi być liczbą od 0 do 1000',
+        });
       }
 
       await updateData((data) => {

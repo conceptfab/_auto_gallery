@@ -6,6 +6,7 @@ import LoadingOverlay from '../src/components/LoadingOverlay';
 import { PendingRequestsSection } from '../src/components/admin/PendingRequestsSection';
 import { StatsOverview } from '../src/components/admin/StatsOverview';
 import { CacheMonitorSection } from '../src/components/admin/CacheMonitorSection';
+import { VolumeBrowserSection } from '../src/components/admin/VolumeBrowserSection';
 import { logger } from '../src/utils/logger';
 
 interface PendingEmail {
@@ -104,6 +105,7 @@ const AdminPanel: React.FC = () => {
       'data-cleanup',
       'cache',
       'files',
+      'volume',
     ])
   );
 
@@ -1436,6 +1438,22 @@ const AdminPanel: React.FC = () => {
             ></i>
           </h2>
           {expandedSections.has('files') && <FileManager />}
+        </section>
+
+        {/* Zawartość volume /data-storage */}
+        <section className="admin-section">
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('volume')}
+          >
+            <span>Zawartość volume (/data-storage)</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('volume') ? '' : 'collapsed'
+              }`}
+            />
+          </h2>
+          {expandedSections.has('volume') && <VolumeBrowserSection />}
         </section>
 
         <div style={{ marginTop: '40px', textAlign: 'center' }}>
