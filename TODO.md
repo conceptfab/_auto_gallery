@@ -1,2 +1,2 @@
-animacje galerii, ładowanie w odpowiedniej kolejnosci
-okno powiększenia
+- poprawka okna powiększenia wyświetlające jeden plik: w tym momencie przy przechodzeniu do kolejnego pliku w folderze okno skacze i zmienia rozmiar, znikają ikony strzałek, ikona x - nie moze tak być na 90% pliki w danym folderze maja ten sam rozmiar/proporcje - zmiana okna jest nie potrzebna. Jesli z jakiegoś powodu jest wymagan ma to być subtelna animacja. Ikony UI - strzałki i x maja być zawsze widoczne, bo są zawsze potrzebne
+- poprawa UX w galerii - po otwarciu zakładki jeśli cache jest dotępny miniaturki mają się pojawiać od lewej w górnym rzędzie do prawej w dolnym rzędzie - europejski kierunek czytania. Mają sie subtelnie pojawiać - animacją w css

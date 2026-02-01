@@ -31,6 +31,7 @@ interface FolderSectionProps {
     filePath: string,
     fileName: string,
   ) => Promise<void> | void;
+  isAdmin?: boolean;
 }
 
 function FolderSectionInner({
@@ -41,6 +42,7 @@ function FolderSectionInner({
   allFolders,
   onFolderView,
   onTrackDownload,
+  isAdmin = false,
 }: FolderSectionProps) {
   const toggleFolder = (currentFolder: GalleryFolder) => {
     const newCollapsed = new Set(globalCollapsedFolders);
@@ -150,8 +152,10 @@ function FolderSectionInner({
                 images={currentFolder.images}
                 onImageClick={onImageClick}
                 folderName={currentFolder.name}
+                folderPath={currentFolder.path}
                 kolorystykaImages={kolorystykaImages}
                 onTrackDownload={onTrackDownload}
+                isAdmin={isAdmin}
               />
             )}
           </div>
@@ -179,15 +183,17 @@ const FolderSection = memo(
     prev.allFolders === next.allFolders &&
     prev.onImageClick === next.onImageClick &&
     prev.setGlobalCollapsedFolders === next.setGlobalCollapsedFolders &&
-    prev.globalCollapsedFolders === next.globalCollapsedFolders,
+    prev.globalCollapsedFolders === next.globalCollapsedFolders &&
+    prev.isAdmin === next.isAdmin,
 );
 
 interface GalleryProps {
   refreshKey?: number;
   groupId?: string;
+  isAdmin?: boolean;
 }
 
-const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
+const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false }) => {
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -446,6 +452,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId }) => {
               allFolders={folders}
               onFolderView={(f) => trackView('folder', f.path, f.name)}
               onTrackDownload={trackDownload}
+              isAdmin={isAdmin}
             />
           ))}
         </div>

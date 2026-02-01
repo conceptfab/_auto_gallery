@@ -79,7 +79,6 @@ interface DiagnosticsData {
   envCheck: {
     FILE_LIST_URL: string;
     FILE_PROXY_SECRET: string;
-    GALLERY_BASE_URL: string;
   };
   folders: FolderInfo[];
   summary: {
@@ -103,6 +102,23 @@ interface HashStats {
   matching: number;
   changed: number;
   newFolders: number;
+}
+
+interface ImageCacheStatus {
+  path: string;
+  name: string;
+  cached: boolean;
+  thumbnailPath?: string;
+}
+
+interface FolderCacheStatus {
+  images: ImageCacheStatus[];
+  summary: {
+    total: number;
+    cached: number;
+    uncached: number;
+    percentage: number;
+  };
 }
 
 function formatBytes(bytes: number): string {
@@ -147,6 +163,9 @@ export const CacheMonitorSection: React.FC = () => {
   const [folderHashes, setFolderHashes] = useState<FolderHashRecord[]>([]);
   const [hashStats, setHashStats] = useState<HashStats | null>(null);
   const [hashesLoading, setHashesLoading] = useState(false);
+  const [expandedFolder, setExpandedFolder] = useState<string | null>(null);
+  const [folderCacheStatus, setFolderCacheStatus] = useState<Record<string, FolderCacheStatus>>({});
+  const [loadingCacheStatus, setLoadingCacheStatus] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -192,6 +211,38 @@ export const CacheMonitorSection: React.FC = () => {
       setDiagLoading(false);
     }
   }, []);
+
+  const fetchFolderCacheStatus = useCallback(async (folderPath: string) => {
+    setLoadingCacheStatus(folderPath);
+    try {
+      const response = await fetch(`/api/admin/cache/folder-status?folder=${encodeURIComponent(folderPath)}`);
+      const data = await response.json();
+      if (data.success) {
+        setFolderCacheStatus(prev => ({
+          ...prev,
+          [folderPath]: {
+            images: data.images,
+            summary: data.summary,
+          },
+        }));
+      }
+    } catch (error) {
+      logger.error('Error fetching folder cache status', error);
+    } finally {
+      setLoadingCacheStatus(null);
+    }
+  }, []);
+
+  const toggleFolderExpand = useCallback((folderPath: string) => {
+    if (expandedFolder === folderPath) {
+      setExpandedFolder(null);
+    } else {
+      setExpandedFolder(folderPath);
+      if (!folderCacheStatus[folderPath]) {
+        fetchFolderCacheStatus(folderPath);
+      }
+    }
+  }, [expandedFolder, folderCacheStatus, fetchFolderCacheStatus]);
 
   useEffect(() => {
     Promise.all([fetchStatus(), fetchHistory()]).finally(() =>
@@ -626,7 +677,6 @@ export const CacheMonitorSection: React.FC = () => {
                 <div style={{ color: diagnostics.envCheck.FILE_PROXY_SECRET === 'SET' ? '#059669' : '#dc2626' }}>
                   FILE_PROXY_SECRET: {diagnostics.envCheck.FILE_PROXY_SECRET}
                 </div>
-                <div>GALLERY_BASE_URL: {diagnostics.envCheck.GALLERY_BASE_URL}</div>
               </div>
 
               {/* Summary */}
@@ -682,13 +732,13 @@ export const CacheMonitorSection: React.FC = () => {
               )}
 
               {/* Folder list */}
-              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+                    <tr style={{ background: '#f9fafb', position: 'sticky', top: 0, zIndex: 1 }}>
                       <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Folder</th>
                       <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Obrazy</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Pliki</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Cache</th>
                       <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '80px' }}>Podfoldery</th>
                       <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', width: '100px' }}>Akcje</th>
                     </tr>
@@ -697,69 +747,194 @@ export const CacheMonitorSection: React.FC = () => {
                     {diagnostics.folders
                       .filter(f => f.imageCount > 0 || f.error)
                       .map((folder, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '10px' }}>
-                          <div style={{
-                            fontFamily: 'monospace',
-                            fontSize: '12px',
-                            color: folder.error ? '#dc2626' : '#374151'
-                          }}>
-                            {folder.path}
-                          </div>
-                          {folder.error && (
-                            <div style={{ fontSize: '11px', color: '#dc2626' }}>{folder.error}</div>
-                          )}
-                        </td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>
-                          <span style={{
-                            fontWeight: folder.imageCount > 0 ? 600 : 400,
-                            color: folder.imageCount > 0 ? '#059669' : '#9ca3af'
-                          }}>
-                            {folder.imageCount}
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
-                          {folder.fileCount}
-                        </td>
-                        <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
-                          {folder.subfolders.length}
-                        </td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                            <button
-                              onClick={() => handleRebuildFolder(folder.path)}
-                              disabled={rebuildingFolder !== null || folder.imageCount === 0}
-                              title={folder.imageCount === 0 ? 'Brak obrazów' : 'Przebuduj miniaturki'}
-                              style={{
-                                padding: '4px 8px',
-                                fontSize: '11px',
-                                background: folder.imageCount === 0 ? '#f3f4f6' : '#e0e7ff',
-                                color: folder.imageCount === 0 ? '#9ca3af' : '#4338ca',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: folder.imageCount === 0 ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              {rebuildingFolder === folder.path ? (
-                                <i className="las la-spinner la-spin"></i>
-                              ) : (
-                                <i className="las la-sync-alt"></i>
+                      <React.Fragment key={i}>
+                        <tr
+                          style={{
+                            borderBottom: expandedFolder === folder.path ? 'none' : '1px solid #f3f4f6',
+                            cursor: folder.imageCount > 0 ? 'pointer' : 'default',
+                            background: expandedFolder === folder.path ? '#f0f9ff' : 'transparent',
+                          }}
+                          onClick={() => folder.imageCount > 0 && toggleFolderExpand(folder.path)}
+                        >
+                          <td style={{ padding: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {folder.imageCount > 0 && (
+                                <i
+                                  className={`las ${expandedFolder === folder.path ? 'la-chevron-down' : 'la-chevron-right'}`}
+                                  style={{ fontSize: '12px', color: '#6b7280' }}
+                                ></i>
                               )}
-                            </button>
-                            {lastRebuiltFolder?.path === folder.path && (
-                              <span
-                                title={`Ostatnio przebudowany: ${formatDate(lastRebuiltFolder.timestamp)}`}
-                                style={{ color: '#059669', fontSize: '14px' }}
-                              >
-                                <i className="las la-check-circle"></i>
-                              </span>
+                              <div style={{
+                                fontFamily: 'monospace',
+                                fontSize: '12px',
+                                color: folder.error ? '#dc2626' : '#374151'
+                              }}>
+                                {folder.path}
+                              </div>
+                            </div>
+                            {folder.error && (
+                              <div style={{ fontSize: '11px', color: '#dc2626', marginLeft: '20px' }}>{folder.error}</div>
                             )}
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <span style={{
+                              fontWeight: folder.imageCount > 0 ? 600 : 400,
+                              color: folder.imageCount > 0 ? '#059669' : '#9ca3af'
+                            }}>
+                              {folder.imageCount}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                            {loadingCacheStatus === folder.path ? (
+                              <i className="las la-spinner la-spin" style={{ color: '#6b7280' }}></i>
+                            ) : folderCacheStatus[folder.path] ? (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                <span style={{
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  color: folderCacheStatus[folder.path].summary.percentage === 100 ? '#059669'
+                                    : folderCacheStatus[folder.path].summary.percentage > 0 ? '#f59e0b'
+                                    : '#dc2626'
+                                }}>
+                                  {folderCacheStatus[folder.path].summary.cached}/{folderCacheStatus[folder.path].summary.total}
+                                </span>
+                                <i
+                                  className={`las ${
+                                    folderCacheStatus[folder.path].summary.percentage === 100 ? 'la-check-circle'
+                                    : folderCacheStatus[folder.path].summary.percentage > 0 ? 'la-exclamation-circle'
+                                    : 'la-times-circle'
+                                  }`}
+                                  style={{
+                                    color: folderCacheStatus[folder.path].summary.percentage === 100 ? '#059669'
+                                      : folderCacheStatus[folder.path].summary.percentage > 0 ? '#f59e0b'
+                                      : '#dc2626',
+                                    fontSize: '14px'
+                                  }}
+                                ></i>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => fetchFolderCacheStatus(folder.path)}
+                                disabled={folder.imageCount === 0}
+                                style={{
+                                  padding: '2px 6px',
+                                  fontSize: '10px',
+                                  background: '#f3f4f6',
+                                  color: '#6b7280',
+                                  border: 'none',
+                                  borderRadius: '3px',
+                                  cursor: folder.imageCount === 0 ? 'not-allowed' : 'pointer',
+                                }}
+                              >
+                                Sprawdź
+                              </button>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center', color: '#6b7280' }}>
+                            {folder.subfolders.length}
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                              <button
+                                onClick={() => handleRebuildFolder(folder.path)}
+                                disabled={rebuildingFolder !== null || folder.imageCount === 0}
+                                title={folder.imageCount === 0 ? 'Brak obrazów' : 'Przebuduj miniaturki'}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: '11px',
+                                  background: folder.imageCount === 0 ? '#f3f4f6' : '#e0e7ff',
+                                  color: folder.imageCount === 0 ? '#9ca3af' : '#4338ca',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: folder.imageCount === 0 ? 'not-allowed' : 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                {rebuildingFolder === folder.path ? (
+                                  <i className="las la-spinner la-spin"></i>
+                                ) : (
+                                  <i className="las la-sync-alt"></i>
+                                )}
+                              </button>
+                              {lastRebuiltFolder?.path === folder.path && (
+                                <span
+                                  title={`Ostatnio przebudowany: ${formatDate(lastRebuiltFolder.timestamp)}`}
+                                  style={{ color: '#059669', fontSize: '14px' }}
+                                >
+                                  <i className="las la-check-circle"></i>
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {/* Rozwinięty widok obrazów */}
+                        {expandedFolder === folder.path && (
+                          <tr>
+                            <td colSpan={5} style={{ padding: 0, background: '#f8fafc' }}>
+                              <div style={{
+                                padding: '12px 20px',
+                                borderBottom: '1px solid #e5e7eb',
+                                maxHeight: '300px',
+                                overflowY: 'auto'
+                              }}>
+                                {loadingCacheStatus === folder.path ? (
+                                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                                    <i className="las la-spinner la-spin" style={{ fontSize: '24px' }}></i>
+                                    <div style={{ marginTop: '8px', fontSize: '12px' }}>Sprawdzanie cache...</div>
+                                  </div>
+                                ) : folderCacheStatus[folder.path] ? (
+                                  <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                    gap: '8px'
+                                  }}>
+                                    {folderCacheStatus[folder.path].images.map((img, idx) => (
+                                      <div
+                                        key={idx}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          padding: '6px 10px',
+                                          background: img.cached ? '#ecfdf5' : '#fef2f2',
+                                          borderRadius: '4px',
+                                          fontSize: '11px',
+                                        }}
+                                      >
+                                        <i
+                                          className={`las ${img.cached ? 'la-check-circle' : 'la-times-circle'}`}
+                                          style={{
+                                            color: img.cached ? '#059669' : '#dc2626',
+                                            fontSize: '16px',
+                                            flexShrink: 0,
+                                          }}
+                                        ></i>
+                                        <span
+                                          style={{
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            color: img.cached ? '#065f46' : '#991b1b',
+                                          }}
+                                          title={img.name}
+                                        >
+                                          {img.name}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '12px' }}>
+                                    Kliknij &quot;Sprawdź&quot; aby zobaczyć status cache
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

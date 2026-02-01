@@ -97,9 +97,9 @@ async function checkAndRun(): Promise<void> {
       }
     }
 
-    // Uruchom skan
+    // Uruchom skan (cykliczny/automatyczny)
     logger.info('Scheduler triggering automatic scan');
-    await runScan();
+    await runScan(true);
   } catch (error) {
     logger.error('Scheduler check error:', error);
   }
@@ -107,8 +107,9 @@ async function checkAndRun(): Promise<void> {
 
 /**
  * Uruchamia pełny skan i generowanie miniaturek
+ * @param isScheduled - czy skan został uruchomiony automatycznie przez scheduler
  */
-export async function runScan(): Promise<{
+export async function runScan(isScheduled = false): Promise<{
   success: boolean;
   changes: number;
   duration: number;
@@ -125,9 +126,10 @@ export async function runScan(): Promise<{
 
   isRunning = true;
   const startTime = Date.now();
+  const triggerSource = isScheduled ? '[CYKLICZNE]' : '[RĘCZNE]';
 
   try {
-    await addHistoryEntry('scan_started', 'Rozpoczęto skanowanie zmian');
+    await addHistoryEntry('scan_started', `${triggerSource} Rozpoczęto skanowanie zmian`);
 
     const cacheData = await getCacheData();
     const oldHashes = new Map(
@@ -161,7 +163,7 @@ export async function runScan(): Promise<{
     if (changes.length > 0) {
       await addHistoryEntry(
         'changes_detected',
-        `Wykryto ${changes.length} zmian (dodane: ${stats.added}, zmodyfikowane: ${stats.modified}, usunięte: ${stats.deleted})`,
+        `${triggerSource} Wykryto ${changes.length} zmian (dodane: ${stats.added}, zmodyfikowane: ${stats.modified}, usunięte: ${stats.deleted})`,
         duration,
         changes.slice(0, 20).map((c) => c.path)
       );
@@ -172,13 +174,13 @@ export async function runScan(): Promise<{
       if (regenerated > 0) {
         await addHistoryEntry(
           'thumbnails_generated',
-          `Wygenerowano miniaturki dla ${regenerated} plików`
+          `${triggerSource} Wygenerowano miniaturki dla ${regenerated} plików`
         );
       }
     } else {
       await addHistoryEntry(
         'scan_completed',
-        `Skanowanie zakończone - brak zmian (${newHashList.length} plików)`,
+        `${triggerSource} Skanowanie zakończone - brak zmian (${newHashList.length} plików)`,
         duration
       );
     }
@@ -201,7 +203,7 @@ export async function runScan(): Promise<{
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
-    await addHistoryEntry('error', `Błąd skanowania: ${errorMessage}`);
+    await addHistoryEntry('error', `${triggerSource} Błąd skanowania: ${errorMessage}`);
     logger.error('Scan error:', error);
 
     return {

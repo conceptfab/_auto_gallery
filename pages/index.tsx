@@ -72,7 +72,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
       </Head>
 
       <main>
-        <Gallery refreshKey={refreshKey} groupId={groupId} />
+        <Gallery refreshKey={refreshKey} groupId={groupId} isAdmin={authStatus?.isAdmin ?? false} />
       </main>
     </>
   );

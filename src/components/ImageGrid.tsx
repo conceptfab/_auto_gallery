@@ -12,11 +12,13 @@ interface ImageGridProps {
   images: ImageFile[];
   onImageClick?: (image: ImageFile, imagesInFolder: ImageFile[]) => void;
   folderName: string;
+  folderPath?: string;
   kolorystykaImages?: ImageFile[];
   onTrackDownload?: (
     filePath: string,
     fileName: string,
   ) => Promise<void> | void;
+  isAdmin?: boolean;
 }
 
 const getDisplayNameStatic = (name: string): string => {
@@ -46,6 +48,9 @@ interface ImageItemProps {
     fileName: string,
   ) => Promise<void> | void;
   isTouchDevice: boolean;
+  isAdmin?: boolean;
+  isCached?: boolean;
+  cacheStatusLoaded?: boolean;
 }
 
 const ImageItem = memo(function ImageItem({
@@ -64,14 +69,39 @@ const ImageItem = memo(function ImageItem({
   onHoverPreviewClear,
   onTrackDownload,
   isTouchDevice,
+  isAdmin = false,
+  isCached,
+  cacheStatusLoaded = false,
 }: ImageItemProps) {
+  // Fallback: gdy miniaturka nie istnieje, wczytaj oryginał przez proxy
   const handleImageError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const target = e.target as HTMLImageElement;
-      logger.warn('Image load error:', target.src);
-      target.style.display = 'none';
+      const originalSrc = target.src;
+
+      // Sprawdź czy to już jest fallback (proxy z size=thumb)
+      if (originalSrc.includes('/api/image-proxy')) {
+        // Proxy też nie zadziałał - ukryj obrazek
+        logger.warn('Image load error (proxy fallback failed):', originalSrc);
+        target.style.display = 'none';
+        return;
+      }
+
+      // Miniaturka nie istnieje - użyj proxy jako fallback
+      logger.info('Thumbnail missing, falling back to proxy:', image.name);
+      const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=thumb`;
+      target.src = proxyUrl;
+
+      // Wyzwól generowanie miniaturki w tle
+      fetch('/api/admin/cache/generate-single', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagePath: image.path || image.url }),
+      }).catch(() => {
+        // Ignoruj błędy - to tylko optymalizacja w tle
+      });
     },
-    [],
+    [image],
   );
 
   return (
@@ -80,7 +110,39 @@ const ImageItem = memo(function ImageItem({
         className="image-container"
         onClick={() => onImageClick?.(image, images)}
       >
-        { }
+        {/* Admin cache status icon */}
+        {isAdmin && (
+          <div
+            className="cache-status-icon"
+            title={
+              !cacheStatusLoaded ? 'Sprawdzanie cache...' :
+              isCached === undefined ? 'Status nieznany' :
+              isCached ? 'Miniaturka w cache' : 'Brak miniaturki w cache'
+            }
+            style={{
+              position: 'absolute',
+              top: '3px',
+              right: '3px',
+              zIndex: 10,
+              width: '14px',
+              height: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <i
+              className={`las ${!cacheStatusLoaded ? 'la-spinner la-spin' : 'la-database'}`}
+              style={{
+                color: !cacheStatusLoaded ? '#9ca3af' :
+                       isCached === undefined ? '#9ca3af' :
+                       isCached ? '#059669' : '#dc2626',
+                fontSize: '12px',
+                textShadow: '0 0 2px rgba(255,255,255,0.8)',
+              }}
+            ></i>
+          </div>
+        )}
         <img
           src={getOptimizedImageUrl(image, 'thumb')}
           alt={image.name}
@@ -205,8 +267,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   images,
   onImageClick,
   folderName,
+  folderPath,
   kolorystykaImages = [],
   onTrackDownload,
+  isAdmin = false,
 }) => {
   const [hoveredPreview, setHoveredPreview] = React.useState<{
     image: ImageFile;
@@ -239,6 +303,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     [key: string]: Array<{ keyword: string; image: ImageFile }>;
   }>({});
 
+  // Stan cache dla admina
+  const [cacheStatus, setCacheStatus] = React.useState<Record<string, boolean>>({});
+  const [cacheStatusLoaded, setCacheStatusLoaded] = React.useState(false);
+
   const { highlightKeywords: highlightKeywordsEnabled } = useSettings();
 
   // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
@@ -254,6 +322,43 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     mediaQuery.addEventListener('change', checkTouchDevice);
     return () => mediaQuery.removeEventListener('change', checkTouchDevice);
   }, []);
+
+  // Pobierz status cache dla admina
+  React.useEffect(() => {
+    if (!isAdmin || images.length === 0) return;
+
+    // Reset przy zmianie folderu
+    setCacheStatus({});
+    setCacheStatusLoaded(false);
+
+    const checkCacheStatus = async () => {
+      try {
+        // Użyj folderPath jeśli dostępne, w przeciwnym razie folderName
+        const pathToCheck = folderPath || folderName;
+        logger.debug('Fetching cache status for folder:', pathToCheck);
+        const response = await fetch(`/api/admin/cache/folder-status?folder=${encodeURIComponent(pathToCheck)}`);
+        if (response.ok) {
+          const data = await response.json();
+          logger.debug('Cache status response:', data);
+          if (data.success && data.images) {
+            const statusMap: Record<string, boolean> = {};
+            for (const img of data.images) {
+              statusMap[img.name] = img.cached;
+            }
+            setCacheStatus(statusMap);
+          }
+        } else {
+          logger.warn('Cache status API error:', response.status);
+        }
+      } catch (error) {
+        logger.error('Error fetching cache status', error);
+      } finally {
+        setCacheStatusLoaded(true);
+      }
+    };
+
+    checkCacheStatus();
+  }, [isAdmin, images, folderName, folderPath]);
 
   React.useEffect(() => {
     const loadHighlightedNames = async () => {
@@ -318,6 +423,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           onHoverPreviewClear={handleHoverPreviewClear}
           onTrackDownload={onTrackDownload}
           isTouchDevice={isTouchDevice}
+          isAdmin={isAdmin}
+          isCached={isAdmin ? cacheStatus[image.name] : undefined}
+          cacheStatusLoaded={cacheStatusLoaded}
         />
       ))}
 
@@ -352,11 +460,17 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               display: 'block',
             }}
             onError={(e) => {
-              logger.warn(
-                'Błąd ładowania podglądu:',
-                hoveredPreview.image.name,
-              );
-              (e.target as HTMLImageElement).style.display = 'none';
+              const target = e.target as HTMLImageElement;
+              const originalSrc = target.src;
+
+              // Fallback do proxy gdy miniaturka nie istnieje
+              if (!originalSrc.includes('/api/image-proxy')) {
+                logger.info('Preview thumbnail missing, falling back to proxy:', hoveredPreview.image.name);
+                target.src = `/api/image-proxy?url=${encodeURIComponent(hoveredPreview.image.url)}&size=thumb`;
+              } else {
+                logger.warn('Błąd ładowania podglądu:', hoveredPreview.image.name);
+                target.style.display = 'none';
+              }
             }}
           />
         </div>

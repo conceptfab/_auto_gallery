@@ -37,7 +37,6 @@ export default async function handler(
   const envCheck = {
     FILE_LIST_URL: process.env.FILE_LIST_URL ? 'SET' : 'MISSING',
     FILE_PROXY_SECRET: process.env.FILE_PROXY_SECRET ? 'SET' : 'MISSING',
-    GALLERY_BASE_URL: process.env.GALLERY_BASE_URL || 'NOT SET',
   };
 
   try {
