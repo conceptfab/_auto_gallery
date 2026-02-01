@@ -72,7 +72,7 @@ export function getAdminEmailFromCookie(req: NextApiRequest): string | null {
     emailMatch &&
     loggedMatch &&
     loggedMatch[1] === 'true' &&
-    emailMatch[1] === ADMIN_EMAIL
+    emailMatch[1].trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase()
   ) {
     return emailMatch[1];
   }
