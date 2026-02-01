@@ -22,7 +22,8 @@
       "Bash(npx tsc:*)",
       "Bash(node:*)",
       "Bash(find:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(jq:*)"
     ],
     "deny": [],
     "ask": []

@@ -145,6 +145,183 @@ function formatDate(isoString: string | null): string {
   });
 }
 
+// Komponent paska postępu do następnego skanu
+const ScanProgressBar: React.FC<{
+  lastRun: string | null;
+  nextRun: string | null;
+  enabled: boolean;
+  scanInProgress: boolean;
+  intervalMinutes: number;
+}> = ({ lastRun, nextRun, enabled, scanInProgress, intervalMinutes }) => {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!enabled || !nextRun) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [enabled, nextRun]);
+
+  if (!enabled) {
+    return (
+      <div style={{ marginTop: '12px', padding: '10px', background: '#fef2f2', borderRadius: '6px' }}>
+        <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 500 }}>
+          <i className="las la-pause-circle" style={{ marginRight: '6px' }}></i>
+          Automatyczne skanowanie wyłączone
+        </div>
+      </div>
+    );
+  }
+
+  if (scanInProgress) {
+    return (
+      <div style={{ marginTop: '12px', padding: '10px', background: '#dbeafe', borderRadius: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="las la-spinner la-spin" style={{ color: '#2563eb' }}></i>
+          <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 500 }}>Skanowanie w toku...</span>
+        </div>
+        <div style={{
+          marginTop: '8px',
+          height: '6px',
+          background: '#bfdbfe',
+          borderRadius: '3px',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            height: '100%',
+            background: 'linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, #2563eb 100%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.5s infinite linear',
+            width: '100%',
+          }} />
+        </div>
+        <style>{`
+          @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (!lastRun || !nextRun) {
+    return (
+      <div style={{ marginTop: '12px', padding: '10px', background: '#fef3c7', borderRadius: '6px' }}>
+        <div style={{ fontSize: '12px', color: '#92400e', fontWeight: 500 }}>
+          <i className="las la-clock" style={{ marginRight: '6px' }}></i>
+          Oczekiwanie na pierwszy skan...
+        </div>
+      </div>
+    );
+  }
+
+  const lastTime = new Date(lastRun).getTime();
+  const nextTime = new Date(nextRun).getTime();
+  const totalDuration = nextTime - lastTime;
+  const elapsed = now - lastTime;
+  const remaining = Math.max(0, nextTime - now);
+  const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+
+  // Sprawdź czy scheduler "utknął" - minęło 2x więcej niż interwał od ostatniego skanu
+  const expectedMaxDelay = intervalMinutes * 60 * 1000 * 2; // 2x interwał
+  const isStuck = elapsed > expectedMaxDelay;
+  const stuckHours = Math.floor(elapsed / (1000 * 60 * 60));
+  const stuckMinutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+
+  const formatRemaining = (ms: number) => {
+    if (ms <= 0) return 'za chwilę';
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    }
+    return `${seconds}s`;
+  };
+
+  // Jeśli scheduler utknął, pokaż alert
+  if (isStuck) {
+    return (
+      <div style={{ marginTop: '12px', padding: '12px', background: '#fef2f2', borderRadius: '6px', border: '2px solid #fca5a5' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <i className="las la-exclamation-triangle" style={{ color: '#dc2626', fontSize: '18px' }}></i>
+          <span style={{ fontSize: '13px', color: '#991b1b', fontWeight: 600 }}>
+            Scheduler nie działa!
+          </span>
+        </div>
+        <div style={{ fontSize: '12px', color: '#b91c1c', marginBottom: '8px' }}>
+          Ostatni skan: <strong>{stuckHours}h {stuckMinutes}m temu</strong>
+          <br />
+          <span style={{ color: '#9ca3af' }}>
+            ({new Date(lastRun).toLocaleString('pl-PL')})
+          </span>
+        </div>
+        <div style={{ fontSize: '11px', color: '#6b7280', background: '#fee2e2', padding: '8px', borderRadius: '4px' }}>
+          <strong>Możliwe przyczyny:</strong>
+          <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
+            <li>Serwer został zrestartowany (deploy)</li>
+            <li>Proces schedulera nie został uruchomiony</li>
+            <li>Błąd w instrumentation.ts</li>
+          </ul>
+          <div style={{ marginTop: '8px', fontWeight: 500 }}>
+            Kliknij &quot;Skanuj zmiany&quot; aby ręcznie uruchomić skan.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const progressColor = progress < 50 ? '#10b981' : progress < 80 ? '#f59e0b' : '#ef4444';
+
+  return (
+    <div style={{ marginTop: '12px', padding: '12px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '12px', color: '#166534', fontWeight: 500 }}>
+          <i className="las la-clock" style={{ marginRight: '6px' }}></i>
+          Następny skan za:
+        </span>
+        <span style={{
+          fontSize: '14px',
+          fontWeight: 700,
+          color: progressColor,
+          fontFamily: 'monospace',
+        }}>
+          {formatRemaining(remaining)}
+        </span>
+      </div>
+      <div style={{
+        height: '8px',
+        background: '#dcfce7',
+        borderRadius: '4px',
+        overflow: 'hidden',
+        position: 'relative',
+      }}>
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          height: '100%',
+          width: `${progress}%`,
+          background: `linear-gradient(90deg, #10b981 0%, ${progressColor} 100%)`,
+          borderRadius: '4px',
+          transition: 'width 1s linear',
+        }} />
+      </div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: '6px',
+        fontSize: '10px',
+        color: '#6b7280',
+      }}>
+        <span>Ostatni: {new Date(lastRun).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+        <span>{Math.round(progress)}%</span>
+        <span>Następny: {new Date(nextRun).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+    </div>
+  );
+};
+
 export const CacheMonitorSection: React.FC = () => {
   const [status, setStatus] = useState<CacheStatus | null>(null);
   const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig | null>(null);
@@ -521,11 +698,16 @@ export const CacheMonitorSection: React.FC = () => {
                       Czas: {formatDuration(status.scheduler.lastRunDuration)}
                     </div>
                   )}
-                  <div style={{ fontSize: '12px', color: '#059669', marginTop: '5px' }}>
-                    Następny: {formatDate(status.scheduler.nextRun)}
-                  </div>
                 </>
               )}
+              {/* Pasek postępu do następnego skanu */}
+              <ScanProgressBar
+                lastRun={status?.scheduler.lastRun || null}
+                nextRun={status?.scheduler.nextRun || null}
+                enabled={status?.scheduler.enabled || false}
+                scanInProgress={status?.scanInProgress || false}
+                intervalMinutes={schedulerConfig?.workHours.intervalMinutes || 30}
+              />
             </div>
 
             {/* Files */}
