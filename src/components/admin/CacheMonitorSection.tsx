@@ -153,7 +153,14 @@ const ScanProgressBar: React.FC<{
   scanInProgress: boolean;
   intervalMinutes: number;
   schedulerActive?: boolean;
-}> = ({ lastRun, nextRun, enabled, scanInProgress, intervalMinutes, schedulerActive = false }) => {
+}> = ({
+  lastRun,
+  nextRun,
+  enabled,
+  scanInProgress,
+  intervalMinutes,
+  schedulerActive = false,
+}) => {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -271,30 +278,8 @@ const ScanProgressBar: React.FC<{
     return `${seconds}s`;
   };
 
-  // Jeśli scheduler utknął (ostatni skan dawno temu)
-  if (isStuck) {
-    // Scheduler jest już aktywny (uruchomił się po wejściu w sekcję) – komunikat łagodniejszy
-    if (schedulerActive) {
-      return (
-        <div
-          style={{
-            marginTop: '12px',
-            padding: '12px',
-            background: '#f0fdf4',
-            borderRadius: '6px',
-            border: '1px solid #bbf7d0',
-          }}
-        >
-          <div style={{ fontSize: '12px', color: '#166534', marginBottom: '4px' }}>
-            <i className="las la-check-circle" style={{ marginRight: '6px' }}></i>
-            Scheduler uruchomiony – ostatni skan był {stuckHours}h {stuckMinutes}m temu.
-          </div>
-          <div style={{ fontSize: '11px', color: '#15803d' }}>
-            Następny skan za {formatRemaining(remaining)}. Możesz też kliknąć &quot;Skanuj zmiany&quot;, aby uruchomić skan od razu.
-          </div>
-        </div>
-      );
-    }
+  // Jeśli scheduler utknął (ostatni skan dawno temu) i nie jest aktywny – czerwony alert
+  if (isStuck && !schedulerActive) {
     return (
       <div
         style={{
@@ -349,7 +334,9 @@ const ScanProgressBar: React.FC<{
             <li>Błąd w instrumentation.ts</li>
           </ul>
           <div style={{ marginTop: '8px', fontWeight: 500 }}>
-            Po wejściu w tę sekcję scheduler uruchamia się automatycznie – odśwież stronę za chwilę lub kliknij &quot;Skanuj zmiany&quot;, aby uruchomić skan od razu.
+            Po wejściu w tę sekcję scheduler uruchamia się automatycznie –
+            odśwież stronę za chwilę lub kliknij &quot;Skanuj zmiany&quot;, aby
+            uruchomić skan od razu.
           </div>
         </div>
       </div>
