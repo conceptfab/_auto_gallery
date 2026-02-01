@@ -9,6 +9,7 @@ import { logger } from '@/src/utils/logger';
 
 export interface Settings {
   highlightKeywords: boolean;
+  thumbnailAnimationDelay: number;
 }
 
 interface SettingsContextValue {
@@ -16,10 +17,13 @@ interface SettingsContextValue {
   loading: boolean;
   /** highlightKeywords – null dopóki nie załadowano, potem boolean */
   highlightKeywords: boolean | null;
+  /** thumbnailAnimationDelay – opóźnienie animacji miniaturek w ms (domyślnie 55) */
+  thumbnailAnimationDelay: number;
 }
 
 const defaults: Settings = {
   highlightKeywords: true,
+  thumbnailAnimationDelay: 55,
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -39,6 +43,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (data.success && data.settings) {
           setSettings({
             highlightKeywords: data.settings.highlightKeywords !== false,
+            thumbnailAnimationDelay: data.settings.thumbnailAnimationDelay ?? 55,
           });
         } else {
           setSettings(defaults);
@@ -64,6 +69,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       loading,
       highlightKeywords:
         settings === null ? null : (settings.highlightKeywords ?? true),
+      thumbnailAnimationDelay: settings?.thumbnailAnimationDelay ?? 55,
     }),
     [settings, loading],
   );
@@ -82,6 +88,7 @@ export function useSettings(): SettingsContextValue {
       settings: null,
       loading: true,
       highlightKeywords: null,
+      thumbnailAnimationDelay: 55,
     };
   }
   return ctx;

@@ -1143,21 +1143,24 @@ a {
 .image-item {
   display: block;
   width: 100%;
-  /* Staggered fade-in animation for thumbnails */
+  /* Staggered fade-in animation for thumbnails - European reading direction */
   opacity: 0;
-  animation: thumbnailFadeIn 0.35s ease-out forwards;
-  animation-delay: calc(var(--item-index, 0) * 40ms);
+  transform: translateY(6px) scale(0.98);
+  animation: thumbnailFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  /* Use CSS variable from parent .image-grid, fallback to 55ms */
+  animation-delay: calc(var(--item-index, 0) * var(--thumbnail-delay, 55ms));
+  will-change: opacity, transform;
 }
 
 /* Thumbnail fade-in animation - European reading direction (left to right, top to bottom) */
 @keyframes thumbnailFadeIn {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px) scale(0.98);
   }
-  to {
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 

@@ -76,10 +76,12 @@ const AdminPanel: React.FC = () => {
     highlightKeywords: boolean;
     autoCleanupEnabled: boolean;
     autoCleanupDays: number;
+    thumbnailAnimationDelay: number;
   }>({
     highlightKeywords: true,
     autoCleanupEnabled: false,
     autoCleanupDays: 7,
+    thumbnailAnimationDelay: 55,
   });
 
   // Stan dla ręcznego czyszczenia
@@ -93,7 +95,16 @@ const AdminPanel: React.FC = () => {
 
   // Stan dla rozwiniętych sekcji
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['stats', 'whitelist', 'blacklist', 'groups', 'settings', 'data-cleanup', 'cache', 'files']),
+    new Set([
+      'stats',
+      'whitelist',
+      'blacklist',
+      'groups',
+      'settings',
+      'data-cleanup',
+      'cache',
+      'files',
+    ])
   );
 
   // Stan dla formularzy dodawania emaili
@@ -211,11 +222,14 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const updateSettings = async (newSettings: Partial<{
-    highlightKeywords: boolean;
-    autoCleanupEnabled: boolean;
-    autoCleanupDays: number;
-  }>) => {
+  const updateSettings = async (
+    newSettings: Partial<{
+      highlightKeywords: boolean;
+      autoCleanupEnabled: boolean;
+      autoCleanupDays: number;
+      thumbnailAnimationDelay: number;
+    }>
+  ) => {
     try {
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -233,7 +247,11 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleManualCleanup = async () => {
-    if (!confirm(`Czy na pewno chcesz usunąć dane starsze niż ${settings.autoCleanupDays} dni? Ta operacja jest nieodwracalna.`)) {
+    if (
+      !confirm(
+        `Czy na pewno chcesz usunąć dane starsze niż ${settings.autoCleanupDays} dni? Ta operacja jest nieodwracalna.`
+      )
+    ) {
       return;
     }
 
@@ -437,7 +455,7 @@ const AdminPanel: React.FC = () => {
 
   const handlePendingEmailAction = async (
     email: string,
-    action: 'approve' | 'reject',
+    action: 'approve' | 'reject'
   ) => {
     setProcessing(email);
     try {
@@ -465,11 +483,13 @@ const AdminPanel: React.FC = () => {
 
   const handleRemoveFromList = async (
     email: string,
-    listType: 'whitelist' | 'blacklist',
+    listType: 'whitelist' | 'blacklist'
   ) => {
     if (
       !confirm(
-        `Czy na pewno chcesz usunąć ${email} z ${listType === 'whitelist' ? 'białej' : 'czarnej'} listy?`,
+        `Czy na pewno chcesz usunąć ${email} z ${
+          listType === 'whitelist' ? 'białej' : 'czarnej'
+        } listy?`
       )
     ) {
       return;
@@ -501,7 +521,7 @@ const AdminPanel: React.FC = () => {
 
   const handleAddToList = async (
     email: string,
-    listType: 'whitelist' | 'blacklist',
+    listType: 'whitelist' | 'blacklist'
   ) => {
     if (!email || !email.trim()) {
       alert('Proszę podać adres email');
@@ -949,7 +969,11 @@ const AdminPanel: React.FC = () => {
                                       }}
                                     >
                                       {folderStatus[group.id].exists
-                                        ? `${folderStatus[group.id].foldersCount} folderów, ${folderStatus[group.id].filesCount} plików`
+                                        ? `${
+                                            folderStatus[group.id].foldersCount
+                                          } folderów, ${
+                                            folderStatus[group.id].filesCount
+                                          } plików`
                                         : `Folder nie istnieje`}
                                     </span>
                                   )}
@@ -1051,7 +1075,7 @@ const AdminPanel: React.FC = () => {
                                       onClick={() =>
                                         handleRemoveUserFromGroup(
                                           group.id,
-                                          email,
+                                          email
                                         )
                                       }
                                       disabled={processing === email}
@@ -1109,13 +1133,13 @@ const AdminPanel: React.FC = () => {
           )}
         </section>
 
-        {/* Ustawienia */}
+        {/* Ustawienia UI/UX */}
         <section className="admin-section">
           <h2
             className="admin-section-title admin-section-title-clickable"
             onClick={() => toggleSection('settings')}
           >
-            <span>Ustawienia</span>
+            <span>Ustawienia UI/UX</span>
             <i
               className={`las la-angle-up admin-section-toggle ${
                 expandedSections.has('settings') ? '' : 'collapsed'
@@ -1124,48 +1148,113 @@ const AdminPanel: React.FC = () => {
           </h2>
 
           {expandedSections.has('settings') && (
-            <div className="admin-card">
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <div>
-                  <h3 style={{ margin: '0 0 5px 0', color: '#111827' }}>
-                    Kolorowanie słów kluczowych
-                  </h3>
+            <>
+              <div className="admin-form-box">
+                <h3>Kolorowanie słów kluczowych</h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
                   <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
                     Włącz/wyłącz kolorowanie słów kluczowych w nazwach plików
                   </p>
-                </div>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={settings.highlightKeywords}
-                    onChange={(e) => {
-                      updateSettings({ highlightKeywords: e.target.checked });
-                    }}
+                  <label
                     style={{
-                      width: '20px',
-                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
                       cursor: 'pointer',
                     }}
-                  />
-                  <span style={{ fontSize: '14px', fontWeight: 500 }}>
-                    {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
-                  </span>
-                </label>
+                  >
+                    <input
+                      type="checkbox"
+                      checked={settings.highlightKeywords}
+                      onChange={(e) => {
+                        updateSettings({ highlightKeywords: e.target.checked });
+                      }}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        cursor: 'pointer',
+                      }}
+                    />
+                    <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                      {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
+                    </span>
+                  </label>
+                </div>
               </div>
-            </div>
+
+              <div className="admin-form-box">
+                <h3>Opóźnienie animacji miniaturek</h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                    Czas opóźnienia między pojawianiem się kolejnych miniaturek
+                    (0–1000 ms)
+                  </p>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                    }}
+                  >
+                    <input
+                      type="range"
+                      min="0"
+                      max="1000"
+                      step="5"
+                      value={settings.thumbnailAnimationDelay}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value, 10);
+                        setSettings((prev) => ({
+                          ...prev,
+                          thumbnailAnimationDelay: value,
+                        }));
+                      }}
+                      onMouseUp={(e) => {
+                        const value = parseInt(
+                          (e.target as HTMLInputElement).value,
+                          10
+                        );
+                        updateSettings({ thumbnailAnimationDelay: value });
+                      }}
+                      onTouchEnd={(e) => {
+                        const value = parseInt(
+                          (e.target as HTMLInputElement).value,
+                          10
+                        );
+                        updateSettings({ thumbnailAnimationDelay: value });
+                      }}
+                      style={{
+                        width: '120px',
+                        cursor: 'pointer',
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        minWidth: '50px',
+                      }}
+                    >
+                      {settings.thumbnailAnimationDelay} ms
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </section>
 
@@ -1184,26 +1273,20 @@ const AdminPanel: React.FC = () => {
           </h2>
 
           {expandedSections.has('data-cleanup') && (
-            <div className="admin-card">
-              {/* Automatyczne czyszczenie */}
+            <div className="admin-form-box">
+              <h3>Automatyczne czyszczenie historii</h3>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: '20px',
-                  paddingBottom: '15px',
-                  borderBottom: '1px solid #e5e7eb',
+                  marginBottom: '16px',
                 }}
               >
-                <div>
-                  <h3 style={{ margin: '0 0 5px 0', color: '#111827' }}>
-                    Automatyczne czyszczenie historii
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                    Automatycznie usuwaj dane (logowania, sesje, wyświetlenia, pobrania) starsze niż określona liczba dni
-                  </p>
-                </div>
+                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                  Automatycznie usuwaj dane (logowania, sesje, wyświetlenia,
+                  pobrania) starsze niż określona liczba dni
+                </p>
                 <label
                   style={{
                     display: 'flex',
@@ -1230,7 +1313,6 @@ const AdminPanel: React.FC = () => {
                 </label>
               </div>
 
-              {/* Liczba dni */}
               <div
                 style={{
                   display: 'flex',
@@ -1245,7 +1327,9 @@ const AdminPanel: React.FC = () => {
                 <select
                   value={settings.autoCleanupDays}
                   onChange={(e) => {
-                    updateSettings({ autoCleanupDays: parseInt(e.target.value, 10) });
+                    updateSettings({
+                      autoCleanupDays: parseInt(e.target.value, 10),
+                    });
                   }}
                   style={{
                     padding: '8px 12px',
@@ -1271,13 +1355,22 @@ const AdminPanel: React.FC = () => {
                   borderRadius: '6px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
                   <div>
                     <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
                       Ręczne czyszczenie
                     </h4>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#a16207' }}>
-                      Usuń teraz wszystkie dane starsze niż {settings.autoCleanupDays} dni
+                    <p
+                      style={{ margin: 0, fontSize: '13px', color: '#a16207' }}
+                    >
+                      Usuń teraz wszystkie dane starsze niż{' '}
+                      {settings.autoCleanupDays} dni
                     </p>
                   </div>
                   <button
@@ -1302,9 +1395,8 @@ const AdminPanel: React.FC = () => {
                       color: '#065f46',
                     }}
                   >
-                    <strong>Usunięto:</strong>{' '}
-                    {lastCleanupResult.deletedLogins} logowań,{' '}
-                    {lastCleanupResult.deletedSessions} sesji,{' '}
+                    <strong>Usunięto:</strong> {lastCleanupResult.deletedLogins}{' '}
+                    logowań, {lastCleanupResult.deletedSessions} sesji,{' '}
                     {lastCleanupResult.deletedViews} wyświetleń,{' '}
                     {lastCleanupResult.deletedDownloads} pobrań
                   </div>

@@ -38,6 +38,7 @@ interface StorageData {
     highlightKeywords?: boolean;
     autoCleanupEnabled?: boolean;
     autoCleanupDays?: number;
+    thumbnailAnimationDelay?: number;
   };
   // Statystyki użytkowników
   stats?: StatsData;
@@ -68,6 +69,7 @@ const defaultData: StorageData = {
   groups: [],
   settings: {
     highlightKeywords: true,
+    thumbnailAnimationDelay: 55,
   },
   stats: {
     logins: [],
@@ -126,7 +128,7 @@ export async function getData(): Promise<StorageData> {
 }
 
 export async function updateData(
-  updater: (data: StorageData) => void,
+  updater: (data: StorageData) => void
 ): Promise<void> {
   const data = await getData();
   updater(data);
@@ -137,7 +139,7 @@ export async function updateData(
 // Funkcje pomocnicze
 export async function addPendingEmail(
   email: string,
-  ip: string,
+  ip: string
 ): Promise<void> {
   await updateData((data) => {
     data.pendingEmails[email] = { timestamp: new Date().toISOString(), ip };
@@ -199,7 +201,7 @@ export async function removeFromBlacklist(email: string): Promise<void> {
 
 export async function addActiveCode(
   email: string,
-  loginCode: LoginCode,
+  loginCode: LoginCode
 ): Promise<void> {
   await updateData((data) => {
     data.activeCodes[email] = loginCode;
@@ -207,7 +209,7 @@ export async function addActiveCode(
 }
 
 export async function getActiveCode(
-  email: string,
+  email: string
 ): Promise<LoginCode | undefined> {
   const data = await getData();
   return data.activeCodes[email];
@@ -274,7 +276,7 @@ export async function cleanupOldRequests(): Promise<number> {
 
 export async function addAdminCode(
   email: string,
-  loginCode: LoginCode,
+  loginCode: LoginCode
 ): Promise<void> {
   await updateData((data) => {
     data.adminCodes[email] = loginCode;
@@ -282,7 +284,7 @@ export async function addAdminCode(
 }
 
 export async function getAdminCode(
-  email: string,
+  email: string
 ): Promise<LoginCode | undefined> {
   const data = await getData();
   return data.adminCodes[email];
@@ -349,7 +351,7 @@ export async function getGroupById(id: string): Promise<UserGroup | undefined> {
 export async function createGroup(
   name: string,
   clientName: string,
-  galleryFolder: string,
+  galleryFolder: string
 ): Promise<UserGroup> {
   const newGroup: UserGroup = {
     id: generateGroupId(),
@@ -369,7 +371,7 @@ export async function createGroup(
 
 export async function updateGroup(
   id: string,
-  updates: { name?: string; clientName?: string; galleryFolder?: string },
+  updates: { name?: string; clientName?: string; galleryFolder?: string }
 ): Promise<UserGroup | null> {
   let updatedGroup: UserGroup | null = null;
 
@@ -404,7 +406,7 @@ export async function deleteGroup(id: string): Promise<boolean> {
 
 export async function addUserToGroup(
   groupId: string,
-  email: string,
+  email: string
 ): Promise<boolean> {
   let added = false;
 
@@ -427,7 +429,7 @@ export async function addUserToGroup(
 
 export async function removeUserFromGroup(
   groupId: string,
-  email: string,
+  email: string
 ): Promise<boolean> {
   let removed = false;
 

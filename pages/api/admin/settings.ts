@@ -4,7 +4,7 @@ import { getAdminEmailFromCookie } from '@/src/utils/auth';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method === 'GET') {
     try {
@@ -16,6 +16,7 @@ export default async function handler(
         highlightKeywords: rawSettings.highlightKeywords ?? true,
         autoCleanupEnabled: rawSettings.autoCleanupEnabled ?? false,
         autoCleanupDays: rawSettings.autoCleanupDays ?? 7,
+        thumbnailAnimationDelay: rawSettings.thumbnailAnimationDelay ?? 55,
       };
       return res.status(200).json({ success: true, settings });
     } catch (error: unknown) {
@@ -36,17 +37,51 @@ export default async function handler(
         return res.status(403).json({ error: 'Brak uprawnień administratora' });
       }
 
-      const { highlightKeywords, autoCleanupEnabled, autoCleanupDays } = req.body;
+      const {
+        highlightKeywords,
+        autoCleanupEnabled,
+        autoCleanupDays,
+        thumbnailAnimationDelay,
+      } = req.body;
 
       // Walidacja
-      if (highlightKeywords !== undefined && typeof highlightKeywords !== 'boolean') {
-        return res.status(400).json({ error: 'Nieprawidłowa wartość highlightKeywords' });
+      if (
+        highlightKeywords !== undefined &&
+        typeof highlightKeywords !== 'boolean'
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'Nieprawidłowa wartość highlightKeywords' });
       }
-      if (autoCleanupEnabled !== undefined && typeof autoCleanupEnabled !== 'boolean') {
-        return res.status(400).json({ error: 'Nieprawidłowa wartość autoCleanupEnabled' });
+      if (
+        autoCleanupEnabled !== undefined &&
+        typeof autoCleanupEnabled !== 'boolean'
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'Nieprawidłowa wartość autoCleanupEnabled' });
       }
-      if (autoCleanupDays !== undefined && (typeof autoCleanupDays !== 'number' || autoCleanupDays < 1 || autoCleanupDays > 365)) {
-        return res.status(400).json({ error: 'autoCleanupDays musi być liczbą od 1 do 365' });
+      if (
+        autoCleanupDays !== undefined &&
+        (typeof autoCleanupDays !== 'number' ||
+          autoCleanupDays < 1 ||
+          autoCleanupDays > 365)
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'autoCleanupDays musi być liczbą od 1 do 365' });
+      }
+      if (
+        thumbnailAnimationDelay !== undefined &&
+        (typeof thumbnailAnimationDelay !== 'number' ||
+          thumbnailAnimationDelay < 0 ||
+          thumbnailAnimationDelay > 1000)
+      ) {
+        return res
+          .status(400)
+          .json({
+            error: 'thumbnailAnimationDelay musi być liczbą od 0 do 1000',
+          });
       }
 
       await updateData((data) => {
@@ -61,6 +96,9 @@ export default async function handler(
         }
         if (autoCleanupDays !== undefined) {
           data.settings.autoCleanupDays = autoCleanupDays;
+        }
+        if (thumbnailAnimationDelay !== undefined) {
+          data.settings.thumbnailAnimationDelay = thumbnailAnimationDelay;
         }
       });
 

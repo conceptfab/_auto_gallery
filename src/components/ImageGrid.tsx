@@ -281,6 +281,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     y: number;
   } | null>(null);
 
+  // Animation key - forces re-render and animation reset when folder is opened
+  const [animationKey, setAnimationKey] = React.useState(0);
+  React.useEffect(() => {
+    // Reset animation key on mount to trigger staggered fade-in
+    setAnimationKey((prev) => prev + 1);
+  }, []);
+
   const getDisplayName = useCallback(
     (name: string) => getDisplayNameStatic(name),
     [],
@@ -310,7 +317,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   const [cacheStatus, setCacheStatus] = React.useState<Record<string, boolean>>({});
   const [cacheStatusLoaded, setCacheStatusLoaded] = React.useState(false);
 
-  const { highlightKeywords: highlightKeywordsEnabled } = useSettings();
+  const { highlightKeywords: highlightKeywordsEnabled, thumbnailAnimationDelay } = useSettings();
 
   // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
   const [isTouchDevice, setIsTouchDevice] = React.useState(false);
@@ -405,10 +412,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   const memoizedImages = useMemo(() => images, [images]);
 
   return (
-    <div className="image-grid">
+    <div
+      className="image-grid"
+      style={{ '--thumbnail-delay': `${thumbnailAnimationDelay}ms` } as React.CSSProperties}
+    >
       {memoizedImages.map((image, index) => (
         <ImageItem
-          key={`${image.url}-${index}`}
+          key={`${image.url}-${index}-${animationKey}`}
           image={image}
           index={index}
           highlightedName={
