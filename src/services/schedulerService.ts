@@ -19,6 +19,8 @@ import {
 import { logger } from '@/src/utils/logger';
 import { GALLERY_BASE_URL } from '@/src/config/constants';
 import { sendRebuildNotification } from '@/src/utils/email';
+import { getData } from '@/src/utils/storage';
+import { cleanupOldStats } from '@/src/utils/statsStorage';
 
 let schedulerInterval: NodeJS.Timeout | null = null;
 let isRunning = false;
@@ -219,11 +221,22 @@ export async function runScan(isScheduled = false): Promise<{
       `Scan completed in ${duration}ms, ${changes.length} changes detected`
     );
 
-    // Auto-cleanup starej historii
+    // Auto-cleanup starej historii cache (skanów/zmian)
     const cleanupConfig =
       cacheData.historyCleanupConfig || DEFAULT_HISTORY_CLEANUP_CONFIG;
     if (cleanupConfig.autoCleanupEnabled) {
       await cleanupHistory(cleanupConfig.retentionHours);
+    }
+
+    // Auto-cleanup statystyk użytkowników (logowania, sesje, wyświetlenia, pobrania)
+    const storageData = await getData();
+    const statsAutoCleanup = storageData.settings?.autoCleanupEnabled ?? false;
+    const statsDaysToKeep = storageData.settings?.autoCleanupDays ?? 7;
+    if (statsAutoCleanup) {
+      const statsResult = await cleanupOldStats(statsDaysToKeep);
+      logger.info(
+        `Stats cleanup: removed ${statsResult.deletedLogins} logins, ${statsResult.deletedSessions} sessions, ${statsResult.deletedViews} views, ${statsResult.deletedDownloads} downloads (older than ${statsDaysToKeep} days)`
+      );
     }
 
     return {

@@ -1,0 +1,1 @@
+Wykonaj sprawdzenie kodu => optymalizacja, usunięcie martwego kodu, audyt bezpieczeństwa i wydajności. Zapisz szczególowe poprawki w poprawki.md
