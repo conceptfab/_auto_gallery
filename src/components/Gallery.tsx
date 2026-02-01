@@ -520,11 +520,13 @@ const Gallery: React.FC<GalleryProps> = ({
             >
               <i className="las la-angle-right"></i>
             </button>
-            {currentFolderPath !== 'Kolorystyka' && (
-              <button className="close-button" onClick={closeModal}>
-                <i className="las la-times"></i>
-              </button>
-            )}
+            <button
+              className="close-button"
+              onClick={closeModal}
+              title="Zamknij"
+            >
+              <i className="las la-times"></i>
+            </button>
             {imageLoaded && (
               <div className="modal-bottom-actions">
                 {currentFolderPath !== 'Kolorystyka' &&

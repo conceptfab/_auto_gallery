@@ -38,20 +38,106 @@ interface StorageData {
     highlightKeywords?: boolean;
     autoCleanupEnabled?: boolean;
     autoCleanupDays?: number;
+    historyRetentionDays?: number;
     thumbnailAnimationDelay?: number;
   };
   // Statystyki użytkowników
   stats?: StatsData;
 }
 
-// Funkcja async do określenia ścieżki pliku danych
-async function getDataFilePath(): Promise<string> {
+// Katalog danych: /data-storage (volume) lub data/ (lokalnie)
+async function getDataDir(): Promise<string> {
   try {
     await fsp.access('/data-storage');
-    return '/data-storage/storage.json';
+    return '/data-storage';
   } catch {
-    return path.join(process.cwd(), 'data', 'storage.json');
+    return path.join(process.cwd(), 'data');
   }
+}
+
+async function getDataFilePath(): Promise<string> {
+  const dir = await getDataDir();
+  return path.join(dir, 'storage.json');
+}
+
+// Katalog list (Etap 1 konwersji)
+async function getListsDir(): Promise<string> {
+  return path.join(await getDataDir(), 'lists');
+}
+
+function getWhitelistPath(listsDir: string): string {
+  return path.join(listsDir, 'whitelist.json');
+}
+
+function getBlacklistPath(listsDir: string): string {
+  return path.join(listsDir, 'blacklist.json');
+}
+
+// Katalog grup (Etap 2 konwersji)
+async function getGroupsDir(): Promise<string> {
+  return path.join(await getDataDir(), 'groups');
+}
+
+function getGroupsPath(groupsDir: string): string {
+  return path.join(groupsDir, 'groups.json');
+}
+
+// Katalog core (Etap 5 konwersji): pending, codes, settings
+async function getCoreDir(): Promise<string> {
+  return path.join(await getDataDir(), 'core');
+}
+
+function getPendingPath(coreDir: string): string {
+  return path.join(coreDir, 'pending.json');
+}
+
+function getCodesPath(coreDir: string): string {
+  return path.join(coreDir, 'codes.json');
+}
+
+function getSettingsPath(coreDir: string): string {
+  return path.join(coreDir, 'settings.json');
+}
+
+// Typy dla plików core (serializacja – daty jako string w JSON)
+/** Kształt pliku core/pending.json (dokumentacja) */
+interface _PendingFile {
+  [email: string]: { timestamp: string; ip: string };
+}
+
+type SerializedLoginCode = Omit<LoginCode, 'expiresAt' | 'createdAt'> & {
+  expiresAt: string;
+  createdAt: string;
+};
+
+interface CodesFile {
+  activeCodes: Record<string, SerializedLoginCode>;
+  adminCodes: Record<string, SerializedLoginCode>;
+  loggedInUsers: string[];
+  loggedInAdmins: string[];
+}
+
+interface SettingsFile {
+  highlightKeywords?: boolean;
+  autoCleanupEnabled?: boolean;
+  autoCleanupDays?: number;
+  historyRetentionDays?: number;
+  thumbnailAnimationDelay?: number;
+}
+
+// Normalizacja LoginCode z pliku (daty jako string) do LoginCode (Date)
+function normalizeLoginCode(raw: SerializedLoginCode): LoginCode {
+  return {
+    email: raw.email,
+    code: raw.code,
+    expiresAt: new Date(raw.expiresAt),
+    createdAt: new Date(raw.createdAt),
+  };
+}
+
+// Katalog plików dziennych użytkowników (Etap 3 konwersji)
+export async function getUsersDir(): Promise<string> {
+  return path.join(await getDataDir(), 'users');
 }
 
 // Cache dla ścieżki pliku (inicjalizowany przy pierwszym użyciu)
@@ -70,6 +156,8 @@ const defaultData: StorageData = {
   settings: {
     highlightKeywords: true,
     thumbnailAnimationDelay: 55,
+    autoCleanupDays: 7,
+    historyRetentionDays: 7,
   },
   stats: {
     logins: [],
@@ -102,54 +190,361 @@ async function loadData(): Promise<StorageData> {
   }
 }
 
-// Zapisz dane do pliku (async)
-async function saveData(data: StorageData): Promise<void> {
+// saveData() usunięte – dane core zapisywane do core/pending.json, core/codes.json, core/settings.json
+
+// ==================== ETAP 1: LISTY (osobne pliki) ====================
+
+async function loadWhitelist(): Promise<string[]> {
+  const listsDir = await getListsDir();
+  const filePath = getWhitelistPath(listsDir);
   try {
-    if (!cachedDataFilePath) {
-      cachedDataFilePath = await getDataFilePath();
+    const raw = await fsp.readFile(filePath, 'utf8');
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : null;
+    if (code === 'ENOENT') {
+      const data = await loadData();
+      const list = data.whitelist || [];
+      await fsp.mkdir(listsDir, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(list, null, 2));
+      return list;
     }
-    const dir = path.dirname(cachedDataFilePath);
-    await fsp.mkdir(dir, { recursive: true });
-    await fsp.writeFile(cachedDataFilePath, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('❌ Błąd zapisywania danych:', error);
-    throw error;
+    console.error('❌ Błąd ładowania whitelist:', err);
+    return [];
   }
 }
 
-// Cache danych w pamięci
+async function saveWhitelist(list: string[]): Promise<void> {
+  const listsDir = await getListsDir();
+  await fsp.mkdir(listsDir, { recursive: true });
+  const filePath = getWhitelistPath(listsDir);
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(list, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+async function loadBlacklist(): Promise<string[]> {
+  const listsDir = await getListsDir();
+  const filePath = getBlacklistPath(listsDir);
+  try {
+    const raw = await fsp.readFile(filePath, 'utf8');
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : null;
+    if (code === 'ENOENT') {
+      const data = await loadData();
+      const list = data.blacklist || [];
+      await fsp.mkdir(listsDir, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(list, null, 2));
+      return list;
+    }
+    console.error('❌ Błąd ładowania blacklist:', err);
+    return [];
+  }
+}
+
+async function saveBlacklist(list: string[]): Promise<void> {
+  const listsDir = await getListsDir();
+  await fsp.mkdir(listsDir, { recursive: true });
+  const filePath = getBlacklistPath(listsDir);
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(list, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+// ==================== ETAP 2: GRUPY (osobny plik) ====================
+
+async function loadGroups(): Promise<UserGroup[]> {
+  const groupsDir = await getGroupsDir();
+  const filePath = getGroupsPath(groupsDir);
+  try {
+    const raw = await fsp.readFile(filePath, 'utf8');
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : null;
+    if (code === 'ENOENT') {
+      const data = await loadData();
+      const list = data.groups || [];
+      await fsp.mkdir(groupsDir, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(list, null, 2));
+      return list;
+    }
+    console.error('❌ Błąd ładowania grup:', err);
+    return [];
+  }
+}
+
+async function saveGroups(groups: UserGroup[]): Promise<void> {
+  const groupsDir = await getGroupsDir();
+  await fsp.mkdir(groupsDir, { recursive: true });
+  const filePath = getGroupsPath(groupsDir);
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(groups, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+// ==================== ETAP 5: CORE (pending, codes, settings) ====================
+
+async function loadPending(): Promise<
+  Record<string, { timestamp: string; ip: string }>
+> {
+  const coreDir = await getCoreDir();
+  const filePath = getPendingPath(coreDir);
+  try {
+    const raw = await fsp.readFile(filePath, 'utf8');
+    const obj = JSON.parse(raw);
+    return obj && typeof obj === 'object' ? obj : {};
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : null;
+    if (code === 'ENOENT') {
+      const data = await loadData();
+      const pending = data.pendingEmails || {};
+      await fsp.mkdir(coreDir, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(pending, null, 2));
+      return pending;
+    }
+    console.error('❌ Błąd ładowania pending:', err);
+    return {};
+  }
+}
+
+async function savePending(
+  pending: Record<string, { timestamp: string; ip: string }>
+): Promise<void> {
+  const coreDir = await getCoreDir();
+  await fsp.mkdir(coreDir, { recursive: true });
+  const filePath = getPendingPath(coreDir);
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(pending, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+function serializeLoginCode(lc: LoginCode): SerializedLoginCode {
+  return {
+    ...lc,
+    expiresAt:
+      lc.expiresAt instanceof Date
+        ? lc.expiresAt.toISOString()
+        : (lc.expiresAt as unknown as string),
+    createdAt:
+      lc.createdAt instanceof Date
+        ? lc.createdAt.toISOString()
+        : (lc.createdAt as unknown as string),
+  };
+}
+
+async function loadCodes(): Promise<{
+  activeCodes: Record<string, LoginCode>;
+  adminCodes: Record<string, LoginCode>;
+  loggedInUsers: string[];
+  loggedInAdmins: string[];
+}> {
+  const coreDir = await getCoreDir();
+  const filePath = getCodesPath(coreDir);
+  try {
+    const raw = await fsp.readFile(filePath, 'utf8');
+    const file: CodesFile = JSON.parse(raw);
+    const activeCodes: Record<string, LoginCode> = {};
+    const adminCodes: Record<string, LoginCode> = {};
+    if (file.activeCodes && typeof file.activeCodes === 'object') {
+      for (const [email, lc] of Object.entries(file.activeCodes)) {
+        activeCodes[email] = normalizeLoginCode(lc);
+      }
+    }
+    if (file.adminCodes && typeof file.adminCodes === 'object') {
+      for (const [email, lc] of Object.entries(file.adminCodes)) {
+        adminCodes[email] = normalizeLoginCode(lc);
+      }
+    }
+    return {
+      activeCodes,
+      adminCodes,
+      loggedInUsers: Array.isArray(file.loggedInUsers)
+        ? file.loggedInUsers
+        : [],
+      loggedInAdmins: Array.isArray(file.loggedInAdmins)
+        ? file.loggedInAdmins
+        : [],
+    };
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : null;
+    if (code === 'ENOENT') {
+      const data = await loadData();
+      const payload: CodesFile = {
+        activeCodes: Object.fromEntries(
+          Object.entries(data.activeCodes || {}).map(([e, lc]) => [
+            e,
+            serializeLoginCode(lc),
+          ])
+        ),
+        adminCodes: Object.fromEntries(
+          Object.entries(data.adminCodes || {}).map(([e, lc]) => [
+            e,
+            serializeLoginCode(lc),
+          ])
+        ),
+        loggedInUsers: data.loggedInUsers || [],
+        loggedInAdmins: data.loggedInAdmins || [],
+      };
+      await fsp.mkdir(coreDir, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(payload, null, 2));
+      return {
+        activeCodes: data.activeCodes || {},
+        adminCodes: data.adminCodes || {},
+        loggedInUsers: data.loggedInUsers || [],
+        loggedInAdmins: data.loggedInAdmins || [],
+      };
+    }
+    console.error('❌ Błąd ładowania codes:', err);
+    return {
+      activeCodes: {},
+      adminCodes: {},
+      loggedInUsers: [],
+      loggedInAdmins: [],
+    };
+  }
+}
+
+async function saveCodes(codes: {
+  activeCodes: Record<string, LoginCode>;
+  adminCodes: Record<string, LoginCode>;
+  loggedInUsers: string[];
+  loggedInAdmins: string[];
+}): Promise<void> {
+  const coreDir = await getCoreDir();
+  await fsp.mkdir(coreDir, { recursive: true });
+  const filePath = getCodesPath(coreDir);
+  const payload: CodesFile = {
+    activeCodes: Object.fromEntries(
+      Object.entries(codes.activeCodes).map(([e, lc]) => [
+        e,
+        serializeLoginCode(lc),
+      ])
+    ),
+    adminCodes: Object.fromEntries(
+      Object.entries(codes.adminCodes).map(([e, lc]) => [
+        e,
+        serializeLoginCode(lc),
+      ])
+    ),
+    loggedInUsers: codes.loggedInUsers,
+    loggedInAdmins: codes.loggedInAdmins,
+  };
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(payload, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+async function loadSettings(): Promise<SettingsFile> {
+  const coreDir = await getCoreDir();
+  const filePath = getSettingsPath(coreDir);
+  try {
+    const raw = await fsp.readFile(filePath, 'utf8');
+    const obj = JSON.parse(raw);
+    return obj && typeof obj === 'object' ? obj : {};
+  } catch (err: unknown) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : null;
+    if (code === 'ENOENT') {
+      const data = await loadData();
+      const settings = data.settings || {};
+      await fsp.mkdir(coreDir, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(settings, null, 2));
+      return settings;
+    }
+    console.error('❌ Błąd ładowania settings:', err);
+    return {};
+  }
+}
+
+async function saveSettings(settings: SettingsFile): Promise<void> {
+  const coreDir = await getCoreDir();
+  await fsp.mkdir(coreDir, { recursive: true });
+  const filePath = getSettingsPath(coreDir);
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(settings, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+// Cache danych w pamięci (składany z list, groups, core – bez odczytu storage.json w głównej ścieżce)
 let cachedData: StorageData | null = null;
 
 export async function getData(): Promise<StorageData> {
   if (!cachedData) {
-    cachedData = await loadData();
+    const [whitelist, blacklist, groups, pending, codes, settings] =
+      await Promise.all([
+        loadWhitelist(),
+        loadBlacklist(),
+        loadGroups(),
+        loadPending(),
+        loadCodes(),
+        loadSettings(),
+      ]);
+    cachedData = {
+      pendingEmails: pending,
+      whitelist,
+      blacklist,
+      activeCodes: codes.activeCodes,
+      loggedInUsers: codes.loggedInUsers,
+      adminCodes: codes.adminCodes,
+      loggedInAdmins: codes.loggedInAdmins,
+      groups,
+      settings: Object.keys(settings).length ? settings : defaultData.settings,
+      stats: defaultData.stats,
+    } as StorageData;
   }
   return cachedData;
 }
 
-export async function updateData(
-  updater: (data: StorageData) => void
+/** Aktualizacja tylko ustawień (core/settings.json). Używane przez API admin/settings. */
+export async function updateSettings(
+  updater: (settings: NonNullable<StorageData['settings']>) => void
 ): Promise<void> {
-  const data = await getData();
-  updater(data);
-  cachedData = data;
-  await saveData(data);
+  const settings = await loadSettings();
+  const merged = { ...defaultData.settings, ...settings } as NonNullable<
+    StorageData['settings']
+  >;
+  updater(merged);
+  await saveSettings(merged);
+  if (cachedData) cachedData.settings = merged;
 }
 
-// Funkcje pomocnicze
+// Funkcje pomocnicze (core – pending)
 export async function addPendingEmail(
   email: string,
   ip: string
 ): Promise<void> {
-  await updateData((data) => {
-    data.pendingEmails[email] = { timestamp: new Date().toISOString(), ip };
-  });
+  const pending = await loadPending();
+  pending[email] = { timestamp: new Date().toISOString(), ip };
+  await savePending(pending);
+  if (cachedData) cachedData.pendingEmails = pending;
 }
 
 export async function removePendingEmail(email: string): Promise<void> {
-  await updateData((data) => {
-    delete data.pendingEmails[email];
-  });
+  const pending = await loadPending();
+  delete pending[email];
+  await savePending(pending);
+  if (cachedData) cachedData.pendingEmails = pending;
 }
 
 export async function getPendingEmails(): Promise<PendingEmail[]> {
@@ -161,51 +556,63 @@ export async function getPendingEmails(): Promise<PendingEmail[]> {
   }));
 }
 
-export async function addToWhitelist(email: string): Promise<void> {
-  await updateData((data) => {
-    if (!data.whitelist.includes(email)) {
-      data.whitelist.push(email);
-    }
-  });
-}
-
-export async function addToBlacklist(email: string): Promise<void> {
-  await updateData((data) => {
-    if (!data.blacklist.includes(email)) {
-      data.blacklist.push(email);
-    }
-  });
-}
-
 export async function getWhitelist(): Promise<string[]> {
-  const data = await getData();
-  return data.whitelist;
+  return loadWhitelist();
+}
+
+export async function addToWhitelist(email: string): Promise<void> {
+  const list = await loadWhitelist();
+  if (!list.includes(email)) {
+    list.push(email);
+    await saveWhitelist(list);
+    if (cachedData) cachedData.whitelist = list;
+  }
 }
 
 export async function removeFromWhitelist(email: string): Promise<void> {
-  await updateData((data) => {
-    data.whitelist = data.whitelist.filter((e) => e !== email);
-  });
+  const list = await loadWhitelist();
+  const next = list.filter((e) => e !== email);
+  if (next.length !== list.length) {
+    await saveWhitelist(next);
+    if (cachedData) cachedData.whitelist = next;
+  }
 }
 
 export async function getBlacklist(): Promise<string[]> {
-  const data = await getData();
-  return data.blacklist;
+  return loadBlacklist();
+}
+
+export async function addToBlacklist(email: string): Promise<void> {
+  const list = await loadBlacklist();
+  if (!list.includes(email)) {
+    list.push(email);
+    await saveBlacklist(list);
+    if (cachedData) cachedData.blacklist = list;
+  }
 }
 
 export async function removeFromBlacklist(email: string): Promise<void> {
-  await updateData((data) => {
-    data.blacklist = data.blacklist.filter((e) => e !== email);
-  });
+  const list = await loadBlacklist();
+  const next = list.filter((e) => e !== email);
+  if (next.length !== list.length) {
+    await saveBlacklist(next);
+    if (cachedData) cachedData.blacklist = next;
+  }
 }
 
 export async function addActiveCode(
   email: string,
   loginCode: LoginCode
 ): Promise<void> {
-  await updateData((data) => {
-    data.activeCodes[email] = loginCode;
-  });
+  const codes = await loadCodes();
+  codes.activeCodes[email] = loginCode;
+  await saveCodes(codes);
+  if (cachedData) {
+    cachedData.activeCodes = codes.activeCodes;
+    cachedData.loggedInUsers = codes.loggedInUsers;
+    cachedData.adminCodes = codes.adminCodes;
+    cachedData.loggedInAdmins = codes.loggedInAdmins;
+  }
 }
 
 export async function getActiveCode(
@@ -216,23 +623,31 @@ export async function getActiveCode(
 }
 
 export async function removeActiveCode(email: string): Promise<void> {
-  await updateData((data) => {
-    delete data.activeCodes[email];
-  });
+  const codes = await loadCodes();
+  delete codes.activeCodes[email];
+  await saveCodes(codes);
+  if (cachedData) {
+    cachedData.activeCodes = codes.activeCodes;
+    cachedData.loggedInUsers = codes.loggedInUsers;
+    cachedData.adminCodes = codes.adminCodes;
+    cachedData.loggedInAdmins = codes.loggedInAdmins;
+  }
 }
 
 export async function loginUser(email: string): Promise<void> {
-  await updateData((data) => {
-    if (!data.loggedInUsers.includes(email)) {
-      data.loggedInUsers.push(email);
-    }
-  });
+  const codes = await loadCodes();
+  if (!codes.loggedInUsers.includes(email)) {
+    codes.loggedInUsers.push(email);
+    await saveCodes(codes);
+    if (cachedData) cachedData.loggedInUsers = codes.loggedInUsers;
+  }
 }
 
 export async function logoutUser(email: string): Promise<void> {
-  await updateData((data) => {
-    data.loggedInUsers = data.loggedInUsers.filter((u) => u !== email);
-  });
+  const codes = await loadCodes();
+  codes.loggedInUsers = codes.loggedInUsers.filter((u) => u !== email);
+  await saveCodes(codes);
+  if (cachedData) cachedData.loggedInUsers = codes.loggedInUsers;
 }
 
 export async function isUserLoggedIn(email: string): Promise<boolean> {
@@ -242,35 +657,35 @@ export async function isUserLoggedIn(email: string): Promise<boolean> {
 
 export async function cleanupExpiredCodes(): Promise<number> {
   const now = new Date();
+  const codes = await loadCodes();
   let expiredCount = 0;
-
-  await updateData((data) => {
-    Object.keys(data.activeCodes).forEach((email) => {
-      const loginCode = data.activeCodes[email];
-      if (now > new Date(loginCode.expiresAt)) {
-        delete data.activeCodes[email];
-        expiredCount++;
-      }
-    });
-  });
-
+  for (const email of Object.keys(codes.activeCodes)) {
+    if (now > codes.activeCodes[email].expiresAt) {
+      delete codes.activeCodes[email];
+      expiredCount++;
+    }
+  }
+  if (expiredCount > 0) {
+    await saveCodes(codes);
+    if (cachedData) cachedData.activeCodes = codes.activeCodes;
+  }
   return expiredCount;
 }
 
 export async function cleanupOldRequests(): Promise<number> {
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const pending = await loadPending();
   let cleanedCount = 0;
-
-  await updateData((data) => {
-    Object.keys(data.pendingEmails).forEach((email) => {
-      const item = data.pendingEmails[email];
-      if (new Date(item.timestamp) < dayAgo) {
-        delete data.pendingEmails[email];
-        cleanedCount++;
-      }
-    });
-  });
-
+  for (const email of Object.keys(pending)) {
+    if (new Date(pending[email].timestamp) < dayAgo) {
+      delete pending[email];
+      cleanedCount++;
+    }
+  }
+  if (cleanedCount > 0) {
+    await savePending(pending);
+    if (cachedData) cachedData.pendingEmails = pending;
+  }
   return cleanedCount;
 }
 
@@ -278,9 +693,15 @@ export async function addAdminCode(
   email: string,
   loginCode: LoginCode
 ): Promise<void> {
-  await updateData((data) => {
-    data.adminCodes[email] = loginCode;
-  });
+  const codes = await loadCodes();
+  codes.adminCodes[email] = loginCode;
+  await saveCodes(codes);
+  if (cachedData) {
+    cachedData.activeCodes = codes.activeCodes;
+    cachedData.loggedInUsers = codes.loggedInUsers;
+    cachedData.adminCodes = codes.adminCodes;
+    cachedData.loggedInAdmins = codes.loggedInAdmins;
+  }
 }
 
 export async function getAdminCode(
@@ -291,23 +712,31 @@ export async function getAdminCode(
 }
 
 export async function removeAdminCode(email: string): Promise<void> {
-  await updateData((data) => {
-    delete data.adminCodes[email];
-  });
+  const codes = await loadCodes();
+  delete codes.adminCodes[email];
+  await saveCodes(codes);
+  if (cachedData) {
+    cachedData.activeCodes = codes.activeCodes;
+    cachedData.loggedInUsers = codes.loggedInUsers;
+    cachedData.adminCodes = codes.adminCodes;
+    cachedData.loggedInAdmins = codes.loggedInAdmins;
+  }
 }
 
 export async function loginAdmin(email: string): Promise<void> {
-  await updateData((data) => {
-    if (!data.loggedInAdmins.includes(email)) {
-      data.loggedInAdmins.push(email);
-    }
-  });
+  const codes = await loadCodes();
+  if (!codes.loggedInAdmins.includes(email)) {
+    codes.loggedInAdmins.push(email);
+    await saveCodes(codes);
+    if (cachedData) cachedData.loggedInAdmins = codes.loggedInAdmins;
+  }
 }
 
 export async function logoutAdmin(email: string): Promise<void> {
-  await updateData((data) => {
-    data.loggedInAdmins = data.loggedInAdmins.filter((u) => u !== email);
-  });
+  const codes = await loadCodes();
+  codes.loggedInAdmins = codes.loggedInAdmins.filter((u) => u !== email);
+  await saveCodes(codes);
+  if (cachedData) cachedData.loggedInAdmins = codes.loggedInAdmins;
 }
 
 export async function isAdminLoggedIn(email: string): Promise<boolean> {
@@ -317,34 +746,33 @@ export async function isAdminLoggedIn(email: string): Promise<boolean> {
 
 export async function cleanupExpiredAdminCodes(): Promise<number> {
   const now = new Date();
+  const codes = await loadCodes();
   let expiredCount = 0;
-
-  await updateData((data) => {
-    Object.keys(data.adminCodes).forEach((email) => {
-      const loginCode = data.adminCodes[email];
-      if (now > new Date(loginCode.expiresAt)) {
-        delete data.adminCodes[email];
-        expiredCount++;
-      }
-    });
-  });
-
+  for (const email of Object.keys(codes.adminCodes)) {
+    if (now > codes.adminCodes[email].expiresAt) {
+      delete codes.adminCodes[email];
+      expiredCount++;
+    }
+  }
+  if (expiredCount > 0) {
+    await saveCodes(codes);
+    if (cachedData) cachedData.adminCodes = codes.adminCodes;
+  }
   return expiredCount;
 }
 
-// ==================== GRUPY UŻYTKOWNIKÓW ====================
+// ==================== GRUPY UŻYTKOWNIKÓW (Etap 2 – groups/groups.json) ====================
 
 function generateGroupId(): string {
   return 'grp_' + Math.random().toString(36).substring(2, 11);
 }
 
 export async function getGroups(): Promise<UserGroup[]> {
-  const data = await getData();
-  return data.groups || [];
+  return loadGroups();
 }
 
 export async function getGroupById(id: string): Promise<UserGroup | undefined> {
-  const groups = await getGroups();
+  const groups = await loadGroups();
   return groups.find((g) => g.id === id);
 }
 
@@ -360,12 +788,10 @@ export async function createGroup(
     galleryFolder,
     users: [],
   };
-
-  await updateData((data) => {
-    if (!data.groups) data.groups = [];
-    data.groups.push(newGroup);
-  });
-
+  const groups = await loadGroups();
+  groups.push(newGroup);
+  await saveGroups(groups);
+  if (cachedData) cachedData.groups = groups;
   return newGroup;
 }
 
@@ -373,81 +799,60 @@ export async function updateGroup(
   id: string,
   updates: { name?: string; clientName?: string; galleryFolder?: string }
 ): Promise<UserGroup | null> {
-  let updatedGroup: UserGroup | null = null;
-
-  await updateData((data) => {
-    const group = data.groups?.find((g) => g.id === id);
-    if (group) {
-      if (updates.name !== undefined) group.name = updates.name;
-      if (updates.clientName !== undefined)
-        group.clientName = updates.clientName;
-      if (updates.galleryFolder !== undefined)
-        group.galleryFolder = updates.galleryFolder;
-      updatedGroup = { ...group };
-    }
-  });
-
-  return updatedGroup;
+  const groups = await loadGroups();
+  const group = groups.find((g) => g.id === id);
+  if (!group) return null;
+  if (updates.name !== undefined) group.name = updates.name;
+  if (updates.clientName !== undefined) group.clientName = updates.clientName;
+  if (updates.galleryFolder !== undefined)
+    group.galleryFolder = updates.galleryFolder;
+  await saveGroups(groups);
+  if (cachedData) cachedData.groups = groups;
+  return { ...group };
 }
 
 export async function deleteGroup(id: string): Promise<boolean> {
-  let deleted = false;
-
-  await updateData((data) => {
-    const index = data.groups?.findIndex((g) => g.id === id) ?? -1;
-    if (index !== -1) {
-      data.groups!.splice(index, 1);
-      deleted = true;
-    }
-  });
-
-  return deleted;
+  const groups = await loadGroups();
+  const index = groups.findIndex((g) => g.id === id);
+  if (index === -1) return false;
+  groups.splice(index, 1);
+  await saveGroups(groups);
+  if (cachedData) cachedData.groups = groups;
+  return true;
 }
 
 export async function addUserToGroup(
   groupId: string,
   email: string
 ): Promise<boolean> {
-  let added = false;
-
-  await updateData((data) => {
-    // Usuń użytkownika z innych grup
-    data.groups?.forEach((g) => {
-      g.users = g.users.filter((u) => u !== email);
-    });
-
-    // Dodaj do wybranej grupy
-    const group = data.groups?.find((g) => g.id === groupId);
-    if (group && !group.users.includes(email)) {
-      group.users.push(email);
-      added = true;
-    }
+  const groups = await loadGroups();
+  groups.forEach((g) => {
+    g.users = g.users.filter((u) => u !== email);
   });
-
-  return added;
+  const group = groups.find((g) => g.id === groupId);
+  if (!group || group.users.includes(email)) return false;
+  group.users.push(email);
+  await saveGroups(groups);
+  if (cachedData) cachedData.groups = groups;
+  return true;
 }
 
 export async function removeUserFromGroup(
   groupId: string,
   email: string
 ): Promise<boolean> {
-  let removed = false;
-
-  await updateData((data) => {
-    const group = data.groups?.find((g) => g.id === groupId);
-    if (group) {
-      const index = group.users.indexOf(email);
-      if (index !== -1) {
-        group.users.splice(index, 1);
-        removed = true;
-      }
-    }
-  });
-
-  return removed;
+  const groups = await loadGroups();
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const index = group.users.indexOf(email);
+  if (index === -1) return false;
+  group.users.splice(index, 1);
+  await saveGroups(groups);
+  if (cachedData) cachedData.groups = groups;
+  return true;
 }
 
 export async function getUserGroup(email: string): Promise<UserGroup | null> {
-  const groups = await getGroups();
+  const groups = await loadGroups();
   return groups.find((g) => g.users.includes(email)) || null;
 }

@@ -247,15 +247,18 @@ export async function runScan(isScheduled = false): Promise<{
       `Scan completed in ${duration}ms, ${changes.length} changes detected`
     );
 
-    // Auto-cleanup starej historii cache (skanów/zmian)
+    // Auto-cleanup starej historii cache (skanów/zmian) – retencja z core/settings (Etap 6)
+    const storageData = await getData();
     const cleanupConfig =
       cacheData.historyCleanupConfig || DEFAULT_HISTORY_CLEANUP_CONFIG;
     if (cleanupConfig.autoCleanupEnabled) {
-      await cleanupHistory(cleanupConfig.retentionHours);
+      const historyRetentionDays =
+        storageData.settings?.historyRetentionDays ?? 7;
+      const historyRetentionHours = historyRetentionDays * 24;
+      await cleanupHistory(historyRetentionHours);
     }
 
     // Auto-cleanup statystyk użytkowników (logowania, sesje, wyświetlenia, pobrania)
-    const storageData = await getData();
     const statsAutoCleanup = storageData.settings?.autoCleanupEnabled ?? false;
     const statsDaysToKeep = storageData.settings?.autoCleanupDays ?? 7;
     if (statsAutoCleanup) {

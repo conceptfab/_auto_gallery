@@ -1,0 +1,1928 @@
+{
+  "fileHashes": [
+    {
+      "path": "metro/_folders/fn/folder_thumb.png",
+      "hash": "86a6a2c38a0e3e8b",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:35:50+01:00",
+      "lastChecked": "2026-02-01T19:35:45.603Z"
+    },
+    {
+      "path": "metro/_folders/fota/folder_thumb.png",
+      "hash": "bffae47fc1225622",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:35:54+01:00",
+      "lastChecked": "2026-02-01T19:35:45.634Z"
+    },
+    {
+      "path": "metro/_folders/mcr1000/folder_thumb.png",
+      "hash": "f1bbea5821544d73",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:36:00+01:00",
+      "lastChecked": "2026-02-01T19:35:45.666Z"
+    },
+    {
+      "path": "metro/_folders/mcr800/folder_thumb.png",
+      "hash": "2a3f62eff9ba429a",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:36:05+01:00",
+      "lastChecked": "2026-02-01T19:35:45.698Z"
+    },
+    {
+      "path": "metro/_folders/qs/folder_thumb.png",
+      "hash": "8a9e3eea8c52302f",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:36:10+01:00",
+      "lastChecked": "2026-02-01T19:35:45.731Z"
+    },
+    {
+      "path": "metro/_folders/qx/folder_thumb.png",
+      "hash": "ebce340db3c9c50b",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:36:15+01:00",
+      "lastChecked": "2026-02-01T19:35:45.768Z"
+    },
+    {
+      "path": "metro/_folders/ts/folder_thumb.png",
+      "hash": "1e5a33ca5a99eb97",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:36:17+01:00",
+      "lastChecked": "2026-02-01T19:35:45.799Z"
+    },
+    {
+      "path": "metro/_folders/vr/folder_thumb.png",
+      "hash": "129bcaee454e9bd8",
+      "size": 12466,
+      "lastModified": "2026-01-27T19:36:21+01:00",
+      "lastChecked": "2026-02-01T19:35:45.831Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM/FM1D_PD3003__Shot_A__4K_R9.webp",
+      "hash": "493d0ed6b806ebac",
+      "size": 1231846,
+      "lastModified": "2026-02-01T19:17:30+01:00",
+      "lastChecked": "2026-02-01T19:35:45.893Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM/FM1D_U100_white__Shot_A__4K_R9.webp",
+      "hash": "20196e430ac0e1da",
+      "size": 529414,
+      "lastModified": "2026-02-01T19:17:30+01:00",
+      "lastChecked": "2026-02-01T19:35:45.893Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM/FM1D_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "534361d8cbd59b1c",
+      "size": 647374,
+      "lastModified": "2026-02-01T19:17:30+01:00",
+      "lastChecked": "2026-02-01T19:35:45.893Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM/FM2_PD3003__Shot_A__4K_R9.webp",
+      "hash": "68540ffb38f8373a",
+      "size": 2307132,
+      "lastModified": "2026-02-01T19:17:31+01:00",
+      "lastChecked": "2026-02-01T19:35:45.893Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM/FM2_U100_white__Shot_A__4K_R9.webp",
+      "hash": "146e34c2e7181138",
+      "size": 920126,
+      "lastModified": "2026-02-01T19:17:31+01:00",
+      "lastChecked": "2026-02-01T19:35:45.893Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM/FM2_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "fe7dcc191c0235fb",
+      "size": 1157322,
+      "lastModified": "2026-02-01T19:17:31+01:00",
+      "lastChecked": "2026-02-01T19:35:45.893Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN12_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "4f18926644118eb8",
+      "size": 1316638,
+      "lastModified": "2026-01-28T15:27:36+01:00",
+      "lastChecked": "2026-02-01T19:35:45.929Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN12_W240_black__Shot_A__4K_R9.webp",
+      "hash": "185800af99a5882d",
+      "size": 1227526,
+      "lastModified": "2026-01-28T15:27:36+01:00",
+      "lastChecked": "2026-02-01T19:35:45.929Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN12_W250_white__Shot_A__4K_R9.webp",
+      "hash": "2c8fab4a0ccdae10",
+      "size": 1391670,
+      "lastModified": "2026-01-28T15:27:37+01:00",
+      "lastChecked": "2026-02-01T19:35:45.929Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN12R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "af20baa0fcf2f43e",
+      "size": 1325036,
+      "lastModified": "2026-01-28T15:27:39+01:00",
+      "lastChecked": "2026-02-01T19:35:45.929Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN12R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "f4b229671961b3de",
+      "size": 1233758,
+      "lastModified": "2026-01-28T15:27:37+01:00",
+      "lastChecked": "2026-02-01T19:35:45.929Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN12R_W250_white__Shot_A__4K_R9.webp",
+      "hash": "e5e191a432af7c8e",
+      "size": 1629234,
+      "lastModified": "2026-01-28T15:27:38+01:00",
+      "lastChecked": "2026-02-01T19:35:45.929Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN1D_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "aeee0e6b0706db5d",
+      "size": 477424,
+      "lastModified": "2026-01-28T15:27:34+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN1D_W240_black__Shot_A__4K_R9.webp",
+      "hash": "0d7958074988ebcb",
+      "size": 478904,
+      "lastModified": "2026-01-28T15:27:34+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN1D_W250_white__Shot_A__4K_R9.webp",
+      "hash": "be386726c7c0d7e0",
+      "size": 371498,
+      "lastModified": "2026-01-28T15:27:34+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN22_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "a09896b95572fe01",
+      "size": 1309604,
+      "lastModified": "2026-01-28T15:27:38+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN22_W240_black__Shot_A__4K_R9.webp",
+      "hash": "20a36dc06070a763",
+      "size": 1234330,
+      "lastModified": "2026-01-28T15:27:39+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN22_W250_white__Shot_A__4K_R9.webp",
+      "hash": "d55cc34e3d26b2c4",
+      "size": 1310934,
+      "lastModified": "2026-01-28T15:27:40+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN22R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "da791dbffb56674a",
+      "size": 1316586,
+      "lastModified": "2026-01-28T15:27:32+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN22R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "f53dfd75b73e3c43",
+      "size": 1240110,
+      "lastModified": "2026-01-28T15:27:32+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN22R_W250_white__Shot_A__4K_R9.webp",
+      "hash": "9a963ea63fcd2ad1",
+      "size": 1300358,
+      "lastModified": "2026-01-28T15:27:32+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN32_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "403dbaf3f51abe1e",
+      "size": 1325782,
+      "lastModified": "2026-01-28T15:27:33+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN32_W240_black__Shot_A__4K_R9.webp",
+      "hash": "6ac14627d8117915",
+      "size": 1246516,
+      "lastModified": "2026-01-28T15:27:33+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN32_W250_white__Shot_A__4K_R9.webp",
+      "hash": "09ed2062ea791d81",
+      "size": 1229452,
+      "lastModified": "2026-01-28T15:27:33+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN3_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "12a84c593de5356c",
+      "size": 1052892,
+      "lastModified": "2026-01-28T15:27:34+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN3_W240_black__Shot_A__4K_R9.webp",
+      "hash": "672cd9b29d5cb6f9",
+      "size": 1005856,
+      "lastModified": "2026-01-28T15:27:34+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN3_W250_white__Shot_A__4K_R9.webp",
+      "hash": "9428459ecf94f656",
+      "size": 941034,
+      "lastModified": "2026-01-28T15:27:35+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN3R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "5ceefba1faabf8ba",
+      "size": 1038900,
+      "lastModified": "2026-01-28T15:27:36+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN3R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "b222542ff062e238",
+      "size": 994624,
+      "lastModified": "2026-01-28T15:27:35+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN/IN3R_W250_white__Shot_A__4K_R9.webp",
+      "hash": "73142058efa33f35",
+      "size": 931786,
+      "lastModified": "2026-01-28T15:27:36+01:00",
+      "lastChecked": "2026-02-01T19:35:45.930Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS10_U100_white__Shot_A__4K_R8.webp",
+      "hash": "7403cc7d84f07054",
+      "size": 704730,
+      "lastModified": "2026-01-28T11:37:44+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS10_U130_black__Shot_A__4K_R9.webp",
+      "hash": "2df0658e09268d68",
+      "size": 836968,
+      "lastModified": "2026-01-28T11:37:45+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS10_W240_black__Shot_A__4K_R9.webp",
+      "hash": "e7bacceff58eaa6d",
+      "size": 1186324,
+      "lastModified": "2026-01-28T11:37:47+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS15_U100_white__Shot_A__4K_R8.webp",
+      "hash": "2984029c675360f0",
+      "size": 693816,
+      "lastModified": "2026-01-28T11:37:45+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS15_U130_black__Shot_A__4K_R9.webp",
+      "hash": "c9d3c195bf8a2679",
+      "size": 883602,
+      "lastModified": "2026-01-28T11:37:46+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS15_W240_black__Shot_A__4K_R9.webp",
+      "hash": "65602626552bd880",
+      "size": 1251664,
+      "lastModified": "2026-01-28T11:37:46+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS1_U100_white__Shot_A__4K_R8.webp",
+      "hash": "bcde1551ec661402",
+      "size": 567872,
+      "lastModified": "2026-01-28T11:37:47+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS1_U130_black__Shot_A__4K_R9.webp",
+      "hash": "7cb717a33373f2d7",
+      "size": 622756,
+      "lastModified": "2026-01-28T11:37:48+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS1_W240_black__Shot_A__4K_R9.webp",
+      "hash": "4081c360671ff7cf",
+      "size": 861490,
+      "lastModified": "2026-01-28T11:37:48+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS1D_U100_white__Shot_A__4K_R8.webp",
+      "hash": "c72c7bf3f64cfe68",
+      "size": 358124,
+      "lastModified": "2026-01-28T11:37:47+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS1D_U130_black__Shot_A__4K_R9.webp",
+      "hash": "62faa8cef0f81b36",
+      "size": 338734,
+      "lastModified": "2026-01-28T11:37:47+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS1D_W240_black__Shot_A__4K_R9.webp",
+      "hash": "6f873ae2c0b0fbf5",
+      "size": 480832,
+      "lastModified": "2026-01-28T11:37:47+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS4_U100_white__Shot_A__4K_R8.webp",
+      "hash": "9e52f21ce1327689",
+      "size": 666658,
+      "lastModified": "2026-01-28T11:37:48+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS4_U130_black__Shot_A__4K_R9.webp",
+      "hash": "bde1d00d70ec3faf",
+      "size": 770986,
+      "lastModified": "2026-01-28T11:37:48+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS/QS4_W240_black__Shot_A__4K_R9.webp",
+      "hash": "335ba7f39180eee2",
+      "size": 1048052,
+      "lastModified": "2026-01-28T11:37:49+01:00",
+      "lastChecked": "2026-02-01T19:35:45.971Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX10_U120_white__Shot_A__4K_R8.webp",
+      "hash": "fc602152e32e6ad1",
+      "size": 866710,
+      "lastModified": "2026-01-28T11:37:50+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX10_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "9170d7ea89d9a4d2",
+      "size": 1328686,
+      "lastModified": "2026-01-28T11:37:52+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX10_W240_black__Shot_A__4K_R9.webp",
+      "hash": "c7924ec5ddba0af1",
+      "size": 1234036,
+      "lastModified": "2026-01-28T11:37:51+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX10R_U120_white__Shot_A__4K_R8.webp",
+      "hash": "0e70437d3bca2f75",
+      "size": 861880,
+      "lastModified": "2026-01-28T11:37:49+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX10R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "9ccc63fa67ef1b99",
+      "size": 1318334,
+      "lastModified": "2026-01-28T11:37:50+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX10R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "0c9fd1695d35565a",
+      "size": 1231094,
+      "lastModified": "2026-01-28T11:37:50+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX15_U120_white__Shot_A__4K_R8.webp",
+      "hash": "b68d3bb2a3d5fc0e",
+      "size": 874700,
+      "lastModified": "2026-01-28T11:37:53+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX15_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "a7b81ae76ef6a452",
+      "size": 1318228,
+      "lastModified": "2026-01-28T11:37:54+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX15_W240_black__Shot_A__4K_R9.webp",
+      "hash": "4df32f17bc00104c",
+      "size": 1234270,
+      "lastModified": "2026-01-28T11:37:54+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX15R_U120_white__Shot_A__4K_R8.webp",
+      "hash": "4c090f9ed063a673",
+      "size": 866358,
+      "lastModified": "2026-01-28T11:37:52+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX15R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "1b5886ade29bcc32",
+      "size": 1319194,
+      "lastModified": "2026-01-28T11:37:52+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX15R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "2ecbfa5bb0c57520",
+      "size": 1234324,
+      "lastModified": "2026-01-28T11:37:53+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX1_U120_white__Shot_A__4K_R8.webp",
+      "hash": "d8769d62b87caf1c",
+      "size": 627982,
+      "lastModified": "2026-01-28T11:37:55+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX1_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "3388070f2475c909",
+      "size": 901262,
+      "lastModified": "2026-01-28T11:37:55+01:00",
+      "lastChecked": "2026-02-01T19:35:46.009Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX1_W240_black__Shot_A__4K_R9.webp",
+      "hash": "2469fbc9e55adbfd",
+      "size": 848572,
+      "lastModified": "2026-01-28T11:37:57+01:00",
+      "lastChecked": "2026-02-01T19:35:46.010Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX1R_U120_white__Shot_A__4K_R8.webp",
+      "hash": "f34a12337b4c5dbe",
+      "size": 627528,
+      "lastModified": "2026-01-28T11:37:54+01:00",
+      "lastChecked": "2026-02-01T19:35:46.010Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX1R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "049d81b312a11944",
+      "size": 907638,
+      "lastModified": "2026-01-28T11:37:54+01:00",
+      "lastChecked": "2026-02-01T19:35:46.010Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX/QX1R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "1d6c4175a2c73965",
+      "size": 839010,
+      "lastModified": "2026-01-28T11:37:55+01:00",
+      "lastChecked": "2026-02-01T19:35:46.010Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "e2f0a8bf5e341d31",
+      "size": 825464,
+      "lastModified": "2026-02-01T19:17:34+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1_W240_black__Shot_A__4K_R9.webp",
+      "hash": "3531608c07cbbad3",
+      "size": 757670,
+      "lastModified": "2026-02-01T19:17:34+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "e0ac6e972f0a665b",
+      "size": 635054,
+      "lastModified": "2026-02-01T19:17:34+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1D_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "603ba8f02f7d8557",
+      "size": 463480,
+      "lastModified": "2026-02-01T19:17:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1D_W240_black__Shot_A__4K_R9.webp",
+      "hash": "cfbe41481ddbd9e0",
+      "size": 428398,
+      "lastModified": "2026-02-01T19:17:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1D_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "57d5b0d8111d1beb",
+      "size": 367472,
+      "lastModified": "2026-02-01T19:17:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1DR_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "f36ecea6f8f096d1",
+      "size": 462840,
+      "lastModified": "2026-02-01T19:17:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1DR_W240_black__Shot_A__4K_R9.webp",
+      "hash": "dc28562cf6d96743",
+      "size": 447536,
+      "lastModified": "2026-02-01T19:17:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1DR_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "ae83f15e1e788a9e",
+      "size": 367430,
+      "lastModified": "2026-02-01T19:17:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1R_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "2efe8638e80ff9dc",
+      "size": 821920,
+      "lastModified": "2026-02-01T19:17:33+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1R_W240_black__Shot_A__4K_R9.webp",
+      "hash": "3000aadb4aa9917b",
+      "size": 764116,
+      "lastModified": "2026-02-01T19:17:33+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS1R_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "b249090d9251cbe3",
+      "size": 629288,
+      "lastModified": "2026-02-01T19:17:34+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS3EM_W210_grey__Shot_A__4K_R9.webp",
+      "hash": "eaf5aad2eac57271",
+      "size": 1101342,
+      "lastModified": "2026-02-01T19:17:35+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS3EM_W240_black__Shot_A__4K_R9.webp",
+      "hash": "627885958bf1b56a",
+      "size": 1005132,
+      "lastModified": "2026-02-01T19:17:35+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS/TS3EM_W350_RAL7021__Shot_A__4K_R9.webp",
+      "hash": "228f832eb28e3453",
+      "size": 799838,
+      "lastModified": "2026-02-01T19:17:35+01:00",
+      "lastChecked": "2026-02-01T19:35:46.039Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V4_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "3435776bef040b6f",
+      "size": 814488,
+      "lastModified": "2026-01-28T11:37:25+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V4_W240_black__Shot_A__4K_R9.webp",
+      "hash": "950d25c70b2cffd0",
+      "size": 1055010,
+      "lastModified": "2026-01-28T11:37:26+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V4_W240_white__Shot_A__4K_R9.webp",
+      "hash": "f040b5e8f1103dd8",
+      "size": 1043710,
+      "lastModified": "2026-01-28T11:37:27+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V4SW_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "c93c51aa051f6775",
+      "size": 814420,
+      "lastModified": "2026-01-28T11:37:25+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V4SW_W240_black__Shot_A__4K_R9.webp",
+      "hash": "564fa0eb75049528",
+      "size": 1051636,
+      "lastModified": "2026-01-28T11:37:24+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V4SW_W240_white__Shot_A__4K_R9.webp",
+      "hash": "9fc6ba3102759d2c",
+      "size": 1053450,
+      "lastModified": "2026-01-28T11:37:25+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V50_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "595a1a29530d87b9",
+      "size": 914498,
+      "lastModified": "2026-01-28T11:37:26+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V50_W240_black__Shot_A__4K_R9.webp",
+      "hash": "956f9d002f42c3b4",
+      "size": 1207484,
+      "lastModified": "2026-01-28T11:37:27+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V50_W240_white__Shot_A__4K_R9.webp",
+      "hash": "99265fd3c30e61db",
+      "size": 1145804,
+      "lastModified": "2026-01-28T11:37:28+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V55_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "300d2ac48cb4e7f9",
+      "size": 921906,
+      "lastModified": "2026-01-28T11:37:30+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V55_W240_black__Shot_A__4K_R9.webp",
+      "hash": "6e0fad02262fcf28",
+      "size": 1205236,
+      "lastModified": "2026-01-28T11:37:29+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V55_W240_white__Shot_A__4K_R9.webp",
+      "hash": "a5ab68207f5e4fd7",
+      "size": 1143198,
+      "lastModified": "2026-01-28T11:37:30+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V55SW_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "84af3d20da8dda8c",
+      "size": 922520,
+      "lastModified": "2026-01-28T11:37:28+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V55SW_W240_black__Shot_A__4K_R9.webp",
+      "hash": "c313b7eba035a668",
+      "size": 1005094,
+      "lastModified": "2026-01-28T11:37:28+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR V55SW_W240_white__Shot_A__4K_R9.webp",
+      "hash": "2ffc53b16e930bad",
+      "size": 935028,
+      "lastModified": "2026-01-28T11:37:29+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "aabed474a54ab0af",
+      "size": 665216,
+      "lastModified": "2026-01-28T11:37:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1_W240_black__Shot_A__4K_R9.webp",
+      "hash": "cd65974070a6eef5",
+      "size": 830580,
+      "lastModified": "2026-01-28T11:37:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1_W240_white__Shot_A__4K_R9.webp",
+      "hash": "62cc467ced242307",
+      "size": 787606,
+      "lastModified": "2026-01-28T11:37:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1D_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "5efe43a8eeca65ed",
+      "size": 400438,
+      "lastModified": "2026-01-28T11:37:30+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1D_W240_black__Shot_A__4K_R9.webp",
+      "hash": "92205edd0f5a21fe",
+      "size": 495314,
+      "lastModified": "2026-01-28T11:37:30+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1D_W240_white__Shot_A__4K_R9.webp",
+      "hash": "cfd25f487a2da6b4",
+      "size": 438334,
+      "lastModified": "2026-01-28T11:37:30+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1SW_U120_grey__Shot_A__4K_R9.webp",
+      "hash": "7d5181f85586c4d2",
+      "size": 662340,
+      "lastModified": "2026-01-28T11:37:31+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1SW_W240_black__Shot_A__4K_R9.webp",
+      "hash": "b09cf0c4ae5c4595",
+      "size": 828310,
+      "lastModified": "2026-01-28T11:37:32+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR/VR_V1SW_W240_white__Shot_A__4K_R9.webp",
+      "hash": "67bd6f310573b7c8",
+      "size": 789172,
+      "lastModified": "2026-01-28T11:37:31+01:00",
+      "lastChecked": "2026-02-01T19:35:46.069Z"
+    },
+    {
+      "path": "metro/decors/bg.webp",
+      "hash": "53b56e947a8bacc0",
+      "size": 1850,
+      "lastModified": "2026-01-28T10:58:14+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/black_RAL9005.webp",
+      "hash": "cd37c32489656e4b",
+      "size": 1850,
+      "lastModified": "2026-01-28T10:58:14+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/grey_RAL9006.webp",
+      "hash": "6a92406f761b3689",
+      "size": 1876,
+      "lastModified": "2026-01-28T10:58:14+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/H1180.webp",
+      "hash": "3f333310961aeca7",
+      "size": 1243782,
+      "lastModified": "2026-01-28T10:58:15+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/PD3003.webp",
+      "hash": "b8902beedbd0bb8b",
+      "size": 1300046,
+      "lastModified": "2026-01-28T10:58:15+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/RAL7021.webp",
+      "hash": "e532c3b6ddda85d7",
+      "size": 86,
+      "lastModified": "2026-01-28T10:58:15+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/U100.webp",
+      "hash": "144e9a0849a660b3",
+      "size": 86,
+      "lastModified": "2026-01-28T10:58:15+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/U120.webp",
+      "hash": "6c7dcf3d44999bed",
+      "size": 220924,
+      "lastModified": "2026-01-28T10:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/U130.webp",
+      "hash": "0e307ee4ba8cf2cd",
+      "size": 218624,
+      "lastModified": "2026-01-28T10:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/W210.webp",
+      "hash": "dbb6c591d281e3d2",
+      "size": 380550,
+      "lastModified": "2026-01-28T10:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/W240.webp",
+      "hash": "720091d87f0d1de5",
+      "size": 1161478,
+      "lastModified": "2026-01-28T10:58:17+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/W250.webp",
+      "hash": "b5bc430445a6f07d",
+      "size": 374270,
+      "lastModified": "2026-01-28T10:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/W350.webp",
+      "hash": "56920a56c8d042bd",
+      "size": 5126,
+      "lastModified": "2026-01-28T10:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/wg.webp",
+      "hash": "1ebd9bbf1b247557",
+      "size": 1850,
+      "lastModified": "2026-01-28T10:58:17+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/decors/white_RAL9003.webp",
+      "hash": "ac7835291027e49b",
+      "size": 1850,
+      "lastModified": "2026-01-28T10:58:17+01:00",
+      "lastChecked": "2026-02-01T19:35:46.102Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B2_black_gb__Shot_A__4K_R8.webp",
+      "hash": "316d8a4dec2ccdd2",
+      "size": 1825148,
+      "lastModified": "2026-02-01T09:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B2_white_wg__Shot_A__4K_R8.webp",
+      "hash": "8725cf7b0ba63bac",
+      "size": 1630958,
+      "lastModified": "2026-02-01T09:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B_black_gb__Shot_A__4K_R8.webp",
+      "hash": "d714633126a07771",
+      "size": 1513476,
+      "lastModified": "2026-02-01T09:58:11+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B_white_wg__Shot_A__4K_R8.webp",
+      "hash": "4458dc130ad39e32",
+      "size": 1410442,
+      "lastModified": "2026-02-01T09:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A2_black_gb__Shot_A__4K_R8.webp",
+      "hash": "ac7c1e914f4137c9",
+      "size": 1501660,
+      "lastModified": "2026-02-01T09:58:18+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A2_white_wg__Shot_A__4K_R8.webp",
+      "hash": "55aeae99c4c3b295",
+      "size": 1400426,
+      "lastModified": "2026-02-01T09:58:17+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A_black_gb__Shot_A__4K_R8.webp",
+      "hash": "09a99f65b7574bff",
+      "size": 1153152,
+      "lastModified": "2026-02-01T09:58:17+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A_white_wg__Shot_A__4K_R8.webp",
+      "hash": "580689d92c3b65bc",
+      "size": 1061938,
+      "lastModified": "2026-02-01T09:58:17+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_C_black_gb__Shot_A__4K_R8.webp",
+      "hash": "5357ed3d4504e003",
+      "size": 1678466,
+      "lastModified": "2026-02-01T09:58:18+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_C_white_wg__Shot_A__4K_R8.webp",
+      "hash": "5af457d5bcb0acf7",
+      "size": 1215292,
+      "lastModified": "2026-02-01T09:58:18+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_D_black_gb__Shot_A__4K_R8.webp",
+      "hash": "365104d8f0e5c4f1",
+      "size": 1230178,
+      "lastModified": "2026-02-01T09:58:19+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_D_white_wg__Shot_A__4K_R8.webp",
+      "hash": "c951bbb8cd840f31",
+      "size": 1185906,
+      "lastModified": "2026-02-01T09:58:19+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 1_black_gb__Shot_A__4K_R8.webp",
+      "hash": "21a9285e9b450587",
+      "size": 2308102,
+      "lastModified": "2026-02-01T09:58:19+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 1_white_wg__Shot_A__4K_R8.webp",
+      "hash": "ae9747cf507851fb",
+      "size": 2097566,
+      "lastModified": "2026-02-01T09:58:20+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 2_black_gb__Shot_A__4K_R8.webp",
+      "hash": "9d5d7a4e82de6bde",
+      "size": 2910814,
+      "lastModified": "2026-02-01T09:58:21+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 2_white_wg__Shot_A__4K_R8.webp",
+      "hash": "118dfacc5abf0cff",
+      "size": 1535306,
+      "lastModified": "2026-02-01T09:58:20+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 3_black_gb__Shot_A__4K_R8.webp",
+      "hash": "e93d3a8334359823",
+      "size": 2765404,
+      "lastModified": "2026-02-01T09:58:21+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 3_white_wg__Shot_A__4K_R8.webp",
+      "hash": "2f362c336ef3c5d0",
+      "size": 1480008,
+      "lastModified": "2026-02-01T09:58:21+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 4_black_gb__Shot_A__4K_R8.webp",
+      "hash": "6debf5705f2e871e",
+      "size": 3629082,
+      "lastModified": "2026-02-01T09:58:22+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 4_white_wg__Shot_A__4K_R8.webp",
+      "hash": "3caa67a42e1f8342",
+      "size": 1408992,
+      "lastModified": "2026-02-01T09:58:16+01:00",
+      "lastChecked": "2026-02-01T19:35:46.169Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 10_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "f4dc4740832c595f",
+      "size": 1554032,
+      "lastModified": "2026-01-28T11:38:48+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 10_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "82bb8d829d074d21",
+      "size": 1172476,
+      "lastModified": "2026-01-28T11:38:49+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 13 E_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "9e4c19a240cf48a5",
+      "size": 2183560,
+      "lastModified": "2026-01-28T11:38:50+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 13 E_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "d8a9e6ed379ab340",
+      "size": 1766082,
+      "lastModified": "2026-01-28T11:38:51+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 13_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "7c1b9f2d97a4db66",
+      "size": 2400094,
+      "lastModified": "2026-01-28T11:38:51+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 13_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "5eb5aff172b62d8b",
+      "size": 1956588,
+      "lastModified": "2026-01-28T11:38:53+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 15_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "4c3fca8e29fc35c4",
+      "size": 1453572,
+      "lastModified": "2026-01-28T11:38:53+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 15_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "246fbad11fa81837",
+      "size": 1066948,
+      "lastModified": "2026-01-28T11:38:54+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 16_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "4441a98b7f9f5202",
+      "size": 1565266,
+      "lastModified": "2026-01-28T11:38:55+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 16_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "c7038d975aad5547",
+      "size": 1146648,
+      "lastModified": "2026-01-28T11:38:54+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 17_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "341bd38f56552a35",
+      "size": 1722726,
+      "lastModified": "2026-01-28T11:38:55+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 17_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "4285be4477d5f425",
+      "size": 1257752,
+      "lastModified": "2026-01-28T11:38:56+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 1_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "997f5ca302df3d33",
+      "size": 3059950,
+      "lastModified": "2026-01-28T11:38:57+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 1_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "5595278e154d188d",
+      "size": 1540526,
+      "lastModified": "2026-01-28T11:38:57+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 2 _H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "8ebbb219c9e8fb80",
+      "size": 5994384,
+      "lastModified": "2026-01-28T11:39:03+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 2 _W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "67c58cfa2b141545",
+      "size": 2266364,
+      "lastModified": "2026-01-28T11:38:59+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 21_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "656dde9703009897",
+      "size": 837840,
+      "lastModified": "2026-01-28T11:39:00+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 21_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "62d2297aa1a50802",
+      "size": 572636,
+      "lastModified": "2026-01-28T11:39:00+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 23_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "af33b932dc0aabb4",
+      "size": 679058,
+      "lastModified": "2026-01-28T11:39:01+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 23_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "e1a32021c954c1d5",
+      "size": 472692,
+      "lastModified": "2026-01-28T11:39:01+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 3_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "d29b4ea6f2557604",
+      "size": 8915800,
+      "lastModified": "2026-01-28T11:39:07+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 3_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "ff209f764114b76c",
+      "size": 4590154,
+      "lastModified": "2026-01-28T11:39:07+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 5_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "747694f9a57d98e4",
+      "size": 9991288,
+      "lastModified": "2026-01-28T11:39:20+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 5_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "1cd27105430a3eef",
+      "size": 4686764,
+      "lastModified": "2026-01-28T11:39:11+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 6_H1180_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "22d19e2a8e257f04",
+      "size": 9929074,
+      "lastModified": "2026-01-28T11:39:22+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE GCS 6_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "b22cad1da2c79791",
+      "size": 4984596,
+      "lastModified": "2026-01-28T11:39:26+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE IN46_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "30094a431bfd37d0",
+      "size": 283882,
+      "lastModified": "2026-01-28T11:39:23+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE IN47_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "32a8a2335dbddeda",
+      "size": 326366,
+      "lastModified": "2026-01-28T11:39:23+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE/CUBE MDSTOD_W350_RAL7021__Shot_A__4K_R8.webp",
+      "hash": "1e5fb33b69eeefaf",
+      "size": 555736,
+      "lastModified": "2026-01-28T11:39:24+01:00",
+      "lastChecked": "2026-02-01T19:35:46.232Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA0918_H1180__Shot_A__4K_R8.webp",
+      "hash": "87163cb45c91c65c",
+      "size": 5517894,
+      "lastModified": "2026-01-28T11:38:22+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA0918_PD3003__Shot_A__4K_R8.webp",
+      "hash": "a2094f846b02e79e",
+      "size": 4358022,
+      "lastModified": "2026-01-28T11:38:21+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA100_H1180__Shot_A__4K_R8.webp",
+      "hash": "c606c0f19c2b6ca5",
+      "size": 2273950,
+      "lastModified": "2026-01-28T11:38:24+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA100_PD3003__Shot_A__4K_R8.webp",
+      "hash": "e47599376f8a7720",
+      "size": 1653962,
+      "lastModified": "2026-01-28T11:38:23+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA2210_H1180__Shot_A__4K_R8.webp",
+      "hash": "cba14a72b01f5366",
+      "size": 4073808,
+      "lastModified": "2026-01-28T11:38:27+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA2210_PD3003__Shot_A__4K_R8.webp",
+      "hash": "4beb85d82c8dd1af",
+      "size": 2975314,
+      "lastModified": "2026-01-28T11:38:26+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA2310_H1180__Shot_A__4K_R8.webp",
+      "hash": "77a829e4f07d7556",
+      "size": 5283406,
+      "lastModified": "2026-01-28T11:38:30+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA2310_PD3003__Shot_A__4K_R8.webp",
+      "hash": "9339afa0ac3e5684",
+      "size": 4087546,
+      "lastModified": "2026-01-28T11:38:31+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA3212_H1180__Shot_A__4K_R8.webp",
+      "hash": "c62ae6799dfa8131",
+      "size": 3739122,
+      "lastModified": "2026-01-28T11:38:33+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA3212_PD3003__Shot_A__4K_R8.webp",
+      "hash": "d857685b87a3467b",
+      "size": 2841314,
+      "lastModified": "2026-01-28T11:38:33+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA4214_H1180__Shot_A__4K_R8.webp",
+      "hash": "1e677e0b1993e383",
+      "size": 4629910,
+      "lastModified": "2026-01-28T11:38:36+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CA4214_PD3003__Shot_A__4K_R8.webp",
+      "hash": "7bc3457980dc57ea",
+      "size": 3514796,
+      "lastModified": "2026-01-28T11:38:36+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CAES89_H1180__Shot_A__4K_R8.webp",
+      "hash": "0d67c7d89a1c2609",
+      "size": 3937486,
+      "lastModified": "2026-01-28T11:38:39+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CAES89_PD3003__Shot_A__4K_R8.webp",
+      "hash": "0be5acc448a7e59b",
+      "size": 3034994,
+      "lastModified": "2026-01-28T11:38:39+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CAESE_H1180__Shot_A__4K_R8.webp",
+      "hash": "83958965c1b467b4",
+      "size": 8478928,
+      "lastModified": "2026-01-28T11:38:49+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT/MANAGE-IT CAESE_PD3003__Shot_A__4K_R8.webp",
+      "hash": "6b43bd49951e4f67",
+      "size": 6842580,
+      "lastModified": "2026-01-28T11:38:45+01:00",
+      "lastChecked": "2026-02-01T19:35:46.263Z"
+    }
+  ],
+  "lastSchedulerRun": "2026-02-01T19:35:46.264Z",
+  "lastScanChanges": 51,
+  "lastScanDuration": 803,
+  "folderHashRecords": [
+    {
+      "path": "metro/_folders/fn",
+      "currentHash": "86a6a2c38a0e3e8b",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/fota",
+      "currentHash": "bffae47fc1225622",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/mcr1000",
+      "currentHash": "f1bbea5821544d73",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/mcr800",
+      "currentHash": "2a3f62eff9ba429a",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/qs",
+      "currentHash": "8a9e3eea8c52302f",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/qx",
+      "currentHash": "ebce340db3c9c50b",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/ts",
+      "currentHash": "1e5a33ca5a99eb97",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/_folders/vr",
+      "currentHash": "129bcaee454e9bd8",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 1
+    },
+    {
+      "path": "metro/Biurka pracownicze/FM",
+      "currentHash": "8170f2bc56533891",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.267Z",
+      "fileCount": 6
+    },
+    {
+      "path": "metro/Biurka pracownicze/IN",
+      "currentHash": "dddba01aa924b24c",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 24
+    },
+    {
+      "path": "metro/Biurka pracownicze/QS",
+      "currentHash": "727ed6c9dad21c3a",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 15
+    },
+    {
+      "path": "metro/Biurka pracownicze/QX",
+      "currentHash": "21a9ff3bf608fce7",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 18
+    },
+    {
+      "path": "metro/Biurka pracownicze/TS",
+      "currentHash": "489cb567624d5c1e",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 15
+    },
+    {
+      "path": "metro/Biurka pracownicze/VR",
+      "currentHash": "a740fb390d0ed5a2",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 24
+    },
+    {
+      "path": "metro/decors",
+      "currentHash": "4a93314ddf2d6772",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 15
+    },
+    {
+      "path": "metro/Lady recepcyjne/MCR800",
+      "currentHash": "b80a5bd0973cbff0",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 20
+    },
+    {
+      "path": "metro/Meble gabinetowe/CUBE",
+      "currentHash": "30d8817c54e294e7",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 29
+    },
+    {
+      "path": "metro/Meble gabinetowe/MANAGE-IT",
+      "currentHash": "a4072259fe477f19",
+      "previousHash": null,
+      "timestamp": "2026-02-01T19:35:46.268Z",
+      "fileCount": 16
+    }
+  ],
+  "history": [
+    {
+      "id": "hist_1769974590847_i6oqpg0wi",
+      "timestamp": "2026-02-01T19:36:30.847Z",
+      "action": "thumbnails_generated",
+      "details": "[CYKLICZNE] Wygenerowano miniaturki dla 41 plików"
+    },
+    {
+      "id": "hist_1769974546270_cors8oyrd",
+      "timestamp": "2026-02-01T19:35:46.270Z",
+      "action": "changes_detected",
+      "details": "[CYKLICZNE] Wykryto 51 zmian (dodane: 31, zmodyfikowane: 10, usunięte: 10)",
+      "duration": 803,
+      "affectedPaths": [
+        "metro/Biurka pracownicze/FM/FM1D_PD3003__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/FM/FM1D_U100_white__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/FM/FM1D_W350_RAL7021__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/FM/FM2_PD3003__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/FM/FM2_U100_white__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/FM/FM2_W350_RAL7021__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1_W210_grey__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1_W240_black__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1_W350_RAL7021__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1D_W210_grey__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1D_W240_black__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1D_W350_RAL7021__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1DR_W210_grey__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1DR_W240_black__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1DR_W350_RAL7021__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1R_W210_grey__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1R_W240_black__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS1R_W350_RAL7021__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS3EM_W210_grey__Shot_A__4K_R9.webp",
+        "metro/Biurka pracownicze/TS/TS3EM_W240_black__Shot_A__4K_R9.webp"
+      ]
+    },
+    {
+      "id": "hist_1769974545461_b01phm8km",
+      "timestamp": "2026-02-01T19:35:45.462Z",
+      "action": "scan_started",
+      "details": "[CYKLICZNE] Rozpoczęto skanowanie zmian"
+    }
+  ],
+  "changeHistory": [
+    {
+      "id": "change_1769974546263_3p574n009",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/FM/FM1D_PD3003__Shot_A__4K_R9.webp",
+      "newHash": "493d0ed6b806ebac",
+      "details": "Nowy plik: metro/Biurka pracownicze/FM/FM1D_PD3003__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_spg9575oa",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/FM/FM1D_U100_white__Shot_A__4K_R9.webp",
+      "newHash": "20196e430ac0e1da",
+      "details": "Nowy plik: metro/Biurka pracownicze/FM/FM1D_U100_white__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_lwlpdtlui",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/FM/FM1D_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "534361d8cbd59b1c",
+      "details": "Nowy plik: metro/Biurka pracownicze/FM/FM1D_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_hffldd5qd",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/FM/FM2_PD3003__Shot_A__4K_R9.webp",
+      "newHash": "68540ffb38f8373a",
+      "details": "Nowy plik: metro/Biurka pracownicze/FM/FM2_PD3003__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_zxoy1vxlu",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/FM/FM2_U100_white__Shot_A__4K_R9.webp",
+      "newHash": "146e34c2e7181138",
+      "details": "Nowy plik: metro/Biurka pracownicze/FM/FM2_U100_white__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_vv387pauq",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/FM/FM2_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "fe7dcc191c0235fb",
+      "details": "Nowy plik: metro/Biurka pracownicze/FM/FM2_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_2c3xcsb03",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1_W210_grey__Shot_A__4K_R9.webp",
+      "newHash": "e2f0a8bf5e341d31",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1_W210_grey__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_7p22jbb3v",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1_W240_black__Shot_A__4K_R9.webp",
+      "newHash": "3531608c07cbbad3",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1_W240_black__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_k9h7uakc2",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "e0ac6e972f0a665b",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_92sknvvyi",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1D_W210_grey__Shot_A__4K_R9.webp",
+      "newHash": "603ba8f02f7d8557",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1D_W210_grey__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_hx9vcpik6",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1D_W240_black__Shot_A__4K_R9.webp",
+      "newHash": "cfbe41481ddbd9e0",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1D_W240_black__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_timx9t0dx",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1D_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "57d5b0d8111d1beb",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1D_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_sm61wlprn",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1DR_W210_grey__Shot_A__4K_R9.webp",
+      "newHash": "f36ecea6f8f096d1",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1DR_W210_grey__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_wyo66grnc",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1DR_W240_black__Shot_A__4K_R9.webp",
+      "newHash": "dc28562cf6d96743",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1DR_W240_black__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_q3h5ktz3s",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1DR_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "ae83f15e1e788a9e",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1DR_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_dnho9krk4",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1R_W210_grey__Shot_A__4K_R9.webp",
+      "newHash": "2efe8638e80ff9dc",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1R_W210_grey__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_w4vphq46b",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1R_W240_black__Shot_A__4K_R9.webp",
+      "newHash": "3000aadb4aa9917b",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1R_W240_black__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_xfhp9c647",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS1R_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "b249090d9251cbe3",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS1R_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_xszjas296",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS3EM_W210_grey__Shot_A__4K_R9.webp",
+      "newHash": "eaf5aad2eac57271",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS3EM_W210_grey__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_iik18xwj2",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS3EM_W240_black__Shot_A__4K_R9.webp",
+      "newHash": "627885958bf1b56a",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS3EM_W240_black__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_shy3whh9q",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Biurka pracownicze/TS/TS3EM_W350_RAL7021__Shot_A__4K_R9.webp",
+      "newHash": "228f832eb28e3453",
+      "details": "Nowy plik: metro/Biurka pracownicze/TS/TS3EM_W350_RAL7021__Shot_A__4K_R9.webp"
+    },
+    {
+      "id": "change_1769974546263_vvu6inwo6",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B2_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "316d8a4dec2ccdd2",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR 120B2_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_jvc0ybhyl",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B2_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "b101e6db922fb1ab",
+      "newHash": "8725cf7b0ba63bac",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR 120B2_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_pvklh2hlm",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "d714633126a07771",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR 120B_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_v96y3ysa9",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "b5c48bdf0eb55830",
+      "newHash": "4458dc130ad39e32",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR 120B_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_dylyvt59i",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A2_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "ac7c1e914f4137c9",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_80A2_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_ln7xu5lz2",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A2_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "3efd56b6a295e2ef",
+      "newHash": "55aeae99c4c3b295",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_80A2_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_wicu5zu99",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "09a99f65b7574bff",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_80A_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_gf7ileikp",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "067c0b6c81e5c132",
+      "newHash": "580689d92c3b65bc",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_80A_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_au2tyock2",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_C_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "5357ed3d4504e003",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_C_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_f11dwzi83",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_C_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "f1f9c14042dfff80",
+      "newHash": "5af457d5bcb0acf7",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_C_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_gpc4gcw62",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_D_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "365104d8f0e5c4f1",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_D_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_w2wd54ubg",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_D_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "2ee413a4ee4b7284",
+      "newHash": "c951bbb8cd840f31",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_D_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_ovohgu3wv",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 1_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "21a9285e9b450587",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_Set 1_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_45ozo3r8e",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 1_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "c80d42478ea0b19e",
+      "newHash": "ae9747cf507851fb",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_Set 1_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_eg4ifvqtt",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 2_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "9d5d7a4e82de6bde",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_Set 2_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_ho887558c",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 2_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "74859e353a16c7ac",
+      "newHash": "118dfacc5abf0cff",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_Set 2_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_xl2f4bdn8",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 3_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "e93d3a8334359823",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_Set 3_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_lqcmsivdk",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 3_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "e6ea556e52691adc",
+      "newHash": "2f362c336ef3c5d0",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_Set 3_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_qzih1plt5",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_added",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 4_black_gb__Shot_A__4K_R8.webp",
+      "newHash": "6debf5705f2e871e",
+      "details": "Nowy plik: metro/Lady recepcyjne/MCR800/MCR_Set 4_black_gb__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_8xx0kr2y6",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_modified",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 4_white_wg__Shot_A__4K_R8.webp",
+      "oldHash": "b4feb4b5d82fab30",
+      "newHash": "3caa67a42e1f8342",
+      "details": "Zmodyfikowany: metro/Lady recepcyjne/MCR800/MCR_Set 4_white_wg__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_lpvo46h8w",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B2_black_gb_4K_R8.webp",
+      "oldHash": "6566f30fda5bf947",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR 120B2_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_f0hv0qgp6",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR 120B_black_gb_4K_R8.webp",
+      "oldHash": "67a2a7c9a5a17cf3",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR 120B_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_fawczitq1",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A2_black_gb_4K_R8.webp",
+      "oldHash": "4e3bf022e9c32998",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_80A2_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_c1ytlvjp8",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_80A_black_gb_4K_R8.webp",
+      "oldHash": "a7bf10a96765a1d6",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_80A_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_ieesm0knp",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_C_black_gb_4K_R8.webp",
+      "oldHash": "0f98d77f510a23a9",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_C_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_zlwbmaypu",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_D_black_gb_4K_R8.webp",
+      "oldHash": "5ebedf96a6ad591f",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_D_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_gv285ywt1",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 1_black_gb_4K_R8.webp",
+      "oldHash": "d4d72e033e8c2a26",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_Set 1_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_8diyw04pg",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 2_black_gb_4K_R8.webp",
+      "oldHash": "8f19f25fa326b7d9",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_Set 2_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_0pnskegdg",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 3_black_gb_4K_R8.webp",
+      "oldHash": "edec39f63908f88d",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_Set 3_black_gb_4K_R8.webp"
+    },
+    {
+      "id": "change_1769974546263_jqi8wofjn",
+      "timestamp": "2026-02-01T19:35:46.263Z",
+      "type": "file_deleted",
+      "path": "metro/Lady recepcyjne/MCR800/MCR_Set 4_black_gb_4K_R8.webp",
+      "oldHash": "e64ee6af7fafd297",
+      "details": "Usunięty: metro/Lady recepcyjne/MCR800/MCR_Set 4_black_gb_4K_R8.webp"
+    }
+  ]
+}

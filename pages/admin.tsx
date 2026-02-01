@@ -77,11 +77,13 @@ const AdminPanel: React.FC = () => {
     highlightKeywords: boolean;
     autoCleanupEnabled: boolean;
     autoCleanupDays: number;
+    historyRetentionDays: number;
     thumbnailAnimationDelay: number;
   }>({
     highlightKeywords: true,
     autoCleanupEnabled: false,
     autoCleanupDays: 7,
+    historyRetentionDays: 7,
     thumbnailAnimationDelay: 55,
   });
 
@@ -229,6 +231,7 @@ const AdminPanel: React.FC = () => {
       highlightKeywords: boolean;
       autoCleanupEnabled: boolean;
       autoCleanupDays: number;
+      historyRetentionDays: number;
       thumbnailAnimationDelay: number;
     }>
   ) => {
@@ -1331,6 +1334,39 @@ const AdminPanel: React.FC = () => {
                   onChange={(e) => {
                     updateSettings({
                       autoCleanupDays: parseInt(e.target.value, 10),
+                    });
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '14px',
+                  }}
+                >
+                  <option value={7}>7 dni</option>
+                  <option value={14}>14 dni</option>
+                  <option value={30}>30 dni</option>
+                  <option value={60}>60 dni</option>
+                  <option value={90}>90 dni</option>
+                </select>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '15px',
+                  marginBottom: '20px',
+                }}
+              >
+                <label style={{ fontSize: '14px', color: '#333' }}>
+                  Retencja historii cache (pliki history/cache-*.json):
+                </label>
+                <select
+                  value={settings.historyRetentionDays}
+                  onChange={(e) => {
+                    updateSettings({
+                      historyRetentionDays: parseInt(e.target.value, 10),
                     });
                   }}
                   style={{

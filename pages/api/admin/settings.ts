@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getData, updateData, isAdminLoggedIn } from '@/src/utils/storage';
+import { getData, updateSettings, isAdminLoggedIn } from '@/src/utils/storage';
 import { getAdminEmailFromCookie } from '@/src/utils/auth';
 
 export default async function handler(
@@ -16,6 +16,7 @@ export default async function handler(
         highlightKeywords: rawSettings.highlightKeywords ?? true,
         autoCleanupEnabled: rawSettings.autoCleanupEnabled ?? false,
         autoCleanupDays: rawSettings.autoCleanupDays ?? 7,
+        historyRetentionDays: rawSettings.historyRetentionDays ?? 7,
         thumbnailAnimationDelay: rawSettings.thumbnailAnimationDelay ?? 55,
       };
       return res.status(200).json({ success: true, settings });
@@ -41,6 +42,7 @@ export default async function handler(
         highlightKeywords,
         autoCleanupEnabled,
         autoCleanupDays,
+        historyRetentionDays,
         thumbnailAnimationDelay,
       } = req.body;
 
@@ -72,6 +74,16 @@ export default async function handler(
           .json({ error: 'autoCleanupDays musi być liczbą od 1 do 365' });
       }
       if (
+        historyRetentionDays !== undefined &&
+        (typeof historyRetentionDays !== 'number' ||
+          historyRetentionDays < 1 ||
+          historyRetentionDays > 365)
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'historyRetentionDays musi być liczbą od 1 do 365' });
+      }
+      if (
         thumbnailAnimationDelay !== undefined &&
         (typeof thumbnailAnimationDelay !== 'number' ||
           thumbnailAnimationDelay < 0 ||
@@ -82,21 +94,21 @@ export default async function handler(
         });
       }
 
-      await updateData((data) => {
-        if (!data.settings) {
-          data.settings = {};
-        }
+      await updateSettings((settings) => {
         if (highlightKeywords !== undefined) {
-          data.settings.highlightKeywords = highlightKeywords;
+          settings.highlightKeywords = highlightKeywords;
         }
         if (autoCleanupEnabled !== undefined) {
-          data.settings.autoCleanupEnabled = autoCleanupEnabled;
+          settings.autoCleanupEnabled = autoCleanupEnabled;
         }
         if (autoCleanupDays !== undefined) {
-          data.settings.autoCleanupDays = autoCleanupDays;
+          settings.autoCleanupDays = autoCleanupDays;
+        }
+        if (historyRetentionDays !== undefined) {
+          settings.historyRetentionDays = historyRetentionDays;
         }
         if (thumbnailAnimationDelay !== undefined) {
-          data.settings.thumbnailAnimationDelay = thumbnailAnimationDelay;
+          settings.thumbnailAnimationDelay = thumbnailAnimationDelay;
         }
       });
 
