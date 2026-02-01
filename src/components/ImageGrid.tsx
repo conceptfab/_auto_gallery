@@ -10,13 +10,17 @@ import { PREVIEW_TIMEOUT } from '@/src/config/constants';
 
 interface ImageGridProps {
   images: ImageFile[];
-  onImageClick?: (image: ImageFile, imagesInFolder: ImageFile[]) => void;
+  onImageClick?: (
+    image: ImageFile,
+    imagesInFolder: ImageFile[],
+    folderPath?: string
+  ) => void;
   folderName: string;
   folderPath?: string;
   kolorystykaImages?: ImageFile[];
   onTrackDownload?: (
     filePath: string,
-    fileName: string,
+    fileName: string
   ) => Promise<void> | void;
   isAdmin?: boolean;
 }
@@ -36,8 +40,13 @@ interface ImageItemProps {
   keywordItems: Array<{ keyword: string; image: ImageFile }>;
   folderName: string;
   highlightKeywordsEnabled: boolean | null;
-  onImageClick?: (image: ImageFile, imagesInFolder: ImageFile[]) => void;
+  onImageClick?: (
+    image: ImageFile,
+    imagesInFolder: ImageFile[],
+    folderPath?: string
+  ) => void;
   images: ImageFile[];
+  folderPath?: string;
   kolorystykaImages: ImageFile[];
   getOptimizedImageUrl: (image: ImageFile, size?: 'thumb' | 'full') => string;
   getDisplayName: (name: string) => string;
@@ -45,7 +54,7 @@ interface ImageItemProps {
   onHoverPreviewClear: () => void;
   onTrackDownload?: (
     filePath: string,
-    fileName: string,
+    fileName: string
   ) => Promise<void> | void;
   isTouchDevice: boolean;
   isAdmin?: boolean;
@@ -62,6 +71,7 @@ const ImageItem = memo(function ImageItem({
   highlightKeywordsEnabled: _highlightKeywordsEnabled,
   onImageClick,
   images,
+  folderPath,
   kolorystykaImages,
   getOptimizedImageUrl,
   getDisplayName,
@@ -89,7 +99,9 @@ const ImageItem = memo(function ImageItem({
 
       // Miniaturka nie istnieje - użyj proxy jako fallback
       logger.info('Thumbnail missing, falling back to proxy:', image.name);
-      const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=thumb`;
+      const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(
+        image.url
+      )}&size=thumb`;
       target.src = proxyUrl;
 
       // Wyzwól generowanie miniaturki w tle
@@ -101,7 +113,7 @@ const ImageItem = memo(function ImageItem({
         // Ignoruj błędy - to tylko optymalizacja w tle
       });
     },
-    [image],
+    [image]
   );
 
   return (
@@ -111,16 +123,20 @@ const ImageItem = memo(function ImageItem({
     >
       <div
         className="image-container"
-        onClick={() => onImageClick?.(image, images)}
+        onClick={() => onImageClick?.(image, images, folderPath)}
       >
         {/* Admin cache status icon */}
         {isAdmin && (
           <div
             className="cache-status-icon"
             title={
-              !cacheStatusLoaded ? 'Sprawdzanie cache...' :
-              isCached === undefined ? 'Status nieznany' :
-              isCached ? 'Miniaturka w cache' : 'Brak miniaturki w cache'
+              !cacheStatusLoaded
+                ? 'Sprawdzanie cache...'
+                : isCached === undefined
+                ? 'Status nieznany'
+                : isCached
+                ? 'Miniaturka w cache'
+                : 'Brak miniaturki w cache'
             }
             style={{
               position: 'absolute',
@@ -135,11 +151,17 @@ const ImageItem = memo(function ImageItem({
             }}
           >
             <i
-              className={`las ${!cacheStatusLoaded ? 'la-spinner la-spin' : 'la-database'}`}
+              className={`las ${
+                !cacheStatusLoaded ? 'la-spinner la-spin' : 'la-database'
+              }`}
               style={{
-                color: !cacheStatusLoaded ? '#9ca3af' :
-                       isCached === undefined ? '#9ca3af' :
-                       isCached ? '#059669' : '#dc2626',
+                color: !cacheStatusLoaded
+                  ? '#9ca3af'
+                  : isCached === undefined
+                  ? '#9ca3af'
+                  : isCached
+                  ? '#059669'
+                  : '#dc2626',
                 fontSize: '12px',
                 textShadow: '0 0 2px rgba(255,255,255,0.8)',
               }}
@@ -182,11 +204,11 @@ const ImageItem = memo(function ImageItem({
                         onHoverPreview(
                           item.image,
                           rect.left + rect.width / 2,
-                          rect.top,
+                          rect.top
                         );
                         setTimeout(
                           () => onHoverPreviewClear(),
-                          PREVIEW_TIMEOUT,
+                          PREVIEW_TIMEOUT
                         );
                       }
                     }}
@@ -199,18 +221,22 @@ const ImageItem = memo(function ImageItem({
                         onHoverPreview(
                           item.image,
                           rect.left + rect.width / 2,
-                          rect.top,
+                          rect.top
                         );
                         // Ukryj podgląd po określonym czasie
                         setTimeout(
                           () => onHoverPreviewClear(),
-                          PREVIEW_TIMEOUT,
+                          PREVIEW_TIMEOUT
                         );
                         return; // WAŻNE: return early - nie wykonuj dalszego kodu!
                       }
                       // Na desktopie otwórz pełny obraz
                       onHoverPreviewClear();
-                      onImageClick?.(item.image, kolorystykaImages);
+                      onImageClick?.(
+                        item.image,
+                        kolorystykaImages,
+                        'Kolorystyka'
+                      );
                     }}
                     onMouseEnter={(e) => {
                       // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
@@ -219,7 +245,7 @@ const ImageItem = memo(function ImageItem({
                         onHoverPreview(
                           item.image,
                           rect.left + rect.width / 2,
-                          rect.top,
+                          rect.top
                         );
                       }
                     }}
@@ -231,7 +257,10 @@ const ImageItem = memo(function ImageItem({
                     }}
                     title={buttonTitle}
                     style={{
-                      backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
+                      backgroundImage: `url(${getOptimizedImageUrl(
+                        item.image,
+                        'thumb'
+                      )})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       width: '26px',
@@ -290,17 +319,17 @@ const ImageGrid: React.FC<ImageGridProps> = ({
 
   const getDisplayName = useCallback(
     (name: string) => getDisplayNameStatic(name),
-    [],
+    []
   );
 
   const handleHoverPreview = useCallback(
     (img: ImageFile, x: number, y: number) =>
       setHoveredPreview({ image: img, x, y }),
-    [],
+    []
   );
   const handleHoverPreviewClear = useCallback(
     () => setHoveredPreview(null),
-    [],
+    []
   );
 
   // Stan do przechowywania podświetlonych nazw plików
@@ -314,10 +343,15 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   }>({});
 
   // Stan cache dla admina
-  const [cacheStatus, setCacheStatus] = React.useState<Record<string, boolean>>({});
+  const [cacheStatus, setCacheStatus] = React.useState<Record<string, boolean>>(
+    {}
+  );
   const [cacheStatusLoaded, setCacheStatusLoaded] = React.useState(false);
 
-  const { highlightKeywords: highlightKeywordsEnabled, thumbnailAnimationDelay } = useSettings();
+  const {
+    highlightKeywords: highlightKeywordsEnabled,
+    thumbnailAnimationDelay,
+  } = useSettings();
 
   // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
   const [isTouchDevice, setIsTouchDevice] = React.useState(false);
@@ -346,7 +380,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         // Użyj folderPath jeśli dostępne, w przeciwnym razie folderName
         const pathToCheck = folderPath || folderName;
         logger.debug('Fetching cache status for folder:', pathToCheck);
-        const response = await fetch(`/api/admin/cache/folder-status?folder=${encodeURIComponent(pathToCheck)}`);
+        const response = await fetch(
+          `/api/admin/cache/folder-status?folder=${encodeURIComponent(
+            pathToCheck
+          )}`
+        );
         if (response.ok) {
           const data = await response.json();
           logger.debug('Cache status response:', data);
@@ -385,19 +423,19 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         const useColors = highlightKeywordsEnabled === true;
         const processed = await decorConverter.highlightKeywordsInDisplayName(
           displayName,
-          useColors,
+          useColors
         );
         highlighted[image.name] = processed;
 
         // Znajdź obrazy dla słów kluczowych w nazwie pliku
         const foundImages = await decorConverter.findAllKeywordImages(
           image.name,
-          kolorystykaImages,
+          kolorystykaImages
         );
         imagesMap[image.name] = foundImages;
         logger.debug(
           `${image.name}: znaleziono ${foundImages.length} obrazów dla słów kluczowych`,
-          foundImages.map((f) => f.keyword),
+          foundImages.map((f) => f.keyword)
         );
       }
 
@@ -414,7 +452,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   return (
     <div
       className="image-grid"
-      style={{ '--thumbnail-delay': `${thumbnailAnimationDelay}ms` } as React.CSSProperties}
+      style={
+        {
+          '--thumbnail-delay': `${thumbnailAnimationDelay}ms`,
+        } as React.CSSProperties
+      }
     >
       {memoizedImages.map((image, index) => (
         <ImageItem
@@ -429,6 +471,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           highlightKeywordsEnabled={highlightKeywordsEnabled}
           onImageClick={onImageClick}
           images={images}
+          folderPath={folderPath}
           kolorystykaImages={kolorystykaImages}
           getOptimizedImageUrl={getOptimizedImageUrl}
           getDisplayName={getDisplayName}
@@ -462,7 +505,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             visibility: 'visible',
           }}
         >
-          { }
+          {}
           <img
             src={getOptimizedImageUrl(hoveredPreview.image, 'thumb')}
             alt={hoveredPreview.image.name}
@@ -478,10 +521,18 @@ const ImageGrid: React.FC<ImageGridProps> = ({
 
               // Fallback do proxy gdy miniaturka nie istnieje
               if (!originalSrc.includes('/api/image-proxy')) {
-                logger.info('Preview thumbnail missing, falling back to proxy:', hoveredPreview.image.name);
-                target.src = `/api/image-proxy?url=${encodeURIComponent(hoveredPreview.image.url)}&size=thumb`;
+                logger.info(
+                  'Preview thumbnail missing, falling back to proxy:',
+                  hoveredPreview.image.name
+                );
+                target.src = `/api/image-proxy?url=${encodeURIComponent(
+                  hoveredPreview.image.url
+                )}&size=thumb`;
               } else {
-                logger.warn('Błąd ładowania podglądu:', hoveredPreview.image.name);
+                logger.warn(
+                  'Błąd ładowania podglądu:',
+                  hoveredPreview.image.name
+                );
                 target.style.display = 'none';
               }
             }}

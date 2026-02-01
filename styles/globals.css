@@ -8,12 +8,7 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     sans-serif;
   background-color: #f8f8f8;
   color: #333;
@@ -302,9 +297,7 @@ a {
 }
 
 .folder-action-button {
-  transition:
-    transform 0.3s ease,
-    color 0.3s ease;
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .subfolder-list {
@@ -1012,12 +1005,7 @@ a {
   font-size: 1.5rem;
   font-weight: 100;
   color: #666;
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     sans-serif;
 }
 
@@ -1389,6 +1377,23 @@ a {
   overflow: hidden;
 }
 
+/* Kolorystyka (decors/Kolorystyka): proporcje kwadratu, równa przestrzeń wokół grafiki */
+.modal-content.modal-content--kolorystyka .modal-image-wrapper {
+  width: 80vmin;
+  max-width: 80vmin;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content.modal-content--kolorystyka .modal-image {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 /* Obraz - dopasowuje się do wrappera */
 .modal-content .modal-image {
   max-width: 100%;
@@ -1401,8 +1406,12 @@ a {
 }
 
 @keyframes imageSwapFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Info na dole - stały rozmiar */
@@ -1458,9 +1467,7 @@ a {
   background-position: center;
   background-repeat: no-repeat;
   background-color: #f0f0f0;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .modal-color-button:hover {
@@ -1761,6 +1768,11 @@ a {
     max-width: none;
     aspect-ratio: 4 / 3;
   }
+  .modal-content.modal-content--kolorystyka .modal-image-wrapper {
+    width: 80vmin;
+    max-width: 80vmin;
+    aspect-ratio: 1 / 1;
+  }
 
   /* Podgląd kolorystyki w modalu - tylko miniaturka 150x150px na tablecie */
   .modal-color-preview {
@@ -1835,6 +1847,11 @@ a {
     width: calc(100vw - 20px);
     max-width: none;
     aspect-ratio: 4 / 3;
+  }
+  .modal-content.modal-content--kolorystyka .modal-image-wrapper {
+    width: 80vmin;
+    max-width: 80vmin;
+    aspect-ratio: 1 / 1;
   }
 
   /* Zmniejsz rozmiar nazwy pliku i opisów w modalu na mobile */
@@ -2419,8 +2436,7 @@ a {
   stroke: #28a745;
   stroke-miterlimit: 10;
   box-shadow: inset 0px 0px 0px #28a745;
-  animation:
-    fill 0.4s ease-in-out 0.4s forwards,
+  animation: fill 0.4s ease-in-out 0.4s forwards,
     scale 0.3s ease-in-out 0.9s both;
   position: relative;
 }
@@ -2509,9 +2525,7 @@ a {
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .detail-card:hover {
@@ -2814,17 +2828,13 @@ a {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transform: translateX(100%);
   animation: slideIn 0.3s ease-out forwards;
   pointer-events: auto;
   cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
   position: relative;
 }
 
@@ -3297,9 +3307,7 @@ a {
   border: 1px solid transparent;
   background-color: #ffffff;
   color: #111827;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
+  transition: background-color 0.15s ease, border-color 0.15s ease,
     color 0.15s ease;
 }
 

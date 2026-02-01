@@ -4,7 +4,10 @@ import ImageGrid from './ImageGrid';
 import ImageMetadata from './ImageMetadata';
 import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
-import { getOptimizedImageUrl, initThumbnailCache } from '@/src/utils/imageUtils';
+import {
+  getOptimizedImageUrl,
+  initThumbnailCache,
+} from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
 import decorConverter from '@/src/utils/decorConverter';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
@@ -22,14 +25,18 @@ import {
 
 interface FolderSectionProps {
   folder: GalleryFolder;
-  onImageClick: (image: ImageFile, imagesInFolder: ImageFile[]) => void;
+  onImageClick: (
+    image: ImageFile,
+    imagesInFolder: ImageFile[],
+    folderPath?: string
+  ) => void;
   globalCollapsedFolders: Set<string>;
   setGlobalCollapsedFolders: (collapsed: Set<string>) => void;
   allFolders: GalleryFolder[];
   onFolderView?: (folder: GalleryFolder) => void;
   onTrackDownload?: (
     filePath: string,
-    fileName: string,
+    fileName: string
   ) => Promise<void> | void;
   isAdmin?: boolean;
 }
@@ -61,7 +68,7 @@ function FolderSectionInner({
   const renderFolder = (currentFolder: GalleryFolder, depth: number = 0) => {
     // Znajdź obrazy z Kolorystyki
     const kolorystykaFolder = allFolders.find(
-      (f) => f.name.toLowerCase() === 'kolorystyka',
+      (f) => f.name.toLowerCase() === 'kolorystyka'
     );
     const kolorystykaImages = kolorystykaFolder?.images || [];
 
@@ -69,12 +76,12 @@ function FolderSectionInner({
       logger.debug(
         'Gallery - Znaleziono folder Kolorystyka z',
         kolorystykaImages.length,
-        'obrazami',
+        'obrazami'
       );
     } else {
       logger.debug(
         'Gallery - Brak folderu Kolorystyka lub jest pusty. Dostępne foldery:',
-        allFolders.map((f) => f.name),
+        allFolders.map((f) => f.name)
       );
     }
     const indentClass = `level-${Math.min(depth, 4)}`;
@@ -89,13 +96,17 @@ function FolderSectionInner({
     return (
       <div
         key={currentFolder.path}
-        className={`folder-wrapper ${categoryClass} ${indentClass} ${!isCollapsed ? 'expanded' : ''}`}
+        className={`folder-wrapper ${categoryClass} ${indentClass} ${
+          !isCollapsed ? 'expanded' : ''
+        }`}
       >
         {currentFolder.isCategory ? (
           <div className="category-header">
             <h2 className="category-title">
               <div
-                className={`folder-title-left ${hasCollapsibleContent ? 'folder-title-clickable' : ''}`}
+                className={`folder-title-left ${
+                  hasCollapsibleContent ? 'folder-title-clickable' : ''
+                }`}
                 onClick={
                   hasCollapsibleContent
                     ? () => toggleFolder(currentFolder)
@@ -113,7 +124,9 @@ function FolderSectionInner({
               </div>
               {hasCollapsibleContent && (
                 <button
-                  className={`folder-action-button ${isCollapsed ? 'collapsed' : ''}`}
+                  className={`folder-action-button ${
+                    isCollapsed ? 'collapsed' : ''
+                  }`}
                   onClick={() => toggleFolder(currentFolder)}
                 >
                   <i className="las la-angle-up"></i>
@@ -125,7 +138,9 @@ function FolderSectionInner({
           <div className="gallery-section">
             <h3 className="gallery-title">
               <div
-                className={`folder-title-left ${hasCollapsibleContent ? 'folder-title-clickable' : ''}`}
+                className={`folder-title-left ${
+                  hasCollapsibleContent ? 'folder-title-clickable' : ''
+                }`}
                 onClick={
                   hasCollapsibleContent
                     ? () => toggleFolder(currentFolder)
@@ -140,7 +155,9 @@ function FolderSectionInner({
               </div>
               {hasCollapsibleContent && (
                 <button
-                  className={`folder-action-button ${isCollapsed ? 'collapsed' : ''}`}
+                  className={`folder-action-button ${
+                    isCollapsed ? 'collapsed' : ''
+                  }`}
                   onClick={() => toggleFolder(currentFolder)}
                 >
                   <i className="las la-angle-up"></i>
@@ -164,7 +181,7 @@ function FolderSectionInner({
         {currentFolder.subfolders && !isCollapsed && (
           <div className="subfolders">
             {currentFolder.subfolders.map((subfolder) =>
-              renderFolder(subfolder, depth + 1),
+              renderFolder(subfolder, depth + 1)
             )}
           </div>
         )}
@@ -184,7 +201,7 @@ const FolderSection = memo(
     prev.onImageClick === next.onImageClick &&
     prev.setGlobalCollapsedFolders === next.setGlobalCollapsedFolders &&
     prev.globalCollapsedFolders === next.globalCollapsedFolders &&
-    prev.isAdmin === next.isAdmin,
+    prev.isAdmin === next.isAdmin
 );
 
 interface GalleryProps {
@@ -193,7 +210,11 @@ interface GalleryProps {
   isAdmin?: boolean;
 }
 
-const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false }) => {
+const Gallery: React.FC<GalleryProps> = ({
+  refreshKey,
+  groupId,
+  isAdmin = false,
+}) => {
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -201,7 +222,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
   const [selectedImage, setSelectedImage] = useState<ImageFile | null>(null);
   const [currentImageList, setCurrentImageList] = useState<ImageFile[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(
-    null,
+    null
   );
   const [globalCollapsedFolders, setGlobalCollapsedFolders] = useState<
     Set<string>
@@ -215,6 +236,9 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
     y: number;
   } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(
+    null
+  );
 
   const { trackView, trackDownload } = useStatsTracker(null);
 
@@ -240,7 +264,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
   // Wyciągnij obrazy z folderu Kolorystyka
   const kolorystykaImages = useMemo(() => {
     const findKolorystykaImages = (
-      folderList: GalleryFolder[],
+      folderList: GalleryFolder[]
     ): ImageFile[] => {
       for (const folder of folderList) {
         if (folder.name.toLowerCase() === 'kolorystyka') {
@@ -274,7 +298,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
       }
       const foundImages = await decorConverter.findAllKeywordImages(
         selectedImage.name,
-        kolorystykaImages,
+        kolorystykaImages
       );
       setModalKeywordImages(foundImages);
     };
@@ -348,7 +372,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
 
         // Zamknij wszystkie główne kategorie na starcie
         const allMainFolderPaths = new Set(
-          data.data.map((folder) => folder.path),
+          data.data.map((folder) => folder.path)
         );
         setGlobalCollapsedFolders(allMainFolderPaths);
 
@@ -365,7 +389,9 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
       if (err instanceof Error && err.name === 'AbortError') {
         setError('Timeout - API nie odpowiada');
       } else {
-        setError(`Błąd połączenia: ${err instanceof Error ? err.message : String(err)}`);
+        setError(
+          `Błąd połączenia: ${err instanceof Error ? err.message : String(err)}`
+        );
       }
     } finally {
       logger.debug('Setting loading to false');
@@ -377,18 +403,19 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
   };
 
   const handleImageClick = useCallback(
-    (image: ImageFile, imagesInFolder: ImageFile[]) => {
+    (image: ImageFile, imagesInFolder: ImageFile[], folderPath?: string) => {
       const index = imagesInFolder.findIndex((img) => img.path === image.path);
       const safeIndex = index >= 0 ? index : 0;
       setCurrentImageList(imagesInFolder);
       setCurrentImageIndex(safeIndex);
       setSelectedImage(imagesInFolder[safeIndex] || image);
+      setCurrentFolderPath(folderPath ?? null);
       setImageLoaded(false); // Reset stanu załadowania przy zmianie obrazu
 
       // Tracking wyświetlenia obrazu
       trackView('image', image.path, image.name);
     },
-    [trackView],
+    [trackView]
   );
 
   const showAdjacentImage = (direction: 1 | -1) => {
@@ -411,6 +438,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
 
   const closeModal = () => {
     setSelectedImage(null);
+    setCurrentFolderPath(null);
     setImageLoaded(false); // Reset stanu załadowania przy zamknięciu modala
   };
 
@@ -459,8 +487,18 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
       )}
 
       {selectedImage && (
-        <div className="modal-overlay modal-overlay-fade-in" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay modal-overlay-fade-in"
+          onClick={closeModal}
+        >
+          <div
+            className={`modal-content${
+              currentFolderPath === 'Kolorystyka'
+                ? ' modal-content--kolorystyka'
+                : ''
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* UI controls - always visible */}
             <button
               className="modal-nav-button modal-nav-button-left"
@@ -487,92 +525,96 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
             </button>
             {imageLoaded && (
               <div className="modal-bottom-actions">
-                  {modalKeywordImages.map((item, idx) => (
-                    <button
-                      key={`modal-keyword-${idx}`}
-                      className="modal-color-button"
-                      onTouchStart={(e) => {
-                        // Na tablecie obsłuż touch event
-                        if (isTouchDevice) {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setModalHoveredPreview({
-                            image: item.image,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                          setTimeout(
-                            () => setModalHoveredPreview(null),
-                            PREVIEW_TIMEOUT,
-                          );
-                        }
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
-                        if (isTouchDevice) {
-                          e.preventDefault();
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setModalHoveredPreview({
-                            image: item.image,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                          // Ukryj podgląd po określonym czasie
-                          setTimeout(
-                            () => setModalHoveredPreview(null),
-                            PREVIEW_TIMEOUT,
-                          );
-                          return; // WAŻNE: return early - nie wykonuj dalszego kodu!
-                        }
-                        // Na desktopie zmień obraz
-                        setModalHoveredPreview(null);
-                        const index = kolorystykaImages.findIndex(
-                          (img) => img.path === item.image.path,
-                        );
-                        setCurrentImageList(kolorystykaImages);
-                        setCurrentImageIndex(index >= 0 ? index : 0);
-                        setSelectedImage(item.image);
-                      }}
-                      onMouseEnter={(e) => {
-                        // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
-                        if (!isTouchDevice) {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setModalHoveredPreview({
-                            image: item.image,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                        }
-                      }}
-                      onMouseLeave={() => {
-                        // Na tablecie nie ukrywaj podglądu przy mouseLeave
-                        if (!isTouchDevice) {
-                          setModalHoveredPreview(null);
-                        }
-                      }}
-                      title={getDisplayName(item.image.name)}
-                      style={{
-                        backgroundImage: `url(${getOptimizedImageUrl(item.image, 'thumb')})`,
-                      }}
-                    />
-                  ))}
+                {modalKeywordImages.map((item, idx) => (
                   <button
-                    className="modal-download-button"
+                    key={`modal-keyword-${idx}`}
+                    className="modal-color-button"
+                    onTouchStart={(e) => {
+                      // Na tablecie obsłuż touch event
+                      if (isTouchDevice) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setModalHoveredPreview({
+                          image: item.image,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top,
+                        });
+                        setTimeout(
+                          () => setModalHoveredPreview(null),
+                          PREVIEW_TIMEOUT
+                        );
+                      }
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      downloadFile(
-                        selectedImage.url,
-                        selectedImage.name,
-                        trackDownload,
+                      // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
+                      if (isTouchDevice) {
+                        e.preventDefault();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setModalHoveredPreview({
+                          image: item.image,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top,
+                        });
+                        // Ukryj podgląd po określonym czasie
+                        setTimeout(
+                          () => setModalHoveredPreview(null),
+                          PREVIEW_TIMEOUT
+                        );
+                        return; // WAŻNE: return early - nie wykonuj dalszego kodu!
+                      }
+                      // Na desktopie zmień obraz
+                      setModalHoveredPreview(null);
+                      const index = kolorystykaImages.findIndex(
+                        (img) => img.path === item.image.path
                       );
+                      setCurrentImageList(kolorystykaImages);
+                      setCurrentImageIndex(index >= 0 ? index : 0);
+                      setSelectedImage(item.image);
+                      setCurrentFolderPath('Kolorystyka');
                     }}
-                    title="Pobierz plik"
-                  >
-                    <i className="las la-download"></i>
-                  </button>
-                </div>
+                    onMouseEnter={(e) => {
+                      // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
+                      if (!isTouchDevice) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setModalHoveredPreview({
+                          image: item.image,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top,
+                        });
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      // Na tablecie nie ukrywaj podglądu przy mouseLeave
+                      if (!isTouchDevice) {
+                        setModalHoveredPreview(null);
+                      }
+                    }}
+                    title={getDisplayName(item.image.name)}
+                    style={{
+                      backgroundImage: `url(${getOptimizedImageUrl(
+                        item.image,
+                        'thumb'
+                      )})`,
+                    }}
+                  />
+                ))}
+                <button
+                  className="modal-download-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadFile(
+                      selectedImage.url,
+                      selectedImage.name,
+                      trackDownload
+                    );
+                  }}
+                  title="Pobierz plik"
+                >
+                  <i className="las la-download"></i>
+                </button>
+              </div>
             )}
             {modalHoveredPreview && (
               <div
@@ -582,7 +624,7 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
                   top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
                 }}
               >
-                { }
+                {}
                 <img
                   src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
                   alt={modalHoveredPreview.image.name}
@@ -605,52 +647,52 @@ const Gallery: React.FC<GalleryProps> = ({ refreshKey, groupId, isAdmin = false 
             </div>
             {/* Info o obrazie */}
             <div className="modal-info">
-                <h3>{selectedImage.name}</h3>
-                <ImageMetadata
-                  src={selectedImage.url}
-                  fileSize={selectedImage.fileSize}
-                  lastModified={selectedImage.lastModified}
-                />
-                {/* Duplikaty przycisków tylko na mobile */}
-                <div className="modal-mobile-actions">
-                  <button
-                    type="button"
-                    className="modal-mobile-nav-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      showAdjacentImage(-1);
-                    }}
-                    title="Poprzedni obraz"
-                  >
-                    <i className="las la-angle-left"></i>
-                  </button>
-                  <button
-                    type="button"
-                    className="modal-mobile-download-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadFile(
-                        selectedImage.url,
-                        selectedImage.name,
-                        trackDownload,
-                      );
-                    }}
-                    title="Pobierz plik"
-                  >
-                    <i className="las la-download"></i>
-                  </button>
-                  <button
-                    type="button"
-                    className="modal-mobile-nav-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      showAdjacentImage(1);
-                    }}
-                    title="Następny obraz"
-                  >
-                    <i className="las la-angle-right"></i>
-                  </button>
-                </div>
+              <h3>{selectedImage.name}</h3>
+              <ImageMetadata
+                src={selectedImage.url}
+                fileSize={selectedImage.fileSize}
+                lastModified={selectedImage.lastModified}
+              />
+              {/* Duplikaty przycisków tylko na mobile */}
+              <div className="modal-mobile-actions">
+                <button
+                  type="button"
+                  className="modal-mobile-nav-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showAdjacentImage(-1);
+                  }}
+                  title="Poprzedni obraz"
+                >
+                  <i className="las la-angle-left"></i>
+                </button>
+                <button
+                  type="button"
+                  className="modal-mobile-download-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadFile(
+                      selectedImage.url,
+                      selectedImage.name,
+                      trackDownload
+                    );
+                  }}
+                  title="Pobierz plik"
+                >
+                  <i className="las la-download"></i>
+                </button>
+                <button
+                  type="button"
+                  className="modal-mobile-nav-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showAdjacentImage(1);
+                  }}
+                  title="Następny obraz"
+                >
+                  <i className="las la-angle-right"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
