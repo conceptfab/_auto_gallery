@@ -261,9 +261,9 @@ export const VolumeBrowserSection: React.FC = () => {
                   >
                     <i
                       className="las la-folder"
-                      style={{ color: '#2563eb', fontSize: '18px' }}
+                      style={{ color: '#2563eb' }}
                     />
-                    <span style={{ fontWeight: 500, fontSize: '14px' }}>
+                    <span style={{ fontWeight: 500 }}>
                       {f.name}
                     </span>
                   </div>
@@ -317,19 +317,18 @@ export const VolumeBrowserSection: React.FC = () => {
                     padding: '10px 15px',
                     backgroundColor: '#fff',
                     borderBottom: '1px solid #eee',
-                    fontSize: '14px',
                   }}
                 >
                   <i
                     className="las la-file"
-                    style={{ color: '#6b7280', fontSize: '16px' }}
+                    style={{ color: '#6b7280' }}
                   />
                   <span
                     style={{ flex: 1, wordBreak: 'break-all', minWidth: 0 }}
                   >
                     {file.name}
                   </span>
-                  <span style={{ color: '#999', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: '#999', fontSize: '12px' }}>
                     {formatBytes(file.size)}
                   </span>
                   <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
