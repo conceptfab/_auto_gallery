@@ -13,7 +13,8 @@ export function validateFilePath(path: string): PathValidationResult {
   if (path.includes('..') || path.includes('./') || path.startsWith('/')) {
     return { valid: false, error: 'Invalid path' };
   }
-  if (!/^[a-zA-Z0-9\/_\-\.]+$/.test(path)) {
+  // Dozwolone: litery, cyfry, / _ - . spacja (ścieżki typu "metro/Meble gabinetowe/CUBE/plik_thumb.webp")
+  if (!/^[a-zA-Z0-9\/_\-\.\s]+$/.test(path)) {
     return { valid: false, error: 'Invalid characters in path' };
   }
   return { valid: true };
@@ -46,7 +47,7 @@ export function validateFileName(name: string): FileNameValidationResult {
  */
 export function validateFolderPathDetailed(
   folderPath: string,
-  maxDepth: number = 5,
+  maxDepth: number = 5
 ): PathValidationResult {
   // Podstawowa walidacja
   const basicValidation = validateFilePath(folderPath);
