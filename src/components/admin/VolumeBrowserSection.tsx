@@ -83,6 +83,13 @@ export const VolumeBrowserSection: React.FC = () => {
     fetchVolume(path);
   };
 
+  const navigateUp = () => {
+    const parts = currentPath.split('/').filter(Boolean);
+    parts.pop();
+    const parentPath = parts.join('/');
+    goToPath(parentPath);
+  };
+
   const handleDelete = async (
     itemPath: string,
     type: 'file' | 'folder',
@@ -142,55 +149,100 @@ export const VolumeBrowserSection: React.FC = () => {
         <>
           <div
             style={{
-              marginBottom: '12px',
+              marginBottom: '15px',
+              padding: '10px',
+              background: '#f9fafb',
+              borderRadius: '6px',
+              border: '1px solid #e5e7eb',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               flexWrap: 'wrap',
             }}
           >
-            {breadcrumbs.map((crumb, i) => (
-              <span key={crumb.path || 'root'}>
-                {i > 0 && (
-                  <span style={{ color: '#9ca3af', margin: '0 4px' }}>/</span>
-                )}
+            {breadcrumbs.map((crumb, i, arr) => (
+              <React.Fragment key={crumb.path || 'root'}>
                 <button
                   type="button"
                   onClick={() => goToPath(crumb.path)}
-                  className="admin-btn"
                   style={{
-                    padding: '4px 8px',
-                    fontSize: '13px',
-                    minHeight: 'auto',
-                    background:
-                      i === breadcrumbs.length - 1 ? '#e5e7eb' : 'transparent',
-                    borderColor: '#d1d5db',
+                    background: 'none',
+                    border: 'none',
+                    color: i === arr.length - 1 ? '#333' : '#2196F3',
+                    cursor: 'pointer',
+                    fontWeight: i === arr.length - 1 ? 'bold' : 'normal',
+                    padding: '2px 5px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
                   }}
                 >
                   {crumb.name || 'Root'}
                 </button>
-              </span>
+                {i < arr.length - 1 && (
+                  <span style={{ color: '#9ca3af' }}>
+                    <i className="las la-angle-right" />
+                  </span>
+                )}
+              </React.Fragment>
             ))}
           </div>
           {loading ? (
-            <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
-              Ładowanie…
-            </p>
+            <div
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: '#666',
+                fontSize: '1.5rem',
+                fontWeight: 100,
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            >
+              Ładowanie...
+            </div>
           ) : (
             <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                backgroundColor: 'white',
+              }}
             >
+              {/* Go up */}
+              {currentPath && (
+                <div
+                  onClick={navigateUp}
+                  onKeyDown={(e) => e.key === 'Enter' && navigateUp()}
+                  role="button"
+                  tabIndex={0}
+                  style={{
+                    padding: '10px 15px',
+                    borderBottom: '1px solid #eee',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    background: '#fafafa',
+                  }}
+                >
+                  <i
+                    className="las la-level-up-alt"
+                    style={{ transform: 'rotate(90deg)', color: '#6b7280' }}
+                  />
+                  <span style={{ color: '#6b7280' }}>..</span>
+                </div>
+              )}
               {folders.map((f) => (
                 <div
                   key={f.path}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb',
+                    gap: '10px',
+                    padding: '10px 15px',
+                    backgroundColor: 'white',
+                    borderBottom: '1px solid #eee',
                   }}
                 >
                   <div
@@ -198,7 +250,7 @@ export const VolumeBrowserSection: React.FC = () => {
                       flex: 1,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '10px',
                       cursor: 'pointer',
                       minWidth: 0,
                     }}
@@ -207,12 +259,15 @@ export const VolumeBrowserSection: React.FC = () => {
                     role="button"
                     tabIndex={0}
                   >
-                    <span style={{ fontSize: '18px' }}>📁</span>
+                    <i
+                      className="las la-folder"
+                      style={{ color: '#2563eb', fontSize: '18px' }}
+                    />
                     <span style={{ fontWeight: 500, fontSize: '14px' }}>
                       {f.name}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
                     <a
                       href={downloadUrl(f.path)}
                       download
@@ -224,14 +279,17 @@ export const VolumeBrowserSection: React.FC = () => {
                         fontSize: '12px',
                         minHeight: 'auto',
                         textDecoration: 'none',
+                        borderColor: '#d1d5db',
                       }}
                       onClick={(e) => e.stopPropagation()}
+                      title="Pobierz jako ZIP"
                     >
-                      Pobierz (ZIP)
+                      <i className="las la-file-archive" style={{ marginRight: 4 }} />
+                      ZIP
                     </a>
                     <button
                       type="button"
-                      className="admin-btn admin-btn--danger-sm"
+                      className="admin-btn admin-btn--danger"
                       style={{
                         padding: '4px 8px',
                         fontSize: '12px',
@@ -242,8 +300,9 @@ export const VolumeBrowserSection: React.FC = () => {
                         e.stopPropagation();
                         handleDelete(f.path, 'folder', f.name);
                       }}
+                      title="Usuń folder"
                     >
-                      {processing === f.path ? '…' : 'Usuń'}
+                      <i className="las la-trash-alt" />
                     </button>
                   </div>
                 </div>
@@ -254,24 +313,26 @@ export const VolumeBrowserSection: React.FC = () => {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: '8px 12px',
+                    gap: '10px',
+                    padding: '10px 15px',
                     backgroundColor: '#fff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb',
+                    borderBottom: '1px solid #eee',
                     fontSize: '14px',
                   }}
                 >
-                  <span style={{ fontSize: '16px' }}>📄</span>
+                  <i
+                    className="las la-file"
+                    style={{ color: '#6b7280', fontSize: '16px' }}
+                  />
                   <span
                     style={{ flex: 1, wordBreak: 'break-all', minWidth: 0 }}
                   >
                     {file.name}
                   </span>
-                  <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: '#999', fontSize: '12px', whiteSpace: 'nowrap' }}>
                     {formatBytes(file.size)}
                   </span>
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
                     <a
                       href={downloadUrl(file.path)}
                       download={file.name}
@@ -283,13 +344,15 @@ export const VolumeBrowserSection: React.FC = () => {
                         fontSize: '12px',
                         minHeight: 'auto',
                         textDecoration: 'none',
+                        borderColor: '#d1d5db',
                       }}
+                      title="Pobierz plik"
                     >
-                      Pobierz
+                      <i className="las la-download" />
                     </a>
                     <button
                       type="button"
-                      className="admin-btn admin-btn--danger-sm"
+                      className="admin-btn admin-btn--danger"
                       style={{
                         padding: '4px 8px',
                         fontSize: '12px',
@@ -297,16 +360,26 @@ export const VolumeBrowserSection: React.FC = () => {
                       }}
                       disabled={processing === file.path}
                       onClick={() => handleDelete(file.path, 'file', file.name)}
+                      title="Usuń plik"
                     >
-                      {processing === file.path ? '…' : 'Usuń'}
+                      <i className="las la-trash-alt" />
                     </button>
                   </div>
                 </div>
               ))}
               {!loading && folders.length === 0 && files.length === 0 && (
-                <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
-                  Pusty folder.
-                </p>
+                <div
+                  style={{
+                    padding: '60px 20px',
+                    textAlign: 'center',
+                    color: '#999',
+                  }}
+                >
+                  <div style={{ fontSize: '40px', marginBottom: '10px' }}>
+                    <i className="las la-folder-open" />
+                  </div>
+                  <div>Folder jest pusty</div>
+                </div>
               )}
             </div>
           )}
