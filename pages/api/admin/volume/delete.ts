@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
-import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
 
-const VOLUME_ROOT = '/data-storage';
+
+import { VOLUME_ROOT } from '../../../../src/config/constants';
 
 /**
  * Usuwa plik lub folder z volume'u.
@@ -75,4 +75,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withAdminAuth(handler);
+export default handler;

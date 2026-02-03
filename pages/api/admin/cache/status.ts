@@ -1,7 +1,7 @@
 // pages/api/admin/cache/status.ts
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { withAdminAuth } from '@/src/utils/adminMiddleware';
+
 import {
   getCacheStatus,
   getCacheData,
@@ -57,4 +57,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withAdminAuth(handler);
+export default handler;

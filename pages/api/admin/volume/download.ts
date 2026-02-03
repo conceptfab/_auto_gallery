@@ -3,9 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import archiver from 'archiver';
-import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
 
-const VOLUME_ROOT = '/data-storage';
+
+import { VOLUME_ROOT } from '../../../../src/config/constants';
 
 /**
  * Pobiera plik lub folder (ZIP) z volume'u.
@@ -93,4 +93,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   return res.status(400).json({ error: 'Unsupported entry type' });
 }
 
-export default withAdminAuth(handler);
+export default handler;

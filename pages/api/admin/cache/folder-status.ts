@@ -2,7 +2,7 @@
 // Zwraca status cache dla obrazów w folderze
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { withAdminAuth } from '@/src/utils/adminMiddleware';
+
 import {
   getCacheData,
   DEFAULT_THUMBNAIL_CONFIG,
@@ -120,4 +120,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 }
 
-export default withAdminAuth(handler);
+export default handler;

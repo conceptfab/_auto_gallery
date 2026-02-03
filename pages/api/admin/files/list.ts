@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateListUrl } from '../../../../src/utils/fileToken';
-import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
+
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -27,4 +27,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withAdminAuth(handler);
+
+export default handler;

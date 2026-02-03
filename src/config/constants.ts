@@ -38,3 +38,12 @@ export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const MAX_FOLDER_DEPTH = 5;
 export const CONVERT_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 export const CONVERT_RATE_LIMIT_MAX = 5; // max 5 requests per minute
+
+// Volume Storage Path
+// W produkcji (Railway) używamy /data-storage (Volume mount)
+// Lokalnie używamy tymczasowego katalogu w projekcie
+export const VOLUME_ROOT =
+  process.env.VOLUME_ROOT ||
+  (process.env.NODE_ENV === 'production'
+    ? '/data-storage'
+    : './tmp/data-storage');

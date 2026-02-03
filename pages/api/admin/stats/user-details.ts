@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withAdminAuth } from '../../../../src/utils/adminMiddleware';
+
 import {
   getUserStats,
   getLoginHistory,
@@ -36,4 +36,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 }
 
-export default withAdminAuth(handler);
+export default handler;
