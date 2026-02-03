@@ -2,12 +2,17 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '../../../src/utils/auth';
 import { recordViewEvent } from '../../../src/utils/statsStorage';
 import { getClientIp, createDeviceInfo } from '../../../src/utils/deviceInfo';
+import type { ViewEventType } from '../../../src/utils/statsStorage';
 
 interface TrackViewBody {
   sessionId?: string;
-  type?: 'folder' | 'image';
+  type?: ViewEventType;
   path?: string;
   name?: string;
+  projectId?: string;
+  revisionId?: string;
+  projectName?: string;
+  revisionLabel?: string;
   screenWidth?: number;
   screenHeight?: number;
   language?: string;
@@ -15,7 +20,7 @@ interface TrackViewBody {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -26,14 +31,24 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { sessionId, type, path, name, screenWidth, screenHeight, language } =
-    req.body as TrackViewBody;
+  const {
+    sessionId,
+    type,
+    path,
+    name,
+    projectId,
+    revisionId,
+    projectName,
+    revisionLabel,
+    screenWidth,
+    screenHeight,
+    language,
+  } = req.body as TrackViewBody;
 
   if (!sessionId || !type || !path || !name) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Zbierz informacje o IP, userAgent i urządzeniu
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || undefined;
   const deviceInfo = createDeviceInfo(req, {
@@ -41,6 +56,13 @@ export default async function handler(
     screenHeight,
     language,
   });
+
+  const designMeta =
+    type === 'design_list' ||
+    type === 'design_project' ||
+    type === 'design_revision'
+      ? { projectId, revisionId, projectName, revisionLabel }
+      : undefined;
 
   await recordViewEvent(
     email,
@@ -51,6 +73,7 @@ export default async function handler(
     ip,
     userAgent,
     deviceInfo,
+    designMeta
   );
 
   return res.status(200).json({ success: true });

@@ -13,22 +13,10 @@ import {
   isFileProtectionEnabled,
   generateSignedUrl,
 } from '@/src/utils/fileToken';
-
-// Ścieżka do lokalnego cache (Railway volume)
-const LOCAL_CACHE_PATH = '/data-storage/thumbnails';
-const FALLBACK_CACHE_PATH = './data/thumbnails';
+import { getThumbnailsBasePath } from '@/src/utils/thumbnailStoragePath';
 
 // Ograniczenie współbieżności Sharp dla niskich zasobów
 sharp.concurrency(2);
-
-async function getCachePath(): Promise<string> {
-  try {
-    await fsp.access('/data-storage');
-    return LOCAL_CACHE_PATH;
-  } catch {
-    return FALLBACK_CACHE_PATH;
-  }
-}
 
 /**
  * Generuje ścieżkę miniaturki na podstawie oryginalnej ścieżki
@@ -177,7 +165,7 @@ async function saveThumbnail(
 
   if (storage === 'local') {
     // Zapisz lokalnie (Railway volume)
-    const cachePath = await getCachePath();
+    const cachePath = await getThumbnailsBasePath();
     const fullPath = path.join(cachePath, relativePath);
 
     await fsp.mkdir(path.dirname(fullPath), { recursive: true });
@@ -226,7 +214,7 @@ export async function thumbnailExists(
   const relativePath = getThumbnailPath(originalPath, sizeName, format);
 
   if (storage === 'local') {
-    const cachePath = await getCachePath();
+    const cachePath = await getThumbnailsBasePath();
     const fullPath = path.join(cachePath, relativePath);
     try {
       await fsp.access(fullPath);
@@ -294,7 +282,7 @@ export async function getThumbnailStats(): Promise<{
   totalSize: number;
   bySize: Record<string, number>;
 }> {
-  const cachePath = await getCachePath();
+  const cachePath = await getThumbnailsBasePath();
   const stats = {
     totalFiles: 0,
     totalSize: 0,
@@ -353,7 +341,7 @@ export async function deleteThumbnails(
     return;
   }
 
-  const cachePath = await getCachePath();
+  const cachePath = await getThumbnailsBasePath();
 
   for (const size of config.sizes) {
     const relativePath = getThumbnailPath(
@@ -428,7 +416,7 @@ async function listThumbnailDirsRecursive(
 export async function cleanupOrphanThumbnailFolders(
   fileHashes: Array<{ path: string }>
 ): Promise<number> {
-  const cachePath = await getCachePath();
+  const cachePath = await getThumbnailsBasePath();
   const validPaths = getValidThumbnailFolderPaths(fileHashes);
   const allDirs = await listThumbnailDirsRecursive(cachePath);
   const toRemove = allDirs.filter((d) => !validPaths.has(d));
@@ -462,7 +450,7 @@ export async function cleanupOrphanThumbnailFolders(
  * Czyści cały cache miniaturek
  */
 export async function clearAllThumbnails(): Promise<number> {
-  const cachePath = await getCachePath();
+  const cachePath = await getThumbnailsBasePath();
   let deleted = 0;
 
   async function deleteRecursive(dir: string): Promise<void> {

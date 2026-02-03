@@ -5,15 +5,7 @@ import path from 'path';
 import fsp from 'fs/promises';
 import { validateFilePath } from '@/src/utils/pathValidation';
 import { logger } from '@/src/utils/logger';
-
-async function getCachePath(): Promise<string> {
-  try {
-    await fsp.access('/data-storage');
-    return '/data-storage/thumbnails';
-  } catch {
-    return path.join(process.cwd(), 'data', 'thumbnails');
-  }
-}
+import { getThumbnailsBasePath } from '@/src/utils/thumbnailStoragePath';
 
 export default async function handler(
   req: NextApiRequest,
@@ -46,7 +38,7 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid file type' });
     }
 
-    const cachePath = await getCachePath();
+    const cachePath = await getThumbnailsBasePath();
     const fullPath = path.join(cachePath, relativePath);
 
     const realCachePath = await fsp.realpath(cachePath).catch(() => cachePath);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
+import { useStatsTracker } from '@/src/hooks/useStatsTracker';
 
 interface AuthStatus {
   isLoggedIn: boolean;
@@ -18,10 +19,16 @@ interface Project {
 
 const DesignPage: React.FC = () => {
   const router = useRouter();
+  const { trackDesignView } = useStatsTracker();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authStatus?.isLoggedIn || loading) return;
+    trackDesignView('design_list', 'design', 'Design');
+  }, [authStatus?.isLoggedIn, loading, trackDesignView]);
 
   useEffect(() => {
     const checkAuthStatus = async () => {

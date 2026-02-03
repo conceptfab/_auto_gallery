@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
+import { useStatsTracker } from '@/src/hooks/useStatsTracker';
 
 interface AuthStatus {
   isLoggedIn: boolean;
@@ -14,8 +15,10 @@ interface Revision {
   label?: string;
   description?: string;
   embedUrl?: string;
+  thumbnailPath?: string;
   thumbnailDataUrl?: string;
   screenshotDataUrl?: string;
+  galleryPaths?: string[];
   createdAt: string;
 }
 
@@ -30,6 +33,7 @@ interface Project {
 const DesignProjectPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
+  const { trackDesignView } = useStatsTracker();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +59,12 @@ const DesignProjectPage: React.FC = () => {
     null
   );
   const [reordering, setReordering] = useState(false);
+  const [showGalleryForRevision, setShowGalleryForRevision] =
+    useState<Revision | null>(null);
+  /** Indeks obrazu w galerii wyświetlanego w widoku pojedynczego (jak w galerii Content). */
+  const [selectedGalleryImageIndex, setSelectedGalleryImageIndex] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -95,6 +105,14 @@ const DesignProjectPage: React.FC = () => {
     setProjectLoading(true);
     fetchProject();
   }, [authStatus?.isLoggedIn, id]);
+
+  useEffect(() => {
+    if (!project || !id || typeof id !== 'string') return;
+    trackDesignView('design_project', `design/${id}`, project.name, {
+      projectId: id,
+      projectName: project.name,
+    });
+  }, [project, id, trackDesignView]);
 
   const handleAddRevision = async () => {
     if (!id || typeof id !== 'string') return;
@@ -178,8 +196,21 @@ const DesignProjectPage: React.FC = () => {
     }
   };
 
-  const getRevisionThumbnail = (rev: Revision): string | undefined =>
-    rev.thumbnailDataUrl || rev.screenshotDataUrl;
+  const getGalleryImageUrl = (relativePath: string) =>
+    `/api/projects/gallery/${relativePath}`;
+
+  const getRevisionThumbnail = (rev: Revision): string | undefined => {
+    if (id && typeof id === 'string' && rev.thumbnailPath) {
+      return `/api/projects/thumbnail/${id}/${rev.id}`;
+    }
+    if (rev.thumbnailDataUrl || rev.screenshotDataUrl) {
+      return rev.thumbnailDataUrl || rev.screenshotDataUrl;
+    }
+    if (rev.galleryPaths?.length) {
+      return getGalleryImageUrl(rev.galleryPaths[0]);
+    }
+    return undefined;
+  };
 
   const handleRemoveThumbnail = async () => {
     if (!id || typeof id !== 'string' || !editingRevision) return;
@@ -214,6 +245,77 @@ const DesignProjectPage: React.FC = () => {
   };
 
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+
+  const handleGalleryFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length || !id || typeof id !== 'string' || !editingRevision) {
+      e.target.value = '';
+      return;
+    }
+    const imageFiles = Array.from(files).filter((f) =>
+      ['image/jpeg', 'image/png', 'image/webp'].includes(f.type)
+    );
+    if (imageFiles.length === 0) {
+      alert('Wybierz pliki obrazów (JPEG, PNG lub WebP).');
+      e.target.value = '';
+      return;
+    }
+    setUploadingGallery(true);
+    try {
+      const dataUrls: string[] = [];
+      for (const file of imageFiles) {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const el = new Image();
+          el.onload = () => resolve(el);
+          el.onerror = reject;
+          el.src = dataUrl;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+        ctx.drawImage(img, 0, 0);
+        dataUrls.push(canvas.toDataURL('image/webp', 0.85));
+      }
+      if (dataUrls.length === 0) {
+        alert('Nie udało się przetworzyć obrazów.');
+        return;
+      }
+      const res = await fetch('/api/admin/projects/upload-gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: id,
+          revisionId: editingRevision.id,
+          images: dataUrls,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.revision) {
+        await refreshProject();
+        setEditingRevision((prev) =>
+          prev ? { ...prev, galleryPaths: data.revision.galleryPaths } : null
+        );
+      } else {
+        alert(data.error || 'Błąd dodawania do galerii');
+      }
+    } catch (err) {
+      console.error('Error uploading gallery', err);
+      alert('Błąd przesyłania plików');
+    } finally {
+      setUploadingGallery(false);
+      e.target.value = '';
+    }
+  };
 
   const handleAddThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -254,13 +356,14 @@ const DesignProjectPage: React.FC = () => {
         })
           .then((res) => res.json())
           .then((data) => {
-            if (data.success) {
+            if (data.success && data.revision) {
               refreshProject().then(() => {
                 setEditingRevision((prev) =>
                   prev
                     ? {
                         ...prev,
-                        thumbnailDataUrl: webpDataUrl,
+                        thumbnailPath: data.revision.thumbnailPath,
+                        thumbnailDataUrl: undefined,
                         screenshotDataUrl: undefined,
                       }
                     : null
@@ -310,6 +413,15 @@ const DesignProjectPage: React.FC = () => {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [fullscreenEmbedUrl]);
+
+  useEffect(() => {
+    if (!showGalleryForRevision) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowGalleryForRevision(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showGalleryForRevision]);
 
   const handleDeleteRevision = async (rev: Revision) => {
     if (!id || typeof id !== 'string') return;
@@ -636,17 +748,31 @@ const DesignProjectPage: React.FC = () => {
                     )}
                   </div>
                   <div className="design-revision-footer">
-                    {rev.embedUrl && isEmbedUrlAllowed(rev.embedUrl) && (
-                      <a
-                        href={rev.embedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="design-revision-open-link"
-                      >
-                        Otwórz w nowej karcie
-                        <i className="las la-external-link-alt" aria-hidden />
-                      </a>
-                    )}
+                    <div className="design-revision-footer-left">
+                      {rev.galleryPaths && rev.galleryPaths.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowGalleryForRevision(rev)}
+                          className="design-revision-open-link design-revision-gallery-btn"
+                        >
+                          Pokaż galerię
+                          <i className="las la-images" aria-hidden />
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="design-revision-footer-right">
+                      {rev.embedUrl && isEmbedUrlAllowed(rev.embedUrl) && (
+                        <a
+                          href={rev.embedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="design-revision-open-link"
+                        >
+                          Otwórz scene 3D w nowej karcie
+                          <i className="las la-external-link-alt" aria-hidden />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </li>
               ))}
@@ -703,6 +829,33 @@ const DesignProjectPage: React.FC = () => {
                     className="admin-input"
                   />
                 </label>
+                <div className="design-edit-modal-gallery-action">
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={handleGalleryFiles}
+                    style={{ display: 'none' }}
+                    aria-hidden
+                  />
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={uploadingGallery || !editingRevision}
+                    className="design-revision-toolbar-btn"
+                    title="Wybierz pliki obrazów (JPEG, PNG, WebP) i dodaj do galerii rewizji"
+                  >
+                    {uploadingGallery
+                      ? 'Przesyłanie…'
+                      : 'Utwórz galerię (wybierz pliki)'}
+                  </button>
+                  {editingRevision?.galleryPaths?.length ? (
+                    <span className="design-edit-modal-gallery-count">
+                      W galerii: {editingRevision.galleryPaths.length} obrazów
+                    </span>
+                  ) : null}
+                </div>
                 <div className="design-edit-modal-thumbnail">
                   <span className="design-edit-modal-label">Miniaturka</span>
                   {editingRevision && getRevisionThumbnail(editingRevision) && (
@@ -799,6 +952,141 @@ const DesignProjectPage: React.FC = () => {
                 allowFullScreen
                 tabIndex={0}
               />
+            </div>
+          </div>
+        )}
+
+        {showGalleryForRevision && id && typeof id === 'string' && (
+          <div
+            className="design-gallery-overlay"
+            onClick={() => {
+              setShowGalleryForRevision(null);
+              setSelectedGalleryImageIndex(null);
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Galeria rewizji"
+          >
+            <div
+              className={`design-gallery-inner${
+                selectedGalleryImageIndex !== null
+                  ? ' design-gallery-inner--single'
+                  : ''
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="design-gallery-header">
+                <span className="design-gallery-title">
+                  Galeria:{' '}
+                  {showGalleryForRevision.label ||
+                    `Rewizja ${showGalleryForRevision.id.slice(0, 8)}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowGalleryForRevision(null);
+                    setSelectedGalleryImageIndex(null);
+                  }}
+                  className="design-fullscreen-close"
+                  aria-label="Zamknij"
+                >
+                  <i className="las la-times" aria-hidden />
+                </button>
+              </div>
+              {selectedGalleryImageIndex !== null &&
+              showGalleryForRevision.galleryPaths?.length ? (
+                <div className="design-gallery-single">
+                  <button
+                    type="button"
+                    className="modal-nav-button modal-nav-button-left"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const paths = showGalleryForRevision.galleryPaths!;
+                      setSelectedGalleryImageIndex(
+                        (selectedGalleryImageIndex - 1 + paths.length) %
+                          paths.length
+                      );
+                    }}
+                    title="Poprzedni obraz"
+                  >
+                    <i className="las la-angle-left" aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    className="modal-nav-button modal-nav-button-right"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const paths = showGalleryForRevision.galleryPaths!;
+                      setSelectedGalleryImageIndex(
+                        (selectedGalleryImageIndex + 1) % paths.length
+                      );
+                    }}
+                    title="Następny obraz"
+                  >
+                    <i className="las la-angle-right" aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    className="close-button design-gallery-single-close"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedGalleryImageIndex(null);
+                    }}
+                    title="Wróć do siatki"
+                  >
+                    <i className="las la-times" aria-hidden />
+                  </button>
+                  <div className="modal-image-wrapper">
+                    <img
+                      src={getGalleryImageUrl(
+                        showGalleryForRevision.galleryPaths[
+                          selectedGalleryImageIndex
+                        ]
+                      )}
+                      alt=""
+                      className="modal-image"
+                    />
+                  </div>
+                  <div className="modal-info">
+                    <span className="design-gallery-single-counter">
+                      {selectedGalleryImageIndex + 1} /{' '}
+                      {showGalleryForRevision.galleryPaths.length}
+                    </span>
+                  </div>
+                  <a
+                    href={getGalleryImageUrl(
+                      showGalleryForRevision.galleryPaths[
+                        selectedGalleryImageIndex
+                      ]
+                    )}
+                    download
+                    className="design-gallery-single-download"
+                    title="Pobierz"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <i className="las la-download" aria-hidden />
+                  </a>
+                </div>
+              ) : (
+                <div className="design-gallery-grid">
+                  {showGalleryForRevision.galleryPaths?.map(
+                    (relativePath, idx) => (
+                      <button
+                        key={relativePath}
+                        type="button"
+                        className="design-gallery-grid-item"
+                        onClick={() => setSelectedGalleryImageIndex(idx)}
+                      >
+                        <img
+                          src={getGalleryImageUrl(relativePath)}
+                          alt=""
+                          className="design-gallery-img"
+                        />
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

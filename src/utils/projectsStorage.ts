@@ -1,16 +1,24 @@
 import path from 'path';
 import fsp from 'fs/promises';
 import crypto from 'crypto';
+import {
+  getDesignRevisionThumbnailsDir,
+  getDesignGalleryDir,
+} from './thumbnailStoragePath';
 
 export interface Revision {
   id: string;
   label?: string;
   description?: string;
   embedUrl?: string;
-  /** Miniaturka – obraz (np. webp) jako Data URL */
+  /** Ścieżka do pliku miniaturki (np. projectId/revisionId.webp) – preferowane */
+  thumbnailPath?: string;
+  /** @deprecated miniaturka w JSON – tylko do odczytu dla starych danych */
   thumbnailDataUrl?: string;
   /** @deprecated użyj thumbnailDataUrl */
   screenshotDataUrl?: string;
+  /** Ścieżki do obrazów galerii (np. projectId/revisionId/uuid.webp) */
+  galleryPaths?: string[];
   createdAt: string;
 }
 
@@ -36,6 +44,124 @@ async function getProjectsFilePath(): Promise<string> {
   return path.join(dir, 'projects.json');
 }
 
+async function getThumbnailsDir(): Promise<string> {
+  return getDesignRevisionThumbnailsDir();
+}
+
+/** Zapisuje bufor obrazu jako plik miniaturki. Zwraca ścieżkę względną (projectId/revisionId.webp). */
+export async function saveThumbnailFile(
+  projectId: string,
+  revisionId: string,
+  buffer: Buffer
+): Promise<string> {
+  const base = await getThumbnailsDir();
+  const projectDir = path.join(base, projectId);
+  await fsp.mkdir(projectDir, { recursive: true });
+  const ext = '.webp';
+  const filePath = path.join(projectDir, `${revisionId}${ext}`);
+  await fsp.writeFile(filePath, buffer);
+  return `${projectId}/${revisionId}${ext}`;
+}
+
+/** Zwraca ścieżkę absolutną do pliku miniaturki lub null. */
+export async function getThumbnailFilePath(
+  projectId: string,
+  revisionId: string
+): Promise<string | null> {
+  const base = await getThumbnailsDir();
+  const filePath = path.join(base, projectId, `${revisionId}.webp`);
+  try {
+    await fsp.access(filePath);
+    return filePath;
+  } catch {
+    return null;
+  }
+}
+
+/** Usuwa plik miniaturki rewizji. */
+export async function deleteThumbnailFile(
+  projectId: string,
+  revisionId: string
+): Promise<void> {
+  const base = await getThumbnailsDir();
+  const filePath = path.join(base, projectId, `${revisionId}.webp`);
+  try {
+    await fsp.unlink(filePath);
+  } catch {
+    // ignoruj brak pliku
+  }
+}
+
+async function getGalleryDir(): Promise<string> {
+  return getDesignGalleryDir();
+}
+
+/** Zapisuje plik obrazu do galerii rewizji. Zwraca ścieżkę względną. */
+export async function saveGalleryFile(
+  projectId: string,
+  revisionId: string,
+  buffer: Buffer,
+  extension: string = '.webp'
+): Promise<string> {
+  const base = await getGalleryDir();
+  const revisionDir = path.join(base, projectId, revisionId);
+  await fsp.mkdir(revisionDir, { recursive: true });
+  const name = `${crypto.randomUUID()}${extension}`;
+  const filePath = path.join(revisionDir, name);
+  await fsp.writeFile(filePath, buffer);
+  return `${projectId}/${revisionId}/${name}`;
+}
+
+/** Zwraca ścieżkę absolutną do pliku galerii lub null. */
+export async function getGalleryFilePath(
+  projectId: string,
+  revisionId: string,
+  filename: string
+): Promise<string | null> {
+  const base = await getGalleryDir();
+  const filePath = path.join(base, projectId, revisionId, filename);
+  const safe = path.normalize(filePath);
+  if (!safe.startsWith(path.normalize(base))) return null;
+  try {
+    await fsp.access(safe);
+    return safe;
+  } catch {
+    return null;
+  }
+}
+
+/** Dodaje ścieżki galerii do rewizji. */
+export async function appendRevisionGalleryPaths(
+  projectId: string,
+  revisionId: string,
+  relativePaths: string[]
+): Promise<Revision | null> {
+  const filePath = await getProjectsFilePath();
+  const projects = await ensureProjectsFile(filePath);
+  const pIdx = projects.findIndex((p) => p.id === projectId);
+  if (pIdx === -1) return null;
+  const project = projects[pIdx];
+  const revisions = project.revisions ?? [];
+  const rIdx = revisions.findIndex((r) => r.id === revisionId);
+  if (rIdx === -1) return null;
+  const current = revisions[rIdx].galleryPaths ?? [];
+  revisions[rIdx].galleryPaths = [...current, ...relativePaths];
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
+  await fsp.rename(tmpPath, filePath);
+  return revisions[rIdx];
+}
+
+function decodeDataUrlToBuffer(dataUrl: string): Buffer | null {
+  const match = /^data:image\/\w+;base64,(.+)$/.exec(dataUrl.trim());
+  if (!match) return null;
+  try {
+    return Buffer.from(match[1], 'base64');
+  } catch {
+    return null;
+  }
+}
+
 async function ensureProjectsFile(filePath: string): Promise<Project[]> {
   try {
     const raw = await fsp.readFile(filePath, 'utf8');
@@ -56,9 +182,39 @@ async function ensureProjectsFile(filePath: string): Promise<Project[]> {
   }
 }
 
+/** Jednorazowa migracja: zapis miniaturek z thumbnailDataUrl do plików i usunięcie z JSON. */
+async function migrateThumbnailsToFiles(projects: Project[]): Promise<boolean> {
+  let dirty = false;
+  for (const project of projects) {
+    for (const rev of project.revisions ?? []) {
+      if (rev.thumbnailDataUrl && !rev.thumbnailPath) {
+        const buffer = decodeDataUrlToBuffer(rev.thumbnailDataUrl);
+        if (buffer && buffer.length > 0) {
+          const relativePath = await saveThumbnailFile(
+            project.id,
+            rev.id,
+            buffer
+          );
+          rev.thumbnailPath = relativePath;
+          rev.thumbnailDataUrl = undefined;
+          dirty = true;
+        }
+      }
+    }
+  }
+  return dirty;
+}
+
 export async function getProjects(): Promise<Project[]> {
   const filePath = await getProjectsFilePath();
-  return ensureProjectsFile(filePath);
+  const projects = await ensureProjectsFile(filePath);
+  const dirty = await migrateThumbnailsToFiles(projects);
+  if (dirty) {
+    const tmpPath = filePath + '.tmp';
+    await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
+    await fsp.rename(tmpPath, filePath);
+  }
+  return projects;
 }
 
 export async function addProject(
@@ -161,8 +317,22 @@ export async function updateProjectRevision(
       updates.embedUrl.trim() === '' ? undefined : updates.embedUrl.trim();
   }
   if (updates.thumbnailDataUrl !== undefined) {
-    revisions[rIdx].thumbnailDataUrl =
-      updates.thumbnailDataUrl === '' ? undefined : updates.thumbnailDataUrl;
+    if (updates.thumbnailDataUrl === '') {
+      await deleteThumbnailFile(projectId, revisionId);
+      revisions[rIdx].thumbnailPath = undefined;
+      revisions[rIdx].thumbnailDataUrl = undefined;
+    } else {
+      const buffer = decodeDataUrlToBuffer(updates.thumbnailDataUrl);
+      if (buffer && buffer.length > 0) {
+        const relativePath = await saveThumbnailFile(
+          projectId,
+          revisionId,
+          buffer
+        );
+        revisions[rIdx].thumbnailPath = relativePath;
+        revisions[rIdx].thumbnailDataUrl = undefined;
+      }
+    }
   }
   if (updates.screenshotDataUrl !== undefined) {
     revisions[rIdx].screenshotDataUrl =
@@ -205,6 +375,7 @@ export async function deleteProjectRevision(
   projectId: string,
   revisionId: string
 ): Promise<boolean> {
+  await deleteThumbnailFile(projectId, revisionId);
   const filePath = await getProjectsFilePath();
   const projects = await ensureProjectsFile(filePath);
   const pIdx = projects.findIndex((p) => p.id === projectId);

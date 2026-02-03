@@ -32,17 +32,27 @@ export interface DeviceInfo {
   language?: string; // język przeglądarki
 }
 
-// Zdarzenie przeglądania (folder lub obraz)
+// Zdarzenie przeglądania (folder, obraz lub Design)
 export interface ViewEvent {
   id: string; // view_xxxxxxxx
   email: string;
   sessionId: string;
   timestamp: string;
-  type: 'folder' | 'image';
-  path: string; // ścieżka do folderu/obrazu
+  type:
+    | 'folder'
+    | 'image'
+    | 'design_list'
+    | 'design_project'
+    | 'design_revision';
+  path: string; // ścieżka do folderu/obrazu lub design/...
   folderName?: string; // nazwa folderu (dla kontekstu)
   imageName?: string; // nazwa pliku obrazu
   duration?: number; // czas oglądania w sekundach (dla obrazów)
+  // Design – opcjonalne pola dla type design_*
+  projectId?: string;
+  revisionId?: string;
+  projectName?: string;
+  revisionLabel?: string;
   ip?: string;
   userAgent?: string;
   deviceInfo?: DeviceInfo;

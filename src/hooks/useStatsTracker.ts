@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type ViewType = 'folder' | 'image';
+export type DesignViewType =
+  | 'design_list'
+  | 'design_project'
+  | 'design_revision';
+
+export interface DesignViewMeta {
+  projectId?: string;
+  revisionId?: string;
+  projectName?: string;
+  revisionLabel?: string;
+}
 
 function getSessionIdFromCookie(): string | null {
   if (typeof document === 'undefined') return null;
@@ -57,7 +68,7 @@ export function useStatsTracker(initialSessionId: string | null = null) {
         body: JSON.stringify({ sessionId }),
       }).catch((error) => {
         // Świadomie tylko logujemy do konsoli, bez przerywania UI
-         
+
         console.error('Stats heartbeat failed:', error);
       });
     }, 60000);
@@ -87,11 +98,10 @@ export function useStatsTracker(initialSessionId: string | null = null) {
           }),
         });
       } catch (error) {
-         
         console.error('trackView failed:', error);
       }
     },
-    [sessionId],
+    [sessionId]
   );
 
   const trackDownload = useCallback(
@@ -112,12 +122,50 @@ export function useStatsTracker(initialSessionId: string | null = null) {
           }),
         });
       } catch (error) {
-         
         console.error('trackDownload failed:', error);
       }
     },
-    [sessionId],
+    [sessionId]
   );
 
-  return { sessionId, trackView, trackDownload };
+  const trackDesignView = useCallback(
+    async (
+      type: DesignViewType,
+      path: string,
+      name: string,
+      meta?: DesignViewMeta
+    ) => {
+      if (!sessionId) return;
+
+      const viewKey = `${type}:${path}`;
+      if (lastViewRef.current === viewKey) return;
+      lastViewRef.current = viewKey;
+
+      try {
+        const deviceInfo = getDeviceInfo();
+        await fetch('/api/stats/track-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            type,
+            path,
+            name,
+            ...(meta && {
+              projectId: meta.projectId,
+              revisionId: meta.revisionId,
+              projectName: meta.projectName,
+              revisionLabel: meta.revisionLabel,
+            }),
+            ...deviceInfo,
+          }),
+        });
+      } catch (error) {
+        console.error('trackDesignView failed:', error);
+      }
+    },
+    [sessionId]
+  );
+
+  return { sessionId, trackView, trackDownload, trackDesignView };
 }

@@ -39,7 +39,6 @@ export default async function handler(
       emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
 
     if (isEmergencyCode) {
-      console.log('🆘 Używa kodu awaryjnego do logowania administratora');
       await loginAdmin(email);
     } else {
       // Standardowa weryfikacja kodu
@@ -73,8 +72,6 @@ export default async function handler(
       `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict${secure}`,
       `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict${secure}`,
     ]);
-
-    console.log('👑 Administrator zalogowany:', email);
 
     res.status(200).json({
       message: 'Admin login successful',

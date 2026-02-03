@@ -258,15 +258,30 @@ export async function getActiveSession(
 
 // ==================== ZDARZENIA WYŚWIETLEŃ ====================
 
+export type ViewEventType =
+  | 'folder'
+  | 'image'
+  | 'design_list'
+  | 'design_project'
+  | 'design_revision';
+
+export interface DesignViewMeta {
+  projectId?: string;
+  revisionId?: string;
+  projectName?: string;
+  revisionLabel?: string;
+}
+
 export async function recordViewEvent(
   email: string,
   sessionId: string,
-  type: 'folder' | 'image',
+  type: ViewEventType,
   path: string,
   name: string,
   ip?: string,
   userAgent?: string,
-  deviceInfo?: DeviceInfo
+  deviceInfo?: DeviceInfo,
+  designMeta?: DesignViewMeta
 ): Promise<ViewEvent> {
   await migrateStatsToDailyFiles();
   const event: ViewEvent = {
@@ -276,11 +291,19 @@ export async function recordViewEvent(
     timestamp: new Date().toISOString(),
     type,
     path,
-    [type === 'folder' ? 'folderName' : 'imageName']: name,
     ip,
     userAgent,
     deviceInfo,
+    ...(designMeta && {
+      projectId: designMeta.projectId,
+      revisionId: designMeta.revisionId,
+      projectName: designMeta.projectName,
+      revisionLabel: designMeta.revisionLabel,
+    }),
   };
+  if (type === 'folder') (event as ViewEvent).folderName = name;
+  else if (type === 'image') (event as ViewEvent).imageName = name;
+  // dla design_* nazwa wyświetlana może być w projectName/revisionLabel
   const today = getDateString(new Date());
   const day = await loadStatsFile(today);
   day.viewEvents.push(event);
@@ -290,7 +313,7 @@ export async function recordViewEvent(
 
 export async function getViewEvents(
   email?: string,
-  type?: 'folder' | 'image',
+  type?: ViewEventType,
   limit: number = 100
 ): Promise<ViewEvent[]> {
   await migrateStatsToDailyFiles();
@@ -539,10 +562,30 @@ export async function getOverviewStats(dateRange?: {
   }> = [];
 
   filteredViews.slice(-20).forEach((v) => {
+    const action =
+      v.type === 'folder'
+        ? 'otworzył folder'
+        : v.type === 'image'
+        ? 'obejrzał obraz'
+        : v.type === 'design_list'
+        ? 'otworzył listę Design'
+        : v.type === 'design_project'
+        ? 'otworzył projekt Design'
+        : v.type === 'design_revision'
+        ? 'obejrzał rewizję Design'
+        : 'wyświetlił';
+    const target =
+      v.folderName ||
+      v.imageName ||
+      v.projectName ||
+      (v.revisionLabel
+        ? `${v.projectName || v.path} / ${v.revisionLabel}`
+        : null) ||
+      v.path;
     recentActivity.push({
       email: v.email,
-      action: v.type === 'folder' ? 'otworzył folder' : 'obejrzał obraz',
-      target: v.folderName || v.imageName || v.path,
+      action,
+      target,
       timestamp: v.timestamp,
     });
   });
@@ -568,6 +611,161 @@ export async function getOverviewStats(dateRange?: {
     totalDownloads: filteredDownloads.length,
     topUsers,
     recentActivity: recentActivity.slice(0, 20),
+  };
+}
+
+// ==================== STATYSTYKI DESIGN ====================
+
+const DESIGN_VIEW_TYPES: ViewEventType[] = [
+  'design_list',
+  'design_project',
+  'design_revision',
+];
+
+export async function getDesignOverviewStats(dateRange?: {
+  start: Date;
+  end: Date;
+}): Promise<{
+  totalListViews: number;
+  totalProjectViews: number;
+  totalRevisionViews: number;
+  topProjects: Array<{ projectId: string; projectName: string; views: number }>;
+  topRevisions: Array<{
+    projectId: string;
+    revisionId: string;
+    projectName: string;
+    revisionLabel: string;
+    views: number;
+  }>;
+  recentDesignActivity: Array<{
+    email: string;
+    action: string;
+    target: string;
+    timestamp: string;
+  }>;
+}> {
+  await migrateStatsToDailyFiles();
+  const dates = await listStatsDates();
+  const viewEvents: ViewEvent[] = [];
+  const dateRangeStart = dateRange ? getDateString(dateRange.start) : null;
+  const dateRangeEnd = dateRange ? getDateString(dateRange.end) : null;
+  for (const dateStr of dates) {
+    if (dateRangeStart && dateStr < dateRangeStart) continue;
+    if (dateRangeEnd && dateStr > dateRangeEnd) continue;
+    const day = await loadStatsFile(dateStr);
+    viewEvents.push(
+      ...day.viewEvents.filter((e) => DESIGN_VIEW_TYPES.includes(e.type))
+    );
+  }
+
+  const filterByDate = (items: ViewEvent[]): ViewEvent[] => {
+    if (!dateRange) return items;
+    return items.filter((item) => {
+      const date = new Date(item.timestamp);
+      return date >= dateRange.start && date <= dateRange.end;
+    });
+  };
+  const filtered = filterByDate(viewEvents);
+
+  const totalListViews = filtered.filter(
+    (e) => e.type === 'design_list'
+  ).length;
+  const totalProjectViews = filtered.filter(
+    (e) => e.type === 'design_project'
+  ).length;
+  const totalRevisionViews = filtered.filter(
+    (e) => e.type === 'design_revision'
+  ).length;
+
+  const projectCounts: Record<string, { projectName: string; views: number }> =
+    {};
+  for (const e of filtered) {
+    if (e.type !== 'design_project' && e.type !== 'design_revision') continue;
+    const pid = e.projectId || e.path;
+    if (!pid) continue;
+    if (!projectCounts[pid]) {
+      projectCounts[pid] = {
+        projectName: e.projectName || pid,
+        views: 0,
+      };
+    }
+    projectCounts[pid].views += 1;
+  }
+  const topProjects = Object.entries(projectCounts)
+    .map(([projectId, { projectName, views }]) => ({
+      projectId,
+      projectName,
+      views,
+    }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10);
+
+  const revisionCounts: Record<
+    string,
+    {
+      projectId: string;
+      revisionId: string;
+      projectName: string;
+      revisionLabel: string;
+      views: number;
+    }
+  > = {};
+  for (const e of filtered) {
+    if (e.type !== 'design_revision') continue;
+    const rid = e.revisionId || e.path;
+    const pid = e.projectId || '';
+    if (!rid) continue;
+    const key = `${pid}:${rid}`;
+    if (!revisionCounts[key]) {
+      revisionCounts[key] = {
+        projectId: pid,
+        revisionId: rid,
+        projectName: e.projectName || pid,
+        revisionLabel: e.revisionLabel || rid,
+        views: 0,
+      };
+    }
+    revisionCounts[key].views += 1;
+  }
+  const topRevisions = Object.values(revisionCounts)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10);
+
+  const recentDesignActivity = filtered
+    .slice(-30)
+    .map((v) => {
+      const action =
+        v.type === 'design_list'
+          ? 'Lista Design'
+          : v.type === 'design_project'
+          ? 'Projekt'
+          : 'Rewizja';
+      const target =
+        v.projectName ||
+        (v.revisionLabel
+          ? `${v.projectName || v.path} / ${v.revisionLabel}`
+          : null) ||
+        v.path;
+      return {
+        email: v.email,
+        action,
+        target: target || v.path,
+        timestamp: v.timestamp,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
+    .slice(0, 15);
+
+  return {
+    totalListViews,
+    totalProjectViews,
+    totalRevisionViews,
+    topProjects,
+    topRevisions,
+    recentDesignActivity,
   };
 }
 

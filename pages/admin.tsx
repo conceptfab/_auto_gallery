@@ -5,6 +5,7 @@ import FileManager from '../src/components/FileManager';
 import LoadingOverlay from '../src/components/LoadingOverlay';
 import { PendingRequestsSection } from '../src/components/admin/PendingRequestsSection';
 import { DashboardStats } from '../src/components/admin/DashboardStats';
+import { DesignStatsSection } from '../src/components/admin/DesignStatsSection';
 import { UserLists } from '../src/components/admin/UserLists';
 import { GroupsManager } from '../src/components/admin/GroupsManager';
 import { CacheMonitorSection } from '../src/components/admin/CacheMonitorSection';
@@ -38,6 +39,7 @@ const AdminPanel: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set([
       'stats',
+      'design-stats',
       'whitelist',
       'blacklist',
       'groups',
@@ -306,6 +308,21 @@ const AdminPanel: React.FC = () => {
           isExpanded={expandedSections.has('stats')}
           onToggleSection={() => toggleSection('stats')}
         />
+
+        <section className="admin-section">
+          <h2
+            className="admin-section-title admin-section-title-clickable"
+            onClick={() => toggleSection('design-stats')}
+          >
+            <span>Statystyki Design</span>
+            <i
+              className={`las la-angle-up admin-section-toggle ${
+                expandedSections.has('design-stats') ? '' : 'collapsed'
+              }`}
+            />
+          </h2>
+          {expandedSections.has('design-stats') && <DesignStatsSection />}
+        </section>
 
         <ProjectsSection
           isExpanded={expandedSections.has('projects')}

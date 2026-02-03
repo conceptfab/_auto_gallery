@@ -233,11 +233,18 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
               </span>
             </h1>
           </div>
+        </div>
+
+        <div className="menu-center menu-center-nav">
           <button
             type="button"
             onClick={() => router.push('/')}
             title="Content"
-            className="top-menu-bar-nav-btn"
+            className={`top-menu-bar-nav-btn ${
+              router.pathname === '/' || router.pathname.startsWith('/folders')
+                ? 'active'
+                : ''
+            }`}
           >
             Content
           </button>
@@ -245,15 +252,25 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
             type="button"
             onClick={() => router.push('/design')}
             title="Design"
-            className="top-menu-bar-nav-btn"
+            className={`top-menu-bar-nav-btn ${
+              router.pathname.startsWith('/design') ? 'active' : ''
+            }`}
           >
             Design
           </button>
-        </div>
-
-        <div className="menu-center">
+          <button
+            type="button"
+            onClick={() => router.push('/moodboard')}
+            title="Moodboard"
+            className={`top-menu-bar-nav-btn ${
+              router.pathname.startsWith('/moodboard') ? 'active' : ''
+            }`}
+          >
+            Moodboard
+          </button>
           {clientName && (
             <span
+              className="menu-center-client-name"
               style={{
                 fontSize: '1.1rem',
                 fontWeight: 300,
