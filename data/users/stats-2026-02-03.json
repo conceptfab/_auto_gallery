@@ -6,6 +6,12 @@
       "timestamp": "2026-02-03T20:18:17.246Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    },
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-03T21:58:28.214Z",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
     }
   ],
   "sessions": [
@@ -16,6 +22,14 @@
       "lastActivity": "2026-02-03T20:25:51.420Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    },
+    {
+      "id": "sess_1770155908236_spv68z",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-03T21:58:28.236Z",
+      "lastActivity": "2026-02-03T21:58:28.236Z",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
     }
   ],
   "viewEvents": [

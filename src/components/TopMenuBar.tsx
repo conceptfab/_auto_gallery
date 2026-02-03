@@ -233,6 +233,22 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
               </span>
             </h1>
           </div>
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            title="Content"
+            className="top-menu-bar-nav-btn"
+          >
+            Content
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/design')}
+            title="Design"
+            className="top-menu-bar-nav-btn"
+          >
+            Design
+          </button>
         </div>
 
         <div className="menu-center">

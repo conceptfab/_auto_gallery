@@ -9,6 +9,7 @@ import { UserLists } from '../src/components/admin/UserLists';
 import { GroupsManager } from '../src/components/admin/GroupsManager';
 import { CacheMonitorSection } from '../src/components/admin/CacheMonitorSection';
 import { VolumeBrowserSection } from '../src/components/admin/VolumeBrowserSection';
+import { ProjectsSection } from '../src/components/admin/ProjectsSection';
 import { useAdminData } from '../src/hooks/useAdminData';
 import { useAdminGroups } from '../src/hooks/useAdminGroups';
 import { useAdminSettings } from '../src/hooks/useAdminSettings';
@@ -40,6 +41,7 @@ const AdminPanel: React.FC = () => {
       'whitelist',
       'blacklist',
       'groups',
+      'projects',
       'settings',
       'data-cleanup',
       'cache',
@@ -303,6 +305,11 @@ const AdminPanel: React.FC = () => {
         <DashboardStats
           isExpanded={expandedSections.has('stats')}
           onToggleSection={() => toggleSection('stats')}
+        />
+
+        <ProjectsSection
+          isExpanded={expandedSections.has('projects')}
+          onToggleSection={() => toggleSection('projects')}
         />
 
         <UserLists
