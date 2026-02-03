@@ -30,10 +30,8 @@ export interface AdminAuthStatus {
 
 export interface AdminSettings {
   highlightKeywords: boolean;
-}
-
-export interface FolderStatus {
-  groupId: string;
-  exists: boolean;
-  path: string;
+  autoCleanupEnabled: boolean;
+  autoCleanupDays: number;
+  historyRetentionDays: number;
+  thumbnailAnimationDelay: number;
 }

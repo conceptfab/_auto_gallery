@@ -1,0 +1,66 @@
+{
+  "date": "2026-02-03",
+  "logins": [
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-03T20:18:17.246Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sess_1770149897256_qql8xl",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-03T20:18:17.256Z",
+      "lastActivity": "2026-02-03T20:25:51.420Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    }
+  ],
+  "viewEvents": [
+    {
+      "id": "view_1770150054152_in4nse",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770149897256_qql8xl",
+      "timestamp": "2026-02-03T20:20:54.152Z",
+      "type": "folder",
+      "path": "metro/Meble gabinetowe",
+      "folderName": "Meble gabinetowe",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770150299249_cnwtqb",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770149897256_qql8xl",
+      "timestamp": "2026-02-03T20:24:59.249Z",
+      "type": "folder",
+      "path": "metro/Meble gabinetowe",
+      "folderName": "Meble gabinetowe",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    }
+  ],
+  "downloadEvents": []
+}

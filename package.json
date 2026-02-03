@@ -1,6 +1,6 @@
 {
   "name": "conceptfab-autogallery",
-  "version": "b 0.23g",
+  "version": "b 0.3",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
