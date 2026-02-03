@@ -1,3 +1,5 @@
+import path from 'path';
+
 export interface PathValidationResult {
   valid: boolean;
   error?: string;
@@ -13,8 +15,8 @@ export function validateFilePath(path: string): PathValidationResult {
   if (path.includes('..') || path.includes('./') || path.startsWith('/')) {
     return { valid: false, error: 'Invalid path' };
   }
-  // Dozwolone: litery, cyfry, / _ - . spacja (ścieżki typu "metro/Meble gabinetowe/CUBE/plik_thumb.webp")
-  if (!/^[a-zA-Z0-9\/_\-\.\s]+$/.test(path)) {
+  // Dozwolone: litery (Unicode), cyfry, / _ - . spacja (ścieżki typu "metro/Meble gabinetowe/CUBE/plik_thumb.webp")
+  if (!/^[\p{L}0-9\/_\-\.\s]+$/u.test(path)) {
     return { valid: false, error: 'Invalid characters in path' };
   }
   return { valid: true };
@@ -35,7 +37,7 @@ export function validateFileName(name: string): FileNameValidationResult {
   if (name.includes('..') || name.includes('/') || name.includes('\\')) {
     return { valid: false, error: 'Invalid file name' };
   }
-  if (!/^[a-zA-Z0-9_\-\.]+$/.test(name)) {
+  if (!/^[\p{L}0-9_\-\.]+$/u.test(name)) {
     return { valid: false, error: 'Invalid characters in name' };
   }
   return { valid: true };
@@ -56,7 +58,7 @@ export function validateFolderPathDetailed(
   }
 
   // Normalizacja ścieżki
-  const normalized = folderPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+  const normalized = path.normalize(folderPath).replace(/\\/g, '/').replace(/^\/|\/$/g, '');
 
   // Sprawdź czy normalizacja nie zmieniła ścieżki w nieoczekiwany sposób
   const cleaned = folderPath.replace(/^\/|\/$/g, '');

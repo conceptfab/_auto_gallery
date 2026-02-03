@@ -24,9 +24,12 @@ export default async function handler(
     }
 
     // Sprawdź domenę
-    if (
-      !ALLOWED_DOMAINS.some((domain) => parsedUrl.hostname.endsWith(domain))
-    ) {
+    const isValidDomain = ALLOWED_DOMAINS.some(
+      (domain) =>
+        parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
+    );
+
+    if (!isValidDomain) {
       return res.status(403).json({ error: 'Domain not allowed' });
     }
 
