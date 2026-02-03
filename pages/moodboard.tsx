@@ -1,7 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
+import {
+  MoodboardProvider,
+  useMoodboard,
+} from '@/src/contexts/MoodboardContext';
+
+const MoodboardToolbar = dynamic(
+  () => import('@/src/components/moodboard/Toolbar'),
+  { ssr: false }
+);
+const MoodboardCanvas = dynamic(
+  () => import('@/src/components/moodboard/Canvas'),
+  { ssr: false }
+);
+
+function MoodboardContent() {
+  const { loading, loadError, saveError } = useMoodboard();
+  if (loading) {
+    return <LoadingOverlay message="Ładowanie moodboarda..." />;
+  }
+  return (
+    <>
+      {loadError && (
+        <div className="moodboard-error-banner" role="alert">
+          {loadError}{' '}
+          <button
+            type="button"
+            className="moodboard-error-banner-btn"
+            onClick={() => window.location.reload()}
+          >
+            Odśwież
+          </button>
+        </div>
+      )}
+      {saveError && (
+        <div className="moodboard-save-error" role="alert">
+          {saveError}
+        </div>
+      )}
+      <MoodboardToolbar />
+      <MoodboardCanvas />
+    </>
+  );
+}
 
 interface AuthStatus {
   isLoggedIn: boolean;
@@ -48,15 +92,16 @@ const MoodboardPage: React.FC = () => {
         <title>Moodboard – CONCEPTFAB Content Browser</title>
         <meta
           name="description"
-          content="Moodboard – CONCEPTFAB Content Browser"
+          content="Moodboard – tablica nastrojów z obrazkami i komentarzami"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="design-page">
-        <h1 className="design-page-title">Moodboard</h1>
-        <p className="design-page-intro">Strona w przygotowaniu.</p>
+      <main className="design-page moodboard-page">
+        <MoodboardProvider>
+          <MoodboardContent />
+        </MoodboardProvider>
       </main>
     </>
   );

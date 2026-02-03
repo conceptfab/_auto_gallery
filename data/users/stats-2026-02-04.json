@@ -1,0 +1,74 @@
+{
+  "date": "2026-02-04",
+  "logins": [],
+  "sessions": [],
+  "viewEvents": [
+    {
+      "id": "view_1770160031654_06tflb",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770149897256_qql8xl",
+      "timestamp": "2026-02-03T23:07:11.654Z",
+      "type": "design_project",
+      "path": "design/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    },
+    {
+      "id": "view_1770160364140_gi8z44",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770149897256_qql8xl",
+      "timestamp": "2026-02-03T23:12:44.140Z",
+      "type": "design_project",
+      "path": "design/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    },
+    {
+      "id": "view_1770160365417_7n4vjt",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770149897256_qql8xl",
+      "timestamp": "2026-02-03T23:12:45.417Z",
+      "type": "design_project",
+      "path": "design/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    }
+  ],
+  "downloadEvents": []
+}
