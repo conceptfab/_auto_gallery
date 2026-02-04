@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 import { NotificationProvider } from '@/src/components/GlobalNotification';
 import { SettingsProvider } from '@/src/contexts/SettingsContext';
+import { ThumbnailCacheProvider } from '@/src/contexts/ThumbnailCacheContext';
 
 // Placeholder dla TopMenuBar podczas ładowania - zapobiega migotaniu
 const TopMenuBarPlaceholder = () => (
@@ -14,7 +15,7 @@ const TopMenuBarPlaceholder = () => (
       <div className="menu-left">
         <div className="logo">
           <h1>
-            CONCEPTFAB Content Browser
+            Content Browser
             <span className="version"></span>
           </h1>
         </div>
@@ -129,21 +130,23 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <NotificationProvider>
       <SettingsProvider>
-        {showLandscapeWarning && (
-          <div className="landscape-warning">
-            <div className="landscape-warning-content">
-              <span className="landscape-warning-icon">📱</span>
-              <p>Obróć urządzenie do pozycji pionowej</p>
-              <small>Aplikacja działa najlepiej w trybie portrait</small>
+        <ThumbnailCacheProvider>
+          {showLandscapeWarning && (
+            <div className="landscape-warning">
+              <div className="landscape-warning-content">
+                <span className="landscape-warning-icon">📱</span>
+                <p>Obróć urządzenie do pozycji pionowej</p>
+                <small>Aplikacja działa najlepiej w trybie portrait</small>
+              </div>
             </div>
+          )}
+          {router.pathname !== '/folders' && (
+            <DynamicTopMenuBar clientName={clientName} />
+          )}
+          <div className="app-main" key={router.pathname}>
+            <Component {...pageProps} refreshKey={0} />
           </div>
-        )}
-        {router.pathname !== '/folders' && (
-          <DynamicTopMenuBar clientName={clientName} />
-        )}
-        <div className="app-main" key={router.pathname}>
-          <Component {...pageProps} refreshKey={0} />
-        </div>
+        </ThumbnailCacheProvider>
       </SettingsProvider>
     </NotificationProvider>
   );

@@ -10,6 +10,7 @@ const MAX_ATTACHMENTS = 5;
 const MAX_SIZE_BYTES = 1024 * 1024; // 1 MB
 const MAX_FILENAME_LENGTH = 100;
 const SAFE_FILENAME_REGEX = /^[a-zA-Z0-9._-]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function sanitizeAttachmentFilename(raw: string): string | null {
   const basename = path.basename(raw);
@@ -42,6 +43,13 @@ async function bugReportHandler(req: NextApiRequest, res: NextApiResponse) {
   if (!subject || !message) {
     return res.status(400).json({ error: 'Subject and message are required' });
   }
+  if (
+    userEmail &&
+    typeof userEmail === 'string' &&
+    !EMAIL_REGEX.test(userEmail)
+  ) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
 
   const attachments: { filename: string; content: Buffer }[] = [];
   if (
@@ -61,13 +69,14 @@ async function bugReportHandler(req: NextApiRequest, res: NextApiResponse) {
           .status(400)
           .json({ error: 'Nieprawidłowa nazwa załącznika' });
       }
+      const estimatedSize = Math.ceil((a.content.length * 3) / 4);
+      if (estimatedSize > MAX_SIZE_BYTES) {
+        return res
+          .status(400)
+          .json({ error: `Załącznik "${safeName}" przekracza 1 MB` });
+      }
       try {
         const buf = Buffer.from(a.content, 'base64');
-        if (buf.length > MAX_SIZE_BYTES) {
-          return res
-            .status(400)
-            .json({ error: `Załącznik "${safeName}" przekracza 1 MB` });
-        }
         attachments.push({ filename: safeName, content: buf });
       } catch {
         return res

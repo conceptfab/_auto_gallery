@@ -26,7 +26,7 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Parametr groupId dla podglądu admina
   const groupId = router.query.groupId as string | undefined;
 
@@ -39,9 +39,9 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
     try {
       const response = await fetch('/api/auth/status');
       const status: AuthStatus = await response.json();
-      
+
       setAuthStatus(status);
-      
+
       if (!status.isLoggedIn) {
         router.push('/login');
         return;
@@ -54,7 +54,6 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
     }
   };
 
-
   if (loading) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
   }
@@ -65,14 +64,18 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
   return (
     <>
       <Head>
-        <title>{authStatus?.isAdmin ? 'ADMIN - ' : ''}CONCEPTFAB Content Browser</title>
-        <meta name="description" content="CONCEPTFAB Content Browser" />
+        <title>{authStatus?.isAdmin ? 'ADMIN - ' : ''}Content Browser</title>
+        <meta name="description" content="Content Browser" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main>
-        <Gallery refreshKey={refreshKey} groupId={groupId} isAdmin={authStatus?.isAdmin ?? false} />
+        <Gallery
+          refreshKey={refreshKey}
+          groupId={groupId}
+          isAdmin={authStatus?.isAdmin ?? false}
+        />
       </main>
     </>
   );

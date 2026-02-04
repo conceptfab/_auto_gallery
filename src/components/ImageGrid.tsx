@@ -6,7 +6,9 @@ import { logger } from '@/src/utils/logger';
 import { useSettings } from '@/src/contexts/SettingsContext';
 import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
+import { getDisplayName as getDisplayNameUtil } from '@/src/utils/imageNameUtils';
 import { PREVIEW_TIMEOUT } from '@/src/config/constants';
+import { useTouchDevice } from '@/src/hooks/useTouchDevice';
 
 interface ImageGridProps {
   images: ImageFile[];
@@ -23,15 +25,9 @@ interface ImageGridProps {
     fileName: string
   ) => Promise<void> | void;
   isAdmin?: boolean;
+  /** Gdy podane – używane zamiast fetch (batch z Gallery) */
+  cacheStatusFromParent?: Record<string, boolean>;
 }
-
-const getDisplayNameStatic = (name: string): string => {
-  const lastDotIndex = name.lastIndexOf('.');
-  let baseName = lastDotIndex === -1 ? name : name.substring(0, lastDotIndex);
-  const shotIndex = baseName.indexOf('__Shot');
-  if (shotIndex !== -1) baseName = baseName.substring(0, shotIndex);
-  return baseName.replace(/_+/g, ' ').trim().toUpperCase();
-};
 
 interface ImageItemProps {
   image: ImageFile;
@@ -39,7 +35,6 @@ interface ImageItemProps {
   highlightedName: string;
   keywordItems: Array<{ keyword: string; image: ImageFile }>;
   folderName: string;
-  highlightKeywordsEnabled: boolean | null;
   onImageClick?: (
     image: ImageFile,
     imagesInFolder: ImageFile[],
@@ -49,6 +44,9 @@ interface ImageItemProps {
   folderPath?: string;
   kolorystykaImages: ImageFile[];
   getOptimizedImageUrl: (image: ImageFile, size?: 'thumb' | 'full') => string;
+  /** URL miniaturki (z fallbackiem na proxy gdy 404) – żeby re-render nie nadpisywał */
+  thumbSrc: string;
+  onThumbnailError: () => void;
   getDisplayName: (name: string) => string;
   onHoverPreview: (img: ImageFile, x: number, y: number) => void;
   onHoverPreviewClear: () => void;
@@ -68,12 +66,13 @@ const ImageItem = memo(function ImageItem({
   highlightedName,
   keywordItems,
   folderName,
-  highlightKeywordsEnabled: _highlightKeywordsEnabled,
   onImageClick,
   images,
   folderPath,
   kolorystykaImages,
   getOptimizedImageUrl,
+  thumbSrc,
+  onThumbnailError,
   getDisplayName,
   onHoverPreview,
   onHoverPreviewClear,
@@ -83,37 +82,31 @@ const ImageItem = memo(function ImageItem({
   isCached,
   cacheStatusLoaded = false,
 }: ImageItemProps) {
-  // Fallback: gdy miniaturka nie istnieje, wczytaj oryginał przez proxy
+  const proxyThumbUrl = `/api/image-proxy?url=${encodeURIComponent(
+    image.url
+  )}&size=thumb`;
+
   const handleImageError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const target = e.target as HTMLImageElement;
-      const originalSrc = target.src;
 
-      // Sprawdź czy to już jest fallback (proxy z size=thumb)
-      if (originalSrc.includes('/api/image-proxy')) {
-        // Proxy też nie zadziałał - ukryj obrazek
-        logger.warn('Image load error (proxy fallback failed):', originalSrc);
+      if (target.src.includes('/api/image-proxy')) {
+        logger.warn('Image load error (proxy failed):', image.name);
         target.style.display = 'none';
         return;
       }
 
-      // Miniaturka nie istnieje - użyj proxy jako fallback
-      logger.info('Thumbnail missing, falling back to proxy:', image.name);
-      const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(
-        image.url
-      )}&size=thumb`;
-      target.src = proxyUrl;
+      logger.info('Thumbnail missing, using original:', image.name);
+      onThumbnailError();
+      target.src = proxyThumbUrl;
 
-      // Wyzwól generowanie miniaturki w tle
       fetch('/api/admin/cache/generate-single', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imagePath: image.path || image.url }),
-      }).catch(() => {
-        // Ignoruj błędy - to tylko optymalizacja w tle
-      });
+      }).catch(() => {});
     },
-    [image]
+    [image, onThumbnailError, proxyThumbUrl]
   );
 
   return (
@@ -169,7 +162,9 @@ const ImageItem = memo(function ImageItem({
           </div>
         )}
         <img
-          src={getOptimizedImageUrl(image, 'thumb')}
+          src={thumbSrc}
+          srcSet={`${thumbSrc} 1x`}
+          sizes="(max-width: 768px) 150px, 300px"
           alt={image.name}
           className="gallery-image"
           loading="lazy"
@@ -183,7 +178,7 @@ const ImageItem = memo(function ImageItem({
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(highlightedName, {
                 ALLOWED_TAGS: ['span'],
-                ALLOWED_ATTR: ['style', 'class'],
+                ALLOWED_ATTR: ['class'],
               }),
             }}
           />
@@ -303,6 +298,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   kolorystykaImages = [],
   onTrackDownload,
   isAdmin = false,
+  cacheStatusFromParent,
 }) => {
   const [hoveredPreview, setHoveredPreview] = React.useState<{
     image: ImageFile;
@@ -318,7 +314,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   }, []);
 
   const getDisplayName = useCallback(
-    (name: string) => getDisplayNameStatic(name),
+    (name: string) => getDisplayNameUtil(name),
     []
   );
 
@@ -348,36 +344,35 @@ const ImageGrid: React.FC<ImageGridProps> = ({
   );
   const [cacheStatusLoaded, setCacheStatusLoaded] = React.useState(false);
 
+  // Miniatury 404 – używaj oryginału (proxy), żeby re-render nie nadpisywał fallbacku
+  const [failedThumbnails, setFailedThumbnails] = React.useState<
+    Record<string, boolean>
+  >({});
+  React.useEffect(() => {
+    setFailedThumbnails({});
+  }, [folderPath, folderName]);
+
   const {
     highlightKeywords: highlightKeywordsEnabled,
     thumbnailAnimationDelay,
   } = useSettings();
+  const isTouchDevice = useTouchDevice();
 
-  // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
-  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
-  React.useEffect(() => {
-    const checkTouchDevice = () => {
-      // Urządzenie dotykowe: pointer: coarse (palec) zamiast pointer: fine (mysz)
-      const isTouch = window.matchMedia('(pointer: coarse)').matches;
-      setIsTouchDevice(isTouch);
-    };
-    checkTouchDevice();
-    const mediaQuery = window.matchMedia('(pointer: coarse)');
-    mediaQuery.addEventListener('change', checkTouchDevice);
-    return () => mediaQuery.removeEventListener('change', checkTouchDevice);
-  }, []);
-
-  // Pobierz status cache dla admina
+  // Status cache: z batch (cacheStatusFromParent) lub pojedynczy fetch
   React.useEffect(() => {
     if (!isAdmin || images.length === 0) return;
 
-    // Reset przy zmianie folderu
+    if (cacheStatusFromParent) {
+      setCacheStatus(cacheStatusFromParent);
+      setCacheStatusLoaded(true);
+      return;
+    }
+
     setCacheStatus({});
     setCacheStatusLoaded(false);
 
     const checkCacheStatus = async () => {
       try {
-        // Użyj folderPath jeśli dostępne, w przeciwnym razie folderName
         const pathToCheck = folderPath || folderName;
         logger.debug('Fetching cache status for folder:', pathToCheck);
         const response = await fetch(
@@ -387,7 +382,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
         );
         if (response.ok) {
           const data = await response.json();
-          logger.debug('Cache status response:', data);
           if (data.success && data.images) {
             const statusMap: Record<string, boolean> = {};
             for (const img of data.images) {
@@ -406,39 +400,41 @@ const ImageGrid: React.FC<ImageGridProps> = ({
     };
 
     checkCacheStatus();
-  }, [isAdmin, images, folderName, folderPath]);
+  }, [isAdmin, images, folderName, folderPath, cacheStatusFromParent]);
 
   React.useEffect(() => {
     const loadHighlightedNames = async () => {
-      const highlighted: {
-        [key: string]: string;
-      } = {};
-      const imagesMap: {
-        [key: string]: Array<{ keyword: string; image: ImageFile }>;
-      } = {};
-
-      for (const image of images) {
-        // Zawsze styluj słowa kluczowe (font-size, font-weight). Kolor tylko gdy opcja włączona.
-        const displayName = getDisplayName(image.name);
-        const useColors = highlightKeywordsEnabled === true;
-        const processed = await decorConverter.highlightKeywordsInDisplayName(
-          displayName,
-          useColors
-        );
-        highlighted[image.name] = processed;
-
-        // Znajdź obrazy dla słów kluczowych w nazwie pliku
-        const foundImages = await decorConverter.findAllKeywordImages(
-          image.name,
-          kolorystykaImages
-        );
-        imagesMap[image.name] = foundImages;
+      const useColors = highlightKeywordsEnabled === true;
+      const results = await Promise.all(
+        images.map(async (image) => {
+          const displayName = getDisplayName(image.name);
+          const [processed, foundImages] = await Promise.all([
+            decorConverter.highlightKeywordsInDisplayName(
+              displayName,
+              useColors
+            ),
+            decorConverter.findAllKeywordImages(image.name, kolorystykaImages),
+          ]);
+          return {
+            name: image.name,
+            highlighted: processed,
+            keywordImages: foundImages,
+          };
+        })
+      );
+      const highlighted: Record<string, string> = {};
+      const imagesMap: Record<
+        string,
+        Array<{ keyword: string; image: ImageFile }>
+      > = {};
+      for (const r of results) {
+        highlighted[r.name] = r.highlighted;
+        imagesMap[r.name] = r.keywordImages;
         logger.debug(
-          `${image.name}: znaleziono ${foundImages.length} obrazów dla słów kluczowych`,
-          foundImages.map((f) => f.keyword)
+          `${r.name}: znaleziono ${r.keywordImages.length} obrazów dla słów kluczowych`,
+          r.keywordImages.map((f) => f.keyword)
         );
       }
-
       setHighlightedNames(highlighted);
       setKeywordImages(imagesMap);
     };
@@ -468,12 +464,22 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           }
           keywordItems={keywordImages[image.name] ?? []}
           folderName={folderName}
-          highlightKeywordsEnabled={highlightKeywordsEnabled}
           onImageClick={onImageClick}
           images={images}
           folderPath={folderPath}
           kolorystykaImages={kolorystykaImages}
           getOptimizedImageUrl={getOptimizedImageUrl}
+          thumbSrc={
+            failedThumbnails[image.name] ||
+            (isAdmin && cacheStatusLoaded && cacheStatus[image.name] === false)
+              ? `/api/image-proxy?url=${encodeURIComponent(
+                  image.url
+                )}&size=thumb`
+              : getOptimizedImageUrl(image, 'thumb')
+          }
+          onThumbnailError={() =>
+            setFailedThumbnails((prev) => ({ ...prev, [image.name]: true }))
+          }
           getDisplayName={getDisplayName}
           onHoverPreview={handleHoverPreview}
           onHoverPreviewClear={handleHoverPreviewClear}
@@ -505,7 +511,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
             visibility: 'visible',
           }}
         >
-          {}
           <img
             src={getOptimizedImageUrl(hoveredPreview.image, 'thumb')}
             alt={hoveredPreview.image.name}

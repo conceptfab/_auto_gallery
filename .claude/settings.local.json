@@ -23,7 +23,10 @@
       "Bash(node:*)",
       "Bash(find:*)",
       "Bash(npx eslint:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(tree:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\_cloud\\\\__Content_Browser\\\\src\" -Recurse -Filter \"*.ts\" -o -Filter \"*.tsx\")",
+      "Bash(Measure-Object)"
     ],
     "deny": [],
     "ask": []

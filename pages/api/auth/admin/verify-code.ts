@@ -5,8 +5,8 @@ import {
   cleanupExpiredAdminCodes,
   loginAdmin,
 } from '../../../../src/utils/storage';
-
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
+import { logger } from '../../../../src/utils/logger';
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,31 +33,32 @@ export default async function handler(
       return res.status(500).json({ error: 'Admin email not configured' });
     }
 
-    // Sprawdź czy używa kodu awaryjnego
+    // Sprawdź czy używa kodu awaryjnego (SEC-019: logowanie prób)
     const emergencyCode = process.env.ADMIN_EMERGENCY_CODE;
     const isEmergencyCode =
       emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
 
     if (isEmergencyCode) {
+      logger.info('Admin login via emergency code', { email });
       await loginAdmin(email);
     } else {
       // Standardowa weryfikacja kodu
       const adminCode = await getAdminCode(email);
 
       if (!adminCode) {
+        logger.warn('Admin verify-code: no active code', { email });
         return res
           .status(404)
           .json({ error: 'No active admin code for this email' });
       }
 
-      // Sprawdź czy kod nie wygasł
       if (new Date() > adminCode.expiresAt) {
         await removeAdminCode(email);
         return res.status(410).json({ error: 'Admin code has expired' });
       }
 
-      // Sprawdź czy kod się zgadza
       if (adminCode.code !== code.toUpperCase()) {
+        logger.warn('Admin verify-code: invalid code attempt', { email });
         return res.status(401).json({ error: 'Invalid admin code' });
       }
 
@@ -70,7 +71,7 @@ export default async function handler(
     const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
       `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict${secure}`,
-      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict${secure}`,
+      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict; HttpOnly${secure}`,
     ]);
 
     res.status(200).json({

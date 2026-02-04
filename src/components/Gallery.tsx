@@ -4,13 +4,12 @@ import ImageGrid from './ImageGrid';
 import ImageMetadata from './ImageMetadata';
 import LoadingOverlay from './LoadingOverlay';
 import { logger } from '@/src/utils/logger';
-import {
-  getOptimizedImageUrl,
-  initThumbnailCache,
-} from '@/src/utils/imageUtils';
+import { getOptimizedImageUrl } from '@/src/utils/imageUtils';
 import { downloadFile } from '@/src/utils/downloadUtils';
 import decorConverter from '@/src/utils/decorConverter';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
+import { useTouchDevice } from '@/src/hooks/useTouchDevice';
+import { getDisplayName } from '@/src/utils/imageNameUtils';
 import {
   API_TIMEOUT_LONG,
   UI_DELAY_SHORT,
@@ -39,6 +38,8 @@ interface FolderSectionProps {
     fileName: string
   ) => Promise<void> | void;
   isAdmin?: boolean;
+  /** Status cache z batch API: path -> (image name -> cached) */
+  cacheStatusByFolder?: Record<string, Record<string, boolean>>;
 }
 
 function FolderSectionInner({
@@ -50,6 +51,7 @@ function FolderSectionInner({
   onFolderView,
   onTrackDownload,
   isAdmin = false,
+  cacheStatusByFolder,
 }: FolderSectionProps) {
   const toggleFolder = (currentFolder: GalleryFolder) => {
     const newCollapsed = new Set(globalCollapsedFolders);
@@ -173,6 +175,9 @@ function FolderSectionInner({
                 kolorystykaImages={kolorystykaImages}
                 onTrackDownload={onTrackDownload}
                 isAdmin={isAdmin}
+                cacheStatusFromParent={
+                  cacheStatusByFolder?.[currentFolder.path]
+                }
               />
             )}
           </div>
@@ -196,12 +201,11 @@ const FolderSection = memo(
   FolderSectionInner,
   (prev, next) =>
     prev.folder.path === next.folder.path &&
-    prev.folder === next.folder &&
-    prev.allFolders === next.allFolders &&
     prev.onImageClick === next.onImageClick &&
     prev.setGlobalCollapsedFolders === next.setGlobalCollapsedFolders &&
     prev.globalCollapsedFolders === next.globalCollapsedFolders &&
-    prev.isAdmin === next.isAdmin
+    prev.isAdmin === next.isAdmin &&
+    prev.cacheStatusByFolder === next.cacheStatusByFolder
 );
 
 interface GalleryProps {
@@ -239,27 +243,46 @@ const Gallery: React.FC<GalleryProps> = ({
   const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(
     null
   );
+  const [cacheStatusByFolder, setCacheStatusByFolder] = useState<
+    Record<string, Record<string, boolean>>
+  >({});
 
   const { trackView, trackDownload } = useStatsTracker(null);
+  const isTouchDevice = useTouchDevice();
 
-  // Wykrywanie urządzenia dotykowego (tablet/mobile) za pomocą media query pointer: coarse
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  // Batch cache status dla admina (PERF-001)
   useEffect(() => {
-    const checkTouchDevice = () => {
-      // Urządzenie dotykowe: pointer: coarse (palec) zamiast pointer: fine (mysz)
-      const isTouch = window.matchMedia('(pointer: coarse)').matches;
-      setIsTouchDevice(isTouch);
-    };
-    checkTouchDevice();
-    // Nasłuchuj zmian (np. podłączenie myszy do tabletu)
-    const mediaQuery = window.matchMedia('(pointer: coarse)');
-    mediaQuery.addEventListener('change', checkTouchDevice);
-
-    // Inicjalizacja cache miniaturek
-    initThumbnailCache();
-
-    return () => mediaQuery.removeEventListener('change', checkTouchDevice);
-  }, []);
+    if (!isAdmin || folders.length === 0) return;
+    const getAllPaths = (f: GalleryFolder): string[] => [
+      f.path,
+      ...(f.subfolders?.flatMap(getAllPaths) ?? []),
+    ];
+    const paths = folders.flatMap(getAllPaths).slice(0, 80);
+    if (paths.length === 0) return;
+    fetch('/api/admin/cache/folder-status-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folders: paths }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.byFolder) {
+          const next: Record<string, Record<string, boolean>> = {};
+          for (const [path, result] of Object.entries(data.byFolder) as [
+            string,
+            { images?: Array<{ name: string; cached: boolean }> }
+          ][]) {
+            if (result?.images) {
+              next[path] = Object.fromEntries(
+                result.images.map((img) => [img.name, img.cached])
+              );
+            }
+          }
+          setCacheStatusByFolder(next);
+        }
+      })
+      .catch((err) => logger.error('Batch cache status error', err));
+  }, [isAdmin, folders]);
 
   // Wyciągnij obrazy z folderu Kolorystyka
   const kolorystykaImages = useMemo(() => {
@@ -279,15 +302,6 @@ const Gallery: React.FC<GalleryProps> = ({
     };
     return findKolorystykaImages(folders);
   }, [folders]);
-
-  // Pomocnicza funkcja do wyświetlania nazwy
-  const getDisplayName = useCallback((name: string): string => {
-    const lastDotIndex = name.lastIndexOf('.');
-    let baseName = lastDotIndex === -1 ? name : name.substring(0, lastDotIndex);
-    const shotIndex = baseName.indexOf('__Shot');
-    if (shotIndex !== -1) baseName = baseName.substring(0, shotIndex);
-    return baseName.replace(/_+/g, ' ').trim().toUpperCase();
-  }, []);
 
   // Oblicz keyword images gdy zmienia się wybrany obraz
   useEffect(() => {
@@ -370,11 +384,18 @@ const Gallery: React.FC<GalleryProps> = ({
         });
         setFolders(data.data);
 
-        // Zamknij wszystkie główne kategorie na starcie
-        const allMainFolderPaths = new Set(
-          data.data.map((folder) => folder.path)
-        );
-        setGlobalCollapsedFolders(allMainFolderPaths);
+        // Zamknij wszystkie kategorie i podkategorie na starcie (otwierają się tylko po kliknięciu)
+        const collectAllPaths = (folders: GalleryFolder[]): string[] => {
+          const paths: string[] = [];
+          for (const f of folders) {
+            paths.push(f.path);
+            if (f.subfolders?.length) {
+              paths.push(...collectAllPaths(f.subfolders));
+            }
+          }
+          return paths;
+        };
+        setGlobalCollapsedFolders(new Set(collectAllPaths(data.data)));
 
         setError(null);
         setLoadingProgress(LOADING_PROGRESS_COMPLETE);
@@ -481,6 +502,7 @@ const Gallery: React.FC<GalleryProps> = ({
               onFolderView={(f) => trackView('folder', f.path, f.name)}
               onTrackDownload={trackDownload}
               isAdmin={isAdmin}
+              cacheStatusByFolder={cacheStatusByFolder}
             />
           ))}
         </div>
@@ -629,7 +651,6 @@ const Gallery: React.FC<GalleryProps> = ({
                   top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
                 }}
               >
-                {}
                 <img
                   src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
                   alt={modalHoveredPreview.image.name}

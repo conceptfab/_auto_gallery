@@ -80,11 +80,8 @@ const DesignPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Design – CONCEPTFAB Content Browser</title>
-        <meta
-          name="description"
-          content="Design – CONCEPTFAB Content Browser"
-        />
+        <title>Design – Content Browser</title>
+        <meta name="description" content="Design – Content Browser" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

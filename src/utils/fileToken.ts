@@ -1,20 +1,18 @@
 import crypto from 'crypto';
 
 // Sekret do generowania tokenów (musi być taki sam jak w PHP)
-// WAŻNE: Ustaw FILE_PROXY_SECRET w env vars! Przy włączonej ochronie plików pusty sekret = niebezpieczne.
-const SECRET_KEY = process.env.FILE_PROXY_SECRET || '';
-
-function ensureSecretWarned(): void {
-  if (
-    process.env.FILE_PROTECTION_ENABLED === 'true' &&
-    !SECRET_KEY &&
-    !(ensureSecretWarned as { done?: boolean }).done
-  ) {
-    (ensureSecretWarned as { done?: boolean }).done = true;
-    console.warn(
-      '[fileToken] FILE_PROTECTION_ENABLED=true but FILE_PROXY_SECRET is empty – tokeny są niebezpieczne. Ustaw FILE_PROXY_SECRET.'
-    );
+// Przy włączonej ochronie plików wymagany jest sekret min. 32 znaki.
+function getSecretKey(): string {
+  const secret = process.env.FILE_PROXY_SECRET;
+  if (process.env.FILE_PROTECTION_ENABLED === 'true') {
+    if (!secret || secret.length < 32) {
+      throw new Error(
+        'FILE_PROXY_SECRET must be set and at least 32 characters when FILE_PROTECTION_ENABLED is true'
+      );
+    }
+    return secret;
   }
+  return secret || '';
 }
 
 // URL do skryptu proxy na serwerze PHP
@@ -30,12 +28,12 @@ const TOKEN_EXPIRY_SECONDS = 7200;
  * @returns podpisany URL z tokenem
  */
 export function generateSignedUrl(filePath: string): string {
-  ensureSecretWarned();
+  const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
 
   // Token = HMAC-SHA256(filePath|expires, secret)
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`${filePath}|${expires}`)
     .digest('hex');
 
@@ -76,14 +74,14 @@ export function isFileProtectionEnabled(): boolean {
  * @param folder - ścieżka folderu (np. "klient1" lub "")
  */
 export function generateListUrl(folder: string = ''): string {
-  ensureSecretWarned();
+  const secretKey = getSecretKey();
   const FILE_LIST_URL =
     process.env.FILE_LIST_URL || 'https://conceptfab.com/file-list.php';
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
 
   // Token dla listowania = HMAC-SHA256("list|folder|expires", secret)
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`list|${folder}|${expires}`)
     .digest('hex');
 
@@ -117,9 +115,10 @@ export function generateUploadToken(folder: string = ''): {
   expires: number;
   url: string;
 } {
+  const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`upload|${folder}|${expires}`)
     .digest('hex');
 
@@ -134,9 +133,10 @@ export function generateDeleteToken(path: string): {
   expires: number;
   url: string;
 } {
+  const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`delete|${path}|${expires}`)
     .digest('hex');
 
@@ -150,9 +150,10 @@ export function generateRenameToken(
   oldPath: string,
   newName: string
 ): { token: string; expires: number; url: string } {
+  const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`rename|${oldPath}|${newName}|${expires}`)
     .digest('hex');
 
@@ -166,9 +167,10 @@ export function generateMkdirToken(
   parentFolder: string,
   folderName: string
 ): { token: string; expires: number; url: string } {
+  const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`mkdir|${parentFolder}|${folderName}|${expires}`)
     .digest('hex');
 
@@ -182,9 +184,10 @@ export function generateMoveToken(
   sourcePath: string,
   targetFolder: string
 ): { token: string; expires: number; url: string } {
+  const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', secretKey)
     .update(`move|${sourcePath}|${targetFolder}|${expires}`)
     .digest('hex');
 

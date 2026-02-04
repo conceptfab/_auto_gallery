@@ -34,9 +34,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       data = JSON.parse(text);
     } catch {
-      return res
-        .status(500)
-        .json({ error: 'Invalid PHP response: ' + text.substring(0, 200) });
+      console.error('Invalid PHP response (move):', text.substring(0, 200));
+      return res.status(500).json({ error: 'Invalid server response' });
     }
 
     if (!response.ok) {

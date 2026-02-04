@@ -69,6 +69,7 @@ const defaultCacheData: CacheStorageData = {
   lastScanDuration: null,
 };
 
+// OVER-001: skonsolidowane ścieżki cache
 async function getCacheDataDir(): Promise<string> {
   try {
     await fsp.access('/data-storage');
@@ -78,16 +79,23 @@ async function getCacheDataDir(): Promise<string> {
   }
 }
 
+const CACHE_PATHS = {
+  config: 'cache-config.json',
+  historyDir: 'history',
+  currentFile: 'history/current.json',
+  dailyHistory: (dateStr: string) => `history/cache-${dateStr}.json`,
+} as const;
+
 async function getConfigFilePath(): Promise<string> {
-  return path.join(await getCacheDataDir(), 'cache-config.json');
+  return path.join(await getCacheDataDir(), CACHE_PATHS.config);
 }
 
 async function getHistoryDir(): Promise<string> {
-  return path.join(await getCacheDataDir(), 'history');
+  return path.join(await getCacheDataDir(), CACHE_PATHS.historyDir);
 }
 
 async function getCurrentFilePath(): Promise<string> {
-  return path.join(await getHistoryDir(), 'current.json');
+  return path.join(await getCacheDataDir(), CACHE_PATHS.currentFile);
 }
 
 function getCacheDateString(d: Date): string {
@@ -95,7 +103,7 @@ function getCacheDateString(d: Date): string {
 }
 
 async function getDailyHistoryPath(dateStr: string): Promise<string> {
-  return path.join(await getHistoryDir(), `cache-${dateStr}.json`);
+  return path.join(await getCacheDataDir(), CACHE_PATHS.dailyHistory(dateStr));
 }
 
 const HISTORY_SLICE_MAX = 500;

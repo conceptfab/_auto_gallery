@@ -3,23 +3,32 @@ import path from 'path';
 export interface PathValidationResult {
   valid: boolean;
   error?: string;
+  sanitizedPath?: string;
 }
 
+const BASE_PATH = path.resolve(process.cwd());
+
 /**
- * Walidacja ścieżki pliku – path traversal i dozwolone znaki.
+ * Walidacja ścieżki pliku – path traversal (z normalizacją) i dozwolone znaki.
  */
-export function validateFilePath(path: string): PathValidationResult {
-  if (!path || typeof path !== 'string') {
+export function validateFilePath(inputPath: string): PathValidationResult {
+  if (!inputPath || typeof inputPath !== 'string') {
     return { valid: false, error: 'Path is required' };
   }
-  if (path.includes('..') || path.includes('./') || path.startsWith('/')) {
-    return { valid: false, error: 'Invalid path' };
+  // Normalizacja ścieżki (obsługa .., ./, Unicode, backslashy)
+  const normalized = path
+    .normalize(inputPath)
+    .replace(/\\/g, '/')
+    .replace(/^\/+/, '');
+  const resolved = path.resolve(BASE_PATH, normalized);
+  if (!resolved.startsWith(BASE_PATH)) {
+    return { valid: false, error: 'Path traversal detected' };
   }
   // Dozwolone: litery (Unicode), cyfry, / _ - . spacja (ścieżki typu "metro/Meble gabinetowe/CUBE/plik_thumb.webp")
-  if (!/^[\p{L}0-9\/_\-\.\s]+$/u.test(path)) {
+  if (!/^[\p{L}0-9\/_\-\.\s]+$/u.test(normalized)) {
     return { valid: false, error: 'Invalid characters in path' };
   }
-  return { valid: true };
+  return { valid: true, sanitizedPath: normalized || '.' };
 }
 
 export interface FileNameValidationResult {
@@ -58,7 +67,10 @@ export function validateFolderPathDetailed(
   }
 
   // Normalizacja ścieżki
-  const normalized = path.normalize(folderPath).replace(/\\/g, '/').replace(/^\/|\/$/g, '');
+  const normalized = path
+    .normalize(folderPath)
+    .replace(/\\/g, '/')
+    .replace(/^\/|\/$/g, '');
 
   // Sprawdź czy normalizacja nie zmieniła ścieżki w nieoczekiwany sposób
   const cleaned = folderPath.replace(/^\/|\/$/g, '');

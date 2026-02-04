@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
 
       if (response.ok) {
         setMessage(
-          'Wniosek został wysłany do administratora. Sprawdź swoją skrzynkę email po otrzymaniu zatwierdzenia.',
+          'Wniosek został wysłany do administratora. Sprawdź swoją skrzynkę email po otrzymaniu zatwierdzenia.'
         );
         setStep('code');
       } else {
@@ -122,7 +122,6 @@ const LoginPage: React.FC = () => {
 
       <div className="login-container">
         <div className="login-box">
-          <div className="login-subtitle">CONCEPTFAB</div>
           <h1 className="login-title">Content Browser</h1>
           {versionInfo && (
             <div className="login-version">

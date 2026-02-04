@@ -223,13 +223,19 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
         <div className="menu-left">
           <div className="logo">
             <h1>
-              CONCEPTFAB Content Browser
+              <img
+                src="/favicon-32x32.png"
+                alt=""
+                width={22}
+                height={22}
+                className="logo-icon"
+              />
+              Content Browser
               <span className="version">
                 ver:{' '}
                 {versionInfo?.message?.split(':')[0] ??
                   versionInfo?.message ??
                   ''}
-                {versionInfo?.date ? ` ${versionInfo.date}` : ''}
               </span>
             </h1>
           </div>

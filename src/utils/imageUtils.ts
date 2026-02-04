@@ -35,6 +35,15 @@ export async function initThumbnailCache(): Promise<void> {
 }
 
 /**
+ * Czyści stan cache (cleanup przy unmount – PERF-003).
+ */
+export function clearThumbnailCache(): void {
+  thumbnailCacheEnabled = false;
+  thumbnailConfig = null;
+  cacheInitialized = false;
+}
+
+/**
  * Generuje ścieżkę miniaturki
  */
 function getThumbnailPath(

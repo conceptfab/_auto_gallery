@@ -1,8 +1,33 @@
-import axios from 'axios';
+import axios, { type AxiosInstance } from 'axios';
+import * as cheerio from 'cheerio';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GalleryFolder, ImageFile } from '@/src/types/gallery';
-import { GALLERY_BASE_URL } from '@/src/config/constants';
+import {
+  GALLERY_BASE_URL,
+  DEFAULT_USER_AGENT,
+  API_TIMEOUT,
+} from '@/src/config/constants';
 import { logger } from '@/src/utils/logger';
+
+/** Wspólna instancja axios (PERF-008). */
+const galleryAxios: AxiosInstance = axios.create({
+  timeout: API_TIMEOUT,
+  headers: { 'User-Agent': DEFAULT_USER_AGENT },
+});
+
+/** Parsowanie linków HTML przez cheerio (SEC-007) zamiast regex. */
+function parseLinksFromHtml(
+  html: string
+): Array<{ href: string; text: string }> {
+  const $ = cheerio.load(html);
+  const links: Array<{ href: string; text: string }> = [];
+  $('a').each((_, el) => {
+    const href = $(el).attr('href')?.trim() ?? '';
+    const text = $(el).text().trim();
+    links.push({ href, text });
+  });
+  return links;
+}
 
 const IMAGE_EXTENSIONS = [
   '.jpg',
@@ -17,34 +42,18 @@ const IMAGE_EXTENSIONS = [
 // Funkcja do liczenia plików graficznych w folderze
 async function countImagesInDirectory(url: string): Promise<number> {
   try {
-    const response = await axios.get(url, {
-      timeout: 10000,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      },
-    });
-
+    const response = await galleryAxios.get<string>(url);
     const html = response.data;
-    const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
-    let match;
+    const links = parseLinksFromHtml(html);
     let imageCount = 0;
-
-    while ((match = linkRegex.exec(html)) !== null) {
-      const href = match[1].trim();
-
-      // Sprawdź czy to jest plik graficzny
+    for (const { href } of links) {
       const isImage = IMAGE_EXTENSIONS.some((ext) =>
-        href.toLowerCase().endsWith(ext),
+        href.toLowerCase().endsWith(ext)
       );
-
-      if (isImage) {
-        imageCount++;
-      }
+      if (isImage) imageCount++;
     }
-
     return imageCount;
-  } catch (_error) {
+  } catch {
     logger.error('Błąd liczenia obrazów', { url });
     return 0;
   }
@@ -52,32 +61,20 @@ async function countImagesInDirectory(url: string): Promise<number> {
 
 // Funkcja do znajdowania wszystkich podfolderów
 async function findSubfolders(
-  url: string,
+  url: string
 ): Promise<Array<{ name: string; url: string }>> {
   logger.debug('ETAP 1: Szukanie podfolderów', { url });
 
   try {
-    const response = await axios.get(url, {
-      timeout: 15000,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      },
-    });
-
+    const response = await galleryAxios.get<string>(url);
     const html = response.data;
     logger.debug('Pobrano HTML', { length: html.length });
 
-    const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
-    let match;
+    const links = parseLinksFromHtml(html);
     const subfolders: Array<{ name: string; url: string }> = [];
     const foundLinks = new Set<string>();
 
-    while ((match = linkRegex.exec(html)) !== null) {
-      const href = match[1].trim();
-      const fullContent = match[2];
-      const text = fullContent.replace(/<[^>]*>/g, '').trim();
-
+    for (const { href, text } of links) {
       // Pomiń linki nadrzędne, puste i specjalne
       if (
         !href ||
@@ -107,7 +104,7 @@ async function findSubfolders(
         } else {
           fullUrl = new URL(href, url).href;
         }
-      } catch (_error) {
+      } catch {
         continue;
       }
 
@@ -146,7 +143,7 @@ async function findSubfolders(
 
 export async function scanRemoteDirectory(
   url: string,
-  maxDepth: number = 5,
+  maxDepth: number = 5
 ): Promise<GalleryFolder[]> {
   logger.galleryStart(url);
   logger.debug('ROZPOCZĘCIE SKANOWANIA GALERII', { url, maxDepth });
@@ -157,7 +154,7 @@ export async function scanRemoteDirectory(
 async function scanDirectoryRecursive(
   url: string,
   currentDepth: number,
-  maxDepth: number,
+  maxDepth: number
 ): Promise<GalleryFolder[]> {
   if (currentDepth >= maxDepth) {
     logger.warn('Osiągnięto maksymalną głębokość', { maxDepth, url });
@@ -213,7 +210,7 @@ async function scanDirectoryRecursive(
         subFolders = await scanDirectoryRecursive(
           folder.url,
           currentDepth + 1,
-          maxDepth,
+          maxDepth
         );
       }
 
@@ -244,25 +241,13 @@ async function scanDirectoryRecursive(
             depth: currentDepth,
           });
 
-          const response = await axios.get(folder.url, {
-            timeout: 15000,
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            },
-          });
-
+          const response = await galleryAxios.get<string>(folder.url);
           const html = response.data;
-          const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
-          let match;
+          const imageLinks = parseLinksFromHtml(html);
 
-          while ((match = linkRegex.exec(html)) !== null) {
-            const href = match[1].trim();
-            const fullContent = match[2];
-            const text = fullContent.replace(/<[^>]*>/g, '').trim();
-
+          for (const { href, text } of imageLinks) {
             const isImage = IMAGE_EXTENSIONS.some((ext) =>
-              href.toLowerCase().endsWith(ext),
+              href.toLowerCase().endsWith(ext)
             );
 
             if (isImage) {
@@ -319,7 +304,7 @@ function validateGalleryUrl(url: string): boolean {
 // Default handler for Next.js API route (gallery-utils)
 export default async function galleryUtilsHandler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });

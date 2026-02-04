@@ -1,5 +1,10 @@
 // Centralized configuration constants
 // Na serwerze: GALLERY_BASE_URL lub NEXT_PUBLIC_*; w bundlu klienta tylko NEXT_PUBLIC_* jest dostępne
+
+export const DEFAULT_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+export const API_TIMEOUT = 30000;
+
 export const GALLERY_BASE_URL =
   process.env.NEXT_PUBLIC_GALLERY_BASE_URL ||
   process.env.GALLERY_BASE_URL ||

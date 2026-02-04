@@ -533,7 +533,7 @@ const ProjectsProjectPage: React.FC = () => {
     return (
       <>
         <Head>
-          <title>Projekt – CONCEPTFAB Content Browser</title>
+          <title>Projekt – Content Browser</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -548,7 +548,7 @@ const ProjectsProjectPage: React.FC = () => {
     return (
       <>
         <Head>
-          <title>Projekt nie znaleziony – CONCEPTFAB Content Browser</title>
+          <title>Projekt nie znaleziony – Content Browser</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -562,7 +562,7 @@ const ProjectsProjectPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>{project.name} – CONCEPTFAB Content Browser</title>
+        <title>{project.name} – Content Browser</title>
         <meta
           name="description"
           content={project.description || project.name}

@@ -10,6 +10,27 @@ interface DecorMap {
   };
 }
 
+/** Cache skompilowanych regexów per keyword (test + replace). */
+const keywordRegexCache = new Map<string, { test: RegExp; replace: RegExp }>();
+
+function getKeywordRegexes(escapedKeyword: string): {
+  test: RegExp;
+  replace: RegExp;
+} {
+  let cached = keywordRegexCache.get(escapedKeyword);
+  if (!cached) {
+    cached = {
+      test: new RegExp(
+        `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
+        'gi'
+      ),
+      replace: new RegExp(`(${escapedKeyword})`, 'gi'),
+    };
+    keywordRegexCache.set(escapedKeyword, cached);
+  }
+  return cached;
+}
+
 class DecorConverter {
   private table: DecorMap | null = null;
 
@@ -71,29 +92,25 @@ class DecorConverter {
 
     let highlightedName = imageName;
 
-    // Dla każdego słowa kluczowego - koloruj i dodaj ikonę
+    // Dla każdego słowa kluczowego - koloruj i dodaj ikonę (regex z cache)
     for (const keyword of allKeywords) {
       const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-      const regex = new RegExp(
-        `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
-        'gi',
-      );
+      const { test: regex, replace: replaceRegex } =
+        getKeywordRegexes(escapedKeyword);
+      regex.lastIndex = 0;
       if (regex.test(imageName)) {
         const color = this.getColorForKeyword(keyword);
 
-        // Dodaj ikonę
         icons.push({
           icon: 'las la-circle',
           color: color,
           keyword: keyword,
         });
 
-        // Koloruj w tekście - użyj regex bez lookahead/lookbehind dla replace
-        const replaceRegex = new RegExp(`(${escapedKeyword})`, 'gi');
+        replaceRegex.lastIndex = 0;
         highlightedName = highlightedName.replace(
           replaceRegex,
-          `<span style="color: ${color}; font-weight: 400; font-size: 0.75em;">$1</span>`,
+          `<span style="color: ${color}; font-weight: 400; font-size: 0.75em;">$1</span>`
         );
       }
     }
@@ -106,7 +123,7 @@ class DecorConverter {
 
   async findBlatImage(
     imageName: string,
-    kolorystykaImages: ImageFile[],
+    kolorystykaImages: ImageFile[]
   ): Promise<ImageFile | null> {
     const table = await this.loadTable();
 
@@ -117,7 +134,7 @@ class DecorConverter {
         // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
         let regex = new RegExp(
           `(?:^|_|\\s|-|\\b)${escapedKey}(?:_|\\s|-|\\b|$)`,
-          'gi',
+          'gi'
         );
         if (regex.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
@@ -135,7 +152,7 @@ class DecorConverter {
 
   async findStelazImage(
     imageName: string,
-    kolorystykaImages: ImageFile[],
+    kolorystykaImages: ImageFile[]
   ): Promise<ImageFile | null> {
     const table = await this.loadTable();
 
@@ -146,7 +163,7 @@ class DecorConverter {
         // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
         let regex = new RegExp(
           `(?:^|_|\\s|-|\\b)${escapedKey}(?:_|\\s|-|\\b|$)`,
-          'gi',
+          'gi'
         );
         if (regex.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
@@ -203,7 +220,7 @@ class DecorConverter {
       // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
       const regex = new RegExp(
         `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
-        'gi',
+        'gi'
       );
       if (regex.test(imageName)) {
         const color = this.getColorForKeyword(keyword);
@@ -211,7 +228,7 @@ class DecorConverter {
         const replaceRegex = new RegExp(`(${escapedKeyword})`, 'gi');
         highlightedName = highlightedName.replace(
           replaceRegex,
-          `<span style="color: ${color}; font-weight: 400; font-size: 0.75em;">$1</span>`,
+          `<span style="color: ${color}; font-weight: 400; font-size: 0.75em;">$1</span>`
         );
       }
     }
@@ -225,7 +242,7 @@ class DecorConverter {
    */
   async highlightKeywordsInDisplayName(
     displayName: string,
-    useColors: boolean = true,
+    useColors: boolean = true
   ): Promise<string> {
     const table = await this.loadTable();
 
@@ -251,7 +268,7 @@ class DecorConverter {
       const escapedKeywordUpper = this.escapeRegex(keywordUpper);
       const displayRegex = new RegExp(
         `(?:^|\\s|-|\\b)(${escapedKeywordUpper})(?:\\s|-|\\b|$)`,
-        'g',
+        'g'
       );
       if (displayRegex.test(displayName)) {
         const style = useColors
@@ -260,7 +277,7 @@ class DecorConverter {
         const replaceRegex = new RegExp(`(${escapedKeywordUpper})`, 'g');
         highlightedName = highlightedName.replace(
           replaceRegex,
-          `<span class="keyword" style="${style}">$1</span>`,
+          `<span class="keyword" style="${style}">$1</span>`
         );
       }
     }
@@ -281,7 +298,7 @@ class DecorConverter {
    */
   async findAllKeywordImages(
     imageName: string,
-    kolorystykaImages: ImageFile[],
+    kolorystykaImages: ImageFile[]
   ): Promise<Array<{ keyword: string; image: ImageFile }>> {
     const table = await this.loadTable();
     const foundKeywords: Array<{
@@ -367,7 +384,7 @@ class DecorConverter {
         logger.debug(
           'Nie znaleziono obrazu w kolorystykaImages',
           fileName,
-          kolorystykaImages.map((img) => img.name),
+          kolorystykaImages.map((img) => img.name)
         );
       }
     }
@@ -377,7 +394,7 @@ class DecorConverter {
       results.length,
       'wyników dla',
       imageName,
-      results.map((r) => r.keyword),
+      results.map((r) => r.keyword)
     );
     return results;
   }
@@ -411,7 +428,7 @@ class DecorConverter {
       // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
       let regex = new RegExp(
         `(?:^|_|\\s|-|\\b)${escapedKeyword}(?:_|\\s|-|\\b|$)`,
-        'gi',
+        'gi'
       );
       let found = regex.test(imageName);
 
@@ -429,7 +446,7 @@ class DecorConverter {
           'findKeywordsInName: NIE znaleziono',
           keyword,
           'w',
-          imageName,
+          imageName
         );
       }
     }
@@ -440,7 +457,7 @@ class DecorConverter {
       'znaleziono',
       foundKeywords.length,
       'słów:',
-      foundKeywords,
+      foundKeywords
     );
     return foundKeywords;
   }

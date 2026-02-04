@@ -5,11 +5,13 @@ const MAX_ENTRIES = 10_000;
 let cleanupCounter = 0;
 
 function getClientId(req: NextApiRequest): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  const realIp = req.headers['x-real-ip'];
-  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
-  if (typeof realIp === 'string') return realIp;
-  return req.socket.remoteAddress || 'unknown';
+  if (process.env.TRUST_PROXY === 'true') {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+    const realIp = req.headers['x-real-ip'];
+    if (typeof realIp === 'string') return realIp;
+  }
+  return req.socket?.remoteAddress || 'unknown';
 }
 
 function cleanupExpired(now: number): void {
