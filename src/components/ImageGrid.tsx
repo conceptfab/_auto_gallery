@@ -163,8 +163,6 @@ const ImageItem = memo(function ImageItem({
         )}
         <img
           src={thumbSrc}
-          srcSet={`${thumbSrc} 1x`}
-          sizes="(max-width: 768px) 150px, 300px"
           alt={image.name}
           className="gallery-image"
           loading="lazy"
