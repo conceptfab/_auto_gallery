@@ -17,7 +17,7 @@ interface Project {
   createdAt: string;
 }
 
-const ProjectsPage: React.FC = () => {
+const DesignPage: React.FC = () => {
   const router = useRouter();
   const { trackDesignView } = useStatsTracker();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
@@ -27,7 +27,7 @@ const ProjectsPage: React.FC = () => {
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn || loading) return;
-    trackDesignView('design_list', 'projekty', 'Projekty');
+    trackDesignView('design_list', 'design', 'Design');
   }, [authStatus?.isLoggedIn, loading, trackDesignView]);
 
   useEffect(() => {
@@ -80,10 +80,10 @@ const ProjectsPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Projekty – CONCEPTFAB Content Browser</title>
+        <title>Design – CONCEPTFAB Content Browser</title>
         <meta
           name="description"
-          content="Projekty – CONCEPTFAB Content Browser"
+          content="Design – CONCEPTFAB Content Browser"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -101,7 +101,7 @@ const ProjectsPage: React.FC = () => {
                 key={p.id}
                 type="button"
                 className="design-project-tile"
-                onClick={() => router.push(`/projekty/${p.id}`)}
+                onClick={() => router.push(`/design/${p.id}`)}
               >
                 <div className="design-project-tile-icon" aria-hidden>
                   <i className="las la-folder-open" />
@@ -119,7 +119,7 @@ const ProjectsPage: React.FC = () => {
   );
 };
 
-export default ProjectsPage;
+export default DesignPage;
 
 export async function getServerSideProps() {
   return {

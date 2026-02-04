@@ -240,6 +240,11 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
             type="button"
             onClick={() => router.push('/')}
             title="Content"
+            aria-current={
+              router.pathname === '/' || router.pathname.startsWith('/folders')
+                ? 'page'
+                : undefined
+            }
             className={`top-menu-bar-nav-btn ${
               router.pathname === '/' || router.pathname.startsWith('/folders')
                 ? 'active'
@@ -252,6 +257,9 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
             type="button"
             onClick={() => router.push('/projekty')}
             title="Projekty"
+            aria-current={
+              router.pathname.startsWith('/projekty') ? 'page' : undefined
+            }
             className={`top-menu-bar-nav-btn ${
               router.pathname.startsWith('/projekty') ? 'active' : ''
             }`}
@@ -262,6 +270,9 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
             type="button"
             onClick={() => router.push('/moodboard')}
             title="Moodboard"
+            aria-current={
+              router.pathname.startsWith('/moodboard') ? 'page' : undefined
+            }
             className={`top-menu-bar-nav-btn ${
               router.pathname.startsWith('/moodboard') ? 'active' : ''
             }`}

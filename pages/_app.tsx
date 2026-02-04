@@ -118,7 +118,9 @@ export default function App({ Component, pageProps }: AppProps) {
         {router.pathname !== '/folders' && (
           <DynamicTopMenuBar clientName={clientName} />
         )}
-        <Component {...pageProps} refreshKey={0} />
+        <div className="app-main">
+          <Component {...pageProps} refreshKey={0} />
+        </div>
       </SettingsProvider>
     </NotificationProvider>
   );

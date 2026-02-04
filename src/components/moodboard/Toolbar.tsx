@@ -52,6 +52,8 @@ export default function Toolbar() {
           type="button"
           className="moodboard-toolbar-btn"
           onClick={handleAddComment}
+          aria-label="Dodaj nowy komentarz na moodboardzie"
+          title="Dodaj nowy komentarz na moodboardzie"
         >
           + Dodaj komentarz
         </button>

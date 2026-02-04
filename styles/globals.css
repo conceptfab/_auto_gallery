@@ -15,6 +15,11 @@ body {
   padding-top: 35px;
 }
 
+/* Główny kontener treści pod TopMenuBar – wspólny szkielet */
+.app-main {
+  min-height: calc(100vh - 35px);
+}
+
 /* Landscape warning overlay */
 .landscape-warning {
   position: fixed;
@@ -151,6 +156,11 @@ a {
   border-bottom: 2px solid transparent;
   border-radius: 0;
   cursor: pointer;
+}
+
+.top-menu-bar-nav-btn:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
 }
 
 .top-menu-bar-nav-btn:hover {
@@ -879,9 +889,20 @@ a {
     padding: 5px 15px !important;
   }
 
-  /* Hide menu items on mobile to save space */
   .menu-center {
-    display: none;
+    order: 3;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .top-menu-bar-nav-btn {
+    padding: 6px 10px;
+    font-size: 0.85rem;
   }
 
   .menu-left {
@@ -3532,6 +3553,33 @@ a {
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+.design-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.design-breadcrumbs-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #111827;
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.design-breadcrumbs-link:hover {
+  color: #1d4ed8;
+}
+
+.design-breadcrumbs-current {
+  color: #6b7280;
 }
 
 .design-page-title {
