@@ -18,6 +18,17 @@ body {
 /* Główny kontener treści pod TopMenuBar – wspólny szkielet */
 .app-main {
   min-height: calc(100vh - 35px);
+  animation: app-main-fade-in 0.15s ease-out;
+}
+
+/* Płynne przejście między stronami */
+@keyframes app-main-fade-in {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Landscape warning overlay */
@@ -93,6 +104,16 @@ a {
   left: 0;
   right: 0;
   z-index: 100;
+  height: 35px;
+}
+
+/* Placeholder podczas ładowania TopMenuBar - zapobiega migotaniu */
+.top-menu-bar--placeholder {
+  pointer-events: none;
+}
+
+.top-menu-bar--placeholder .top-menu-bar-nav-btn {
+  cursor: default;
 }
 
 /* Container for menu items with max width and flex layout */
@@ -1026,12 +1047,12 @@ a {
 /* Loading progress bar - above top menu (ostry, bez blur) */
 .loading-progress-bar {
   position: fixed;
-  top: 0;
+  top: 35px;
   left: 0;
   width: 0%;
-  height: 5px;
+  height: 3px;
   background-color: magenta;
-  z-index: 10001;
+  z-index: 101;
   transition: width 0.3s ease-out;
 }
 
@@ -1044,21 +1065,21 @@ a {
   }
 }
 
-/* Loading overlay - zamglony UI */
+/* Loading overlay - zamglony UI, zaczyna się pod paskiem menu (35px) */
 .loading-overlay {
   position: fixed;
-  top: 0;
+  top: 35px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 35px);
   background: rgba(248, 248, 248, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 10000;
+  z-index: 99;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 120px;
+  padding-top: 85px;
 }
 
 /* Loading message - w górnej części, na środku */
@@ -3547,8 +3568,8 @@ a {
 
 /* Strona Design – kafelki projektów i strona projektu */
 .design-page {
-  padding-top: 50px;
   padding: 24px;
+  padding-top: 24px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;

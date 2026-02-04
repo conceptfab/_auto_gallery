@@ -7,9 +7,32 @@ import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 import { NotificationProvider } from '@/src/components/GlobalNotification';
 import { SettingsProvider } from '@/src/contexts/SettingsContext';
 
+// Placeholder dla TopMenuBar podczas ładowania - zapobiega migotaniu
+const TopMenuBarPlaceholder = () => (
+  <nav className="top-menu-bar top-menu-bar--placeholder">
+    <div className="menu-container">
+      <div className="menu-left">
+        <div className="logo">
+          <h1>
+            CONCEPTFAB Content Browser
+            <span className="version"></span>
+          </h1>
+        </div>
+      </div>
+      <div className="menu-center menu-center-nav">
+        <span className="top-menu-bar-nav-btn">Content</span>
+        <span className="top-menu-bar-nav-btn">Projekty</span>
+        <span className="top-menu-bar-nav-btn">Moodboard</span>
+      </div>
+      <div className="menu-right"></div>
+    </div>
+  </nav>
+);
+
 // Dynamically import TopMenuBar to avoid SSR issues
 const DynamicTopMenuBar = dynamic(() => import('@/src/components/TopMenuBar'), {
   ssr: false,
+  loading: () => <TopMenuBarPlaceholder />,
 });
 
 interface GroupInfo {
@@ -118,7 +141,7 @@ export default function App({ Component, pageProps }: AppProps) {
         {router.pathname !== '/folders' && (
           <DynamicTopMenuBar clientName={clientName} />
         )}
-        <div className="app-main">
+        <div className="app-main" key={router.pathname}>
           <Component {...pageProps} refreshKey={0} />
         </div>
       </SettingsProvider>
