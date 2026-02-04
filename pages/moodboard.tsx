@@ -16,33 +16,44 @@ const MoodboardCanvas = dynamic(
   () => import('@/src/components/moodboard/Canvas'),
   { ssr: false }
 );
+const MoodboardTab = dynamic(
+  () => import('@/src/components/moodboard/MoodboardTab'),
+  { ssr: false }
+);
 
-function MoodboardContent() {
+function MoodboardContent({ isAdmin = false }: { isAdmin?: boolean }) {
   const { loading, loadError, saveError } = useMoodboard();
-  if (loading) {
-    return <LoadingOverlay message="Ładowanie moodboarda..." />;
-  }
   return (
     <>
-      {loadError && (
-        <div className="moodboard-error-banner" role="alert">
-          {loadError}{' '}
-          <button
-            type="button"
-            className="moodboard-error-banner-btn"
-            onClick={() => window.location.reload()}
-          >
-            Odśwież
-          </button>
-        </div>
-      )}
-      {saveError && (
-        <div className="moodboard-save-error" role="alert">
-          {saveError}
-        </div>
-      )}
-      <MoodboardToolbar />
-      <MoodboardCanvas />
+      <MoodboardTab isAdmin={isAdmin} />
+      <div className="moodboard-body">
+        {loading && (
+          <div className="moodboard-loading-wrap">
+            <div className="loading-overlay loading-overlay--moodboard">
+              <div className="loading-message">Ładowanie moodboarda…</div>
+            </div>
+          </div>
+        )}
+        {!loading && loadError && (
+          <div className="moodboard-error-banner" role="alert">
+            {loadError}{' '}
+            <button
+              type="button"
+              className="moodboard-error-banner-btn"
+              onClick={() => window.location.reload()}
+            >
+              Odśwież
+            </button>
+          </div>
+        )}
+        {saveError && (
+          <div className="moodboard-save-error" role="alert">
+            {saveError}
+          </div>
+        )}
+        {!loading && <MoodboardToolbar />}
+        {!loading && <MoodboardCanvas />}
+      </div>
     </>
   );
 }
@@ -100,7 +111,7 @@ const MoodboardPage: React.FC = () => {
 
       <main className="design-page moodboard-page">
         <MoodboardProvider>
-          <MoodboardContent />
+          <MoodboardContent isAdmin={authStatus?.isAdmin ?? false} />
         </MoodboardProvider>
       </main>
     </>

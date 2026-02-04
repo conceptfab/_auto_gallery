@@ -10,18 +10,24 @@ import React, {
   useState,
 } from 'react';
 import {
+  MoodboardBoard,
   MoodboardComment,
   MoodboardImage,
-  MoodboardState,
+  MoodboardAppState,
 } from '@/src/types/moodboard';
 
-interface MoodboardContextValue extends MoodboardState {
+interface MoodboardContextValue extends MoodboardBoard {
   loading: boolean;
   loadError: string | null;
   saveError: string | null;
   selectedId: string | null;
   selectedType: 'image' | 'comment' | null;
+  boards: MoodboardBoard[];
+  activeId: string;
   setSelected: (id: string | null, type: 'image' | 'comment' | null) => void;
+  setActiveBoard: (id: string) => void;
+  setMoodboardName: (name: string) => void;
+  createNewMoodboard: () => void;
   addImage: (image: Omit<MoodboardImage, 'id'>) => void;
   updateImage: (id: string, patch: Partial<MoodboardImage>) => void;
   removeImage: (id: string) => void;
@@ -39,11 +45,11 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-async function saveStateToServer(state: MoodboardState): Promise<void> {
+async function saveStateToServer(appState: MoodboardAppState): Promise<void> {
   const res = await fetch(API_STATE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(state),
+    body: JSON.stringify(appState),
     credentials: 'same-origin',
   });
   if (!res.ok) {
@@ -55,10 +61,17 @@ async function saveStateToServer(state: MoodboardState): Promise<void> {
   }
 }
 
+const emptyBoard = (): MoodboardBoard => ({
+  id: generateId(),
+  name: undefined,
+  images: [],
+  comments: [],
+});
+
 export function MoodboardProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<MoodboardState>({
-    images: [],
-    comments: [],
+  const [appState, setAppState] = useState<MoodboardAppState>(() => {
+    const first = emptyBoard();
+    return { boards: [first], activeId: first.id };
   });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -68,6 +81,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     null
   );
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const activeBoard =
+    useMemo(
+      () => appState.boards.find((b) => b.id === appState.activeId),
+      [appState.boards, appState.activeId]
+    ) ?? appState.boards[0];
+  const activeId = activeBoard?.id ?? appState.activeId;
 
   useEffect(() => {
     let cancelled = false;
@@ -83,25 +103,27 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
         }
         const data = (await res.json()) as {
           success?: boolean;
-          state?: MoodboardState;
+          state?: MoodboardAppState;
         };
         if (cancelled) return;
         const loaded = data?.state;
         if (
           loaded &&
-          Array.isArray(loaded.images) &&
-          Array.isArray(loaded.comments)
+          Array.isArray(loaded.boards) &&
+          typeof loaded.activeId === 'string' &&
+          loaded.boards.length > 0
         ) {
-          setState({
-            images: loaded.images,
-            comments: loaded.comments,
-          });
+          const activeId = loaded.boards.some((b) => b.id === loaded.activeId)
+            ? loaded.activeId
+            : loaded.boards[0].id;
+          setAppState({ boards: loaded.boards, activeId });
+        } else {
+          const first = emptyBoard();
+          setAppState({ boards: [first], activeId: first.id });
         }
         setLoadError(null);
       } catch (_err) {
-        if (!cancelled) {
-          setLoadError('Błąd połączenia z serwerem.');
-        }
+        if (!cancelled) setLoadError('Błąd połączenia z serwerem.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -119,11 +141,11 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const scheduleSave = useCallback((nextState: MoodboardState) => {
+  const scheduleSave = useCallback((nextAppState: MoodboardAppState) => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       saveTimeoutRef.current = null;
-      saveStateToServer(nextState).then(
+      saveStateToServer(nextAppState).then(
         () => setSaveError(null),
         (err) =>
           setSaveError(err instanceof Error ? err.message : 'Błąd zapisu')
@@ -131,17 +153,64 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     }, DEBOUNCE_SAVE_MS);
   }, []);
 
+  const setActiveBoard = useCallback(
+    (id: string) => {
+      if (id === appState.activeId) return;
+      setAppState((prev) => {
+        const next = { ...prev, activeId: id };
+        scheduleSave(next);
+        return next;
+      });
+      setSelectedId(null);
+      setSelectedType(null);
+    },
+    [appState.activeId, scheduleSave]
+  );
+
+  const setMoodboardName = useCallback(
+    (name: string) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId ? { ...b, name: name || undefined } : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const createNewMoodboard = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    const newBoard = emptyBoard();
+    setAppState((prev) => {
+      const next: MoodboardAppState = {
+        boards: [...prev.boards, newBoard],
+        activeId: prev.activeId, // aktywna zakładka zostaje na środku, nowa pojawia się po prawej
+      };
+      saveStateToServer(next).then(
+        () => setSaveError(null),
+        (err) =>
+          setSaveError(err instanceof Error ? err.message : 'Błąd zapisu')
+      );
+      return next;
+    });
+    setSelectedId(null);
+    setSelectedType(null);
+  }, []);
+
   const addImage = useCallback(
     (image: Omit<MoodboardImage, 'id'>) => {
-      const newImage: MoodboardImage = {
-        ...image,
-        id: generateId(),
-      };
-      setState((prev) => {
-        const next = {
-          ...prev,
-          images: [...prev.images, newImage],
-        };
+      const newImage: MoodboardImage = { ...image, id: generateId() };
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId ? { ...b, images: [...b.images, newImage] } : b
+        );
+        const next = { ...prev, boards };
         scheduleSave(next);
         return next;
       });
@@ -151,11 +220,18 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   const updateImage = useCallback(
     (id: string, patch: Partial<MoodboardImage>) => {
-      setState((prev) => {
-        const images = prev.images.map((img) =>
-          img.id === id ? { ...img, ...patch } : img
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? {
+                ...b,
+                images: b.images.map((img) =>
+                  img.id === id ? { ...img, ...patch } : img
+                ),
+              }
+            : b
         );
-        const next = { ...prev, images };
+        const next = { ...prev, boards };
         scheduleSave(next);
         return next;
       });
@@ -165,11 +241,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   const removeImage = useCallback(
     (id: string) => {
-      setState((prev) => {
-        const next = {
-          ...prev,
-          images: prev.images.filter((img) => img.id !== id),
-        };
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, images: b.images.filter((img) => img.id !== id) }
+            : b
+        );
+        const next = { ...prev, boards };
         scheduleSave(next);
         return next;
       });
@@ -187,11 +265,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
         ...comment,
         id: generateId(),
       };
-      setState((prev) => {
-        const next = {
-          ...prev,
-          comments: [...prev.comments, newComment],
-        };
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, comments: [...b.comments, newComment] }
+            : b
+        );
+        const next = { ...prev, boards };
         scheduleSave(next);
         return next;
       });
@@ -201,11 +281,18 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   const updateComment = useCallback(
     (id: string, patch: Partial<MoodboardComment>) => {
-      setState((prev) => {
-        const comments = prev.comments.map((c) =>
-          c.id === id ? { ...c, ...patch } : c
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? {
+                ...b,
+                comments: b.comments.map((c) =>
+                  c.id === id ? { ...c, ...patch } : c
+                ),
+              }
+            : b
         );
-        const next = { ...prev, comments };
+        const next = { ...prev, boards };
         scheduleSave(next);
         return next;
       });
@@ -215,11 +302,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   const removeComment = useCallback(
     (id: string) => {
-      setState((prev) => {
-        const next = {
-          ...prev,
-          comments: prev.comments.filter((c) => c.id !== id),
-        };
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, comments: b.comments.filter((c) => c.id !== id) }
+            : b
+        );
+        const next = { ...prev, boards };
         scheduleSave(next);
         return next;
       });
@@ -239,13 +328,18 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<MoodboardContextValue>(
     () => ({
-      ...state,
+      ...activeBoard,
       loading,
       loadError,
       saveError,
       selectedId,
       selectedType,
+      boards: appState.boards,
+      activeId,
       setSelected,
+      setActiveBoard,
+      setMoodboardName,
+      createNewMoodboard,
       addImage,
       updateImage,
       removeImage,
@@ -254,13 +348,18 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       removeComment,
     }),
     [
-      state,
+      activeBoard,
       loading,
       loadError,
       saveError,
       selectedId,
       selectedType,
+      appState.boards,
+      activeId,
       setSelected,
+      setActiveBoard,
+      setMoodboardName,
+      createNewMoodboard,
       addImage,
       updateImage,
       removeImage,

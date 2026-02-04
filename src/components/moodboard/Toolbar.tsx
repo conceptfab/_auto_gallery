@@ -9,6 +9,7 @@ import type {
 import { COLOR_MAP, DEFAULT_COMMENT } from './CommentItem';
 
 const COLOR_KEYS: CommentColorKey[] = [
+  'none',
   'yellow',
   'pink',
   'blue',
@@ -63,9 +64,13 @@ export default function Toolbar() {
               <button
                 key={k}
                 type="button"
-                className="moodboard-toolbar-color-btn"
-                style={{ backgroundColor: COLOR_MAP[k] }}
-                title={k}
+                className={`moodboard-toolbar-color-btn${
+                  k === 'none' ? ' moodboard-toolbar-color-btn--none' : ''
+                }`}
+                style={
+                  k === 'none' ? undefined : { backgroundColor: COLOR_MAP[k] }
+                }
+                title={k === 'none' ? 'Bez tła (sam tekst)' : k}
                 aria-pressed={color === k}
                 onClick={() => setColor(k)}
               />

@@ -68,6 +68,26 @@
       },
       "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
       "projectName": "EXE"
+    },
+    {
+      "id": "view_1770163155997_np9gxk",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770149897256_qql8xl",
+      "timestamp": "2026-02-03T23:59:15.997Z",
+      "type": "design_list",
+      "path": "design",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
     }
   ],
   "downloadEvents": []

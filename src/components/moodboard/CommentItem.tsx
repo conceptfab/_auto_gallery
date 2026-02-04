@@ -9,6 +9,7 @@ import {
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 
 const COLOR_MAP: Record<CommentColorKey, string> = {
+  none: 'transparent',
   yellow: '#fef08a',
   pink: '#fbcfe8',
   blue: '#bfdbfe',
@@ -186,6 +187,7 @@ export default function CommentItem({ comment }: CommentItemProps) {
   );
 
   const bgColor = COLOR_MAP[comment.color] ?? COLOR_MAP.yellow;
+  const isNoBg = comment.color === 'none';
   const weight = comment.fontWeight ?? 'normal';
   const fontWeight = FONT_WEIGHT_MAP[weight] ?? 400;
 
@@ -193,7 +195,9 @@ export default function CommentItem({ comment }: CommentItemProps) {
     <div
       className={`moodboard-item moodboard-comment-item${
         isSelected ? ' moodboard-item--selected' : ''
-      }${isDragging ? ' moodboard-item--dragging' : ''}`}
+      }${isDragging ? ' moodboard-item--dragging' : ''}${
+        isNoBg ? ' moodboard-comment-item--no-bg' : ''
+      }`}
       style={{
         left: comment.x,
         top: comment.y,
