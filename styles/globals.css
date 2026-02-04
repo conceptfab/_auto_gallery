@@ -3910,7 +3910,7 @@ a {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -3920,6 +3920,7 @@ a {
   border-radius: 12px;
   overflow: hidden;
   min-width: 0;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   aspect-ratio: 1 / 1;
