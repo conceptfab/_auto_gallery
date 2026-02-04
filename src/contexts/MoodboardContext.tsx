@@ -267,6 +267,21 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   const removeImage = useCallback(
     (id: string) => {
       setAppState((prev) => {
+        const activeBoard = prev.boards.find((b) => b.id === prev.activeId);
+        const imageToRemove = activeBoard?.images.find((img) => img.id === id);
+
+        // Usuń plik z dysku jeśli obraz ma imagePath
+        if (imageToRemove?.imagePath) {
+          fetch('/api/moodboard/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ boardId: prev.activeId, imageId: id }),
+            credentials: 'same-origin',
+          }).catch(() => {
+            // Ignoruj błędy usuwania pliku
+          });
+        }
+
         const boards = prev.boards.map((b) =>
           b.id === prev.activeId
             ? { ...b, images: b.images.filter((img) => img.id !== id) }

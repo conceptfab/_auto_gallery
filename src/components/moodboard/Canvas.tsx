@@ -25,6 +25,29 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+async function uploadMoodboardImage(
+  boardId: string,
+  imageId: string,
+  dataUrl: string
+): Promise<string> {
+  const res = await fetch('/api/moodboard/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ boardId, imageId, dataUrl }),
+    credentials: 'same-origin',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string })?.error || 'Upload failed');
+  }
+  const data = await res.json();
+  return data.imagePath;
+}
+
 interface PanStart {
   pointerId: number;
   clientX: number;
@@ -34,7 +57,7 @@ interface PanStart {
 }
 
 export default function Canvas() {
-  const { images, comments, addImage, setSelected } = useMoodboard();
+  const { images, comments, addImage, setSelected, activeId } = useMoodboard();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropError, setDropError] = useState<string | null>(null);
@@ -154,9 +177,11 @@ export default function Canvas() {
       let offsetY = 0;
       for (const file of files) {
         try {
-          const url = await fileToDataUrl(file);
+          const dataUrl = await fileToDataUrl(file);
+          const imageId = generateId();
+          const imagePath = await uploadMoodboardImage(activeId, imageId, dataUrl);
           addImage({
-            url,
+            imagePath,
             x: x + offsetX,
             y: y + offsetY,
             width: DEFAULT_IMAGE_WIDTH,
@@ -171,7 +196,7 @@ export default function Canvas() {
         }
       }
     },
-    [addImage, clientToContent]
+    [addImage, clientToContent, activeId]
   );
 
   const isEmptyArea = useCallback((el: EventTarget | null) => {

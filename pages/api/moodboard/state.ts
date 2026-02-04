@@ -3,6 +3,10 @@ import path from 'path';
 import fsp from 'fs/promises';
 import { getEmailFromCookie } from '@/src/utils/auth';
 import type { MoodboardAppState, MoodboardBoard } from '@/src/types/moodboard';
+import {
+  decodeDataUrlToBuffer,
+  saveMoodboardImage,
+} from '@/src/utils/moodboardStorage';
 
 /** Jeden moodboard = jeden plik JSON. index.json trzyma listę id i activeId. */
 
@@ -50,6 +54,28 @@ function isValidBoard(b: unknown): b is MoodboardBoard {
     Array.isArray((b as MoodboardBoard).images) &&
     Array.isArray((b as MoodboardBoard).comments)
   );
+}
+
+/** Migracja: konwersja obrazów z base64 (url) na pliki (imagePath). */
+async function migrateImagesToFiles(board: MoodboardBoard): Promise<boolean> {
+  let dirty = false;
+  for (const img of board.images) {
+    if (img.url && !img.imagePath && img.url.startsWith('data:')) {
+      const buffer = decodeDataUrlToBuffer(img.url);
+      if (buffer && buffer.length > 0) {
+        let ext = '.webp';
+        if (img.url.includes('image/png')) ext = '.png';
+        else if (img.url.includes('image/jpeg') || img.url.includes('image/jpg')) ext = '.jpg';
+        else if (img.url.includes('image/gif')) ext = '.gif';
+
+        const imagePath = await saveMoodboardImage(board.id, img.id, buffer, ext);
+        img.imagePath = imagePath;
+        img.url = undefined;
+        dirty = true;
+      }
+    }
+  }
+  return dirty;
 }
 
 /** Z pliku legacy state.json → konwersja do AppState (używane przy migracji). */
@@ -126,6 +152,11 @@ async function loadAppStateFromFiles(
       const raw = await fsp.readFile(boardPath, 'utf8');
       const board = JSON.parse(raw) as unknown;
       if (isValidBoard(board)) {
+        // Migracja: konwertuj base64 obrazy na pliki
+        const migrated = await migrateImagesToFiles(board);
+        if (migrated) {
+          await fsp.writeFile(boardPath, JSON.stringify(board, null, 2), 'utf8');
+        }
         boards.push(board);
       }
     } catch {

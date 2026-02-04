@@ -1,8 +1,10 @@
 /** Element obrazka na moodboardzie */
 export interface MoodboardImage {
   id: string;
-  /** Data URL (base64) lub URL obrazka */
-  url: string;
+  /** Ścieżka do pliku obrazu: boardId/imageId.webp */
+  imagePath?: string;
+  /** DEPRECATED: Data URL (base64) - tylko dla migracji starych danych */
+  url?: string;
   x: number;
   y: number;
   width: number;

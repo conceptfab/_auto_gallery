@@ -162,7 +162,7 @@ export default function ImageItem({ image }: ImageItemProps) {
       onPointerLeave={handlePointerUp}
     >
       <img
-        src={image.url}
+        src={image.imagePath ? `/api/moodboard/images/${image.imagePath}` : image.url}
         alt=""
         className="moodboard-image-img"
         draggable={false}
