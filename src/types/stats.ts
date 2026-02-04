@@ -43,7 +43,8 @@ export interface ViewEvent {
     | 'image'
     | 'design_list'
     | 'design_project'
-    | 'design_revision';
+    | 'design_revision'
+    | 'moodboard';
   path: string; // ścieżka do folderu/obrazu lub design/...
   folderName?: string; // nazwa folderu (dla kontekstu)
   imageName?: string; // nazwa pliku obrazu

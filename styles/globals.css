@@ -4400,66 +4400,149 @@ a {
   border-bottom: 1px solid #e5e7eb;
   background: #f0f0f0;
   display: flex;
-  align-items: flex-end;
-  gap: 0;
-}
-
-.moodboard-tab-left-wrap {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.moodboard-tab-center-wrap {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-end;
 }
 
-.moodboard-tab-right-wrap {
-  flex: 1;
+.moodboard-tab-group {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
 .moodboard-tab-tab {
-  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px 3px 10px;
   border: none;
-  border-radius: 6px 6px 0 0;
+  border-radius: 5px 5px 0 0;
   background: transparent;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: #666;
-  cursor: pointer;
   white-space: nowrap;
-  max-width: 140px;
+  max-width: 200px;
+  min-width: 0;
+}
+
+.moodboard-tab-tab--inactive:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.moodboard-tab-tab--inactive:hover .moodboard-tab-tab-name {
+  color: #000;
+}
+
+.moodboard-tab-tab-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.moodboard-tab-tab--inactive:hover {
+.moodboard-tab-item-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+
+.moodboard-tab-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.moodboard-tab-menu-btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moodboard-tab-menu-btn:hover {
   color: #000;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.moodboard-tab-menu-dots {
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  user-select: none;
+}
+
+.moodboard-tab-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+  min-width: 160px;
+  padding: 4px 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+}
+
+.moodboard-tab-menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.8rem;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+}
+
+.moodboard-tab-menu-item:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.06);
 }
 
+.moodboard-tab-menu-item:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.moodboard-tab-menu-item--danger {
+  color: #b91c1c;
+}
+
+.moodboard-tab-menu-item--danger:hover:not(:disabled) {
+  background: rgba(185, 28, 28, 0.08);
+}
+
 .moodboard-tab-add-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: none;
   border-radius: 0;
   background: none;
   color: #000;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -4475,17 +4558,24 @@ a {
 }
 
 .moodboard-tab-inner {
-  display: inline-block;
-  padding: 8px 20px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 5px 14px;
   border: 1px solid #e0e0e0;
   border-bottom: none;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
   margin-bottom: -1px;
   background: #f8f8f8;
   box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.moodboard-tab-inner-content {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .moodboard-tab-label {
@@ -4703,7 +4793,15 @@ a {
     linear-gradient(90deg, rgba(150, 150, 150, 0.15) 1px, transparent 1px);
   background-size: 20px 20px;
   position: relative;
-  overflow: auto;
+  overflow: hidden;
+}
+
+.moodboard-canvas--space .moodboard-canvas-inner {
+  cursor: grab;
+}
+
+.moodboard-canvas--panning .moodboard-canvas-inner {
+  cursor: grabbing;
 }
 
 .moodboard-canvas--drag-over {

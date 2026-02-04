@@ -4,6 +4,7 @@ interface DesignStatsData {
   totalListViews: number;
   totalProjectViews: number;
   totalRevisionViews: number;
+  totalMoodboardViews: number;
   topProjects: Array<{
     projectId: string;
     projectName: string;
@@ -94,6 +95,10 @@ export const DesignStatsSection: React.FC = () => {
         <div className="stats-card">
           <h4>Wyświetlenia rewizji</h4>
           <div className="stats-value">{data.totalRevisionViews}</div>
+        </div>
+        <div className="stats-card">
+          <h4>Wyświetlenia Moodboard</h4>
+          <div className="stats-value">{data.totalMoodboardViews}</div>
         </div>
       </div>
 

@@ -4,7 +4,8 @@ type ViewType = 'folder' | 'image';
 export type DesignViewType =
   | 'design_list'
   | 'design_project'
-  | 'design_revision';
+  | 'design_revision'
+  | 'moodboard';
 
 export interface DesignViewMeta {
   projectId?: string;

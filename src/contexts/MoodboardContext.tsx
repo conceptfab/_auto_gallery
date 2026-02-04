@@ -27,6 +27,7 @@ interface MoodboardContextValue extends MoodboardBoard {
   setSelected: (id: string | null, type: 'image' | 'comment' | null) => void;
   setActiveBoard: (id: string) => void;
   setMoodboardName: (name: string) => void;
+  deleteBoard: (boardId: string) => void;
   createNewMoodboard: () => void;
   addImage: (image: Omit<MoodboardImage, 'id'>) => void;
   updateImage: (id: string, patch: Partial<MoodboardImage>) => void;
@@ -177,6 +178,30 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
         scheduleSave(next);
         return next;
       });
+    },
+    [scheduleSave]
+  );
+
+  const deleteBoard = useCallback(
+    (boardId: string) => {
+      setAppState((prev) => {
+        if (prev.boards.length <= 1) return prev;
+        const newBoards = prev.boards.filter((b) => b.id !== boardId);
+        let newActiveId = prev.activeId;
+        if (prev.activeId === boardId) {
+          const idx = prev.boards.findIndex((b) => b.id === boardId);
+          const nextIdx = Math.min(idx, newBoards.length - 1);
+          newActiveId = newBoards[nextIdx]?.id ?? newBoards[0].id;
+        }
+        const next: MoodboardAppState = {
+          boards: newBoards,
+          activeId: newActiveId,
+        };
+        scheduleSave(next);
+        return next;
+      });
+      setSelectedId(null);
+      setSelectedType(null);
     },
     [scheduleSave]
   );
@@ -339,6 +364,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       setSelected,
       setActiveBoard,
       setMoodboardName,
+      deleteBoard,
       createNewMoodboard,
       addImage,
       updateImage,
@@ -359,6 +385,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       setSelected,
       setActiveBoard,
       setMoodboardName,
+      deleteBoard,
       createNewMoodboard,
       addImage,
       updateImage,

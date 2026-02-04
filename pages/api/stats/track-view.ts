@@ -60,7 +60,8 @@ export default async function handler(
   const designMeta =
     type === 'design_list' ||
     type === 'design_project' ||
-    type === 'design_revision'
+    type === 'design_revision' ||
+    type === 'moodboard'
       ? { projectId, revisionId, projectName, revisionLabel }
       : undefined;
 

@@ -263,7 +263,8 @@ export type ViewEventType =
   | 'image'
   | 'design_list'
   | 'design_project'
-  | 'design_revision';
+  | 'design_revision'
+  | 'moodboard';
 
 export interface DesignViewMeta {
   projectId?: string;
@@ -620,6 +621,7 @@ const DESIGN_VIEW_TYPES: ViewEventType[] = [
   'design_list',
   'design_project',
   'design_revision',
+  'moodboard',
 ];
 
 export async function getDesignOverviewStats(dateRange?: {
@@ -629,6 +631,7 @@ export async function getDesignOverviewStats(dateRange?: {
   totalListViews: number;
   totalProjectViews: number;
   totalRevisionViews: number;
+  totalMoodboardViews: number;
   topProjects: Array<{ projectId: string; projectName: string; views: number }>;
   topRevisions: Array<{
     projectId: string;
@@ -675,6 +678,9 @@ export async function getDesignOverviewStats(dateRange?: {
   ).length;
   const totalRevisionViews = filtered.filter(
     (e) => e.type === 'design_revision'
+  ).length;
+  const totalMoodboardViews = filtered.filter(
+    (e) => e.type === 'moodboard'
   ).length;
 
   const projectCounts: Record<string, { projectName: string; views: number }> =
@@ -739,7 +745,11 @@ export async function getDesignOverviewStats(dateRange?: {
           ? 'Lista Design'
           : v.type === 'design_project'
           ? 'Projekt'
-          : 'Rewizja';
+          : v.type === 'design_revision'
+          ? 'Rewizja'
+          : v.type === 'moodboard'
+          ? 'Moodboard'
+          : 'Wyświetlenie';
       const target =
         v.projectName ||
         (v.revisionLabel
@@ -763,6 +773,7 @@ export async function getDesignOverviewStats(dateRange?: {
     totalListViews,
     totalProjectViews,
     totalRevisionViews,
+    totalMoodboardViews,
     topProjects,
     topRevisions,
     recentDesignActivity,

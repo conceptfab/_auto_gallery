@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
+import { useStatsTracker } from '@/src/hooks/useStatsTracker';
 import {
   MoodboardProvider,
   useMoodboard,
@@ -66,8 +67,14 @@ interface AuthStatus {
 
 const MoodboardPage: React.FC = () => {
   const router = useRouter();
+  const { trackDesignView } = useStatsTracker();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authStatus?.isLoggedIn || loading) return;
+    trackDesignView('moodboard', 'moodboard', 'Moodboard');
+  }, [authStatus?.isLoggedIn, loading, trackDesignView]);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
