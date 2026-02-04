@@ -119,13 +119,14 @@ a {
 /* Container for menu items with max width and flex layout */
 .menu-container {
   max-width: none;
-  margin: 0 200px;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 25px;
+  padding: 0 40px;
   height: 35px;
   overflow: visible;
+  position: relative;
 }
 
 /* Logo icon before title */
@@ -170,6 +171,9 @@ a {
 
 .menu-center-nav {
   gap: 12px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .menu-center-client-name {
@@ -471,18 +475,36 @@ a {
   }
 }
 
-/* Tablet portrait orientation - bardziej agresywne style */
+/* Tablet portrait orientation - dwuwierszowe menu */
 @media (min-width: 481px) and (max-width: 1024px) {
-  .menu-container {
-    margin: 0 !important;
-    padding: 0 5px !important;
-    justify-content: space-between !important;
+  body {
+    padding-top: 95px;
   }
 
+  .top-menu-bar {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #f8f8f8 !important;
+  }
+
+  .menu-container {
+    height: auto !important;
+    min-height: auto !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 6px 15px !important;
+    margin: 0 !important;
+    gap: 0 !important;
+  }
+
+  /* Wiersz 1: logo po lewej, ikony po prawej */
   .menu-left {
-    padding-left: 15px !important;
-    margin-left: 0 !important;
+    order: 1;
     flex: 0 0 auto !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
   }
 
   .menu-left .logo {
@@ -493,12 +515,14 @@ a {
   .menu-left .logo h1 {
     padding-left: 0 !important;
     margin-left: 0 !important;
+    font-size: 1rem;
   }
 
   .menu-right {
+    order: 2;
+    flex: 0 0 auto !important;
     padding-right: 0 !important;
     margin-right: 0 !important;
-    flex: 0 0 auto !important;
     gap: 8px !important;
     display: flex !important;
     visibility: visible !important;
@@ -522,8 +546,65 @@ a {
     visibility: visible !important;
     opacity: 1 !important;
     flex-shrink: 0 !important;
-    width: 48px !important;
-    height: 48px !important;
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Wiersz 2: Content, Projekty, Moodboard - pełna szerokość */
+  .menu-center.menu-center-nav {
+    order: 3;
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+    padding: 6px 0 2px !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .top-menu-bar-nav-btn {
+    padding: 6px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Komunikaty ładowania - pozycja pod dwuwierszowym menu */
+  .loading-overlay {
+    top: 95px;
+    height: calc(100vh - 95px);
+  }
+
+  .design-page-loading,
+  .design-page-empty {
+    top: 95px;
+    height: calc(100vh - 95px);
+  }
+
+  .moodboard-loading-wrap {
+    top: 95px !important;
+    height: calc(100vh - 95px) !important;
+  }
+
+  /* Moodboard - zakładki tuż pod menu, nad menu (z-index), widoczne na tablecie */
+  .moodboard-tab {
+    top: 95px !important;
+    z-index: 101 !important;
+  }
+
+  .design-page.moodboard-page,
+  .moodboard-page {
+    height: calc(100vh - 95px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* Canvas moodboard - pod zakładkami */
+  .moodboard-body {
+    margin-top: 50px !important;
+    padding-top: 0 !important;
   }
 }
 
@@ -648,10 +729,6 @@ a {
     visibility: visible !important;
   }
 
-  body {
-    padding-top: 75px;
-  }
-
   .top-menu-bar {
     height: auto !important;
     min-height: 55px !important;
@@ -748,10 +825,6 @@ a {
     visibility: visible !important;
   }
 
-  body {
-    padding-top: 65px;
-  }
-
   .category-title {
     font-size: 1.2rem;
   }
@@ -843,122 +916,77 @@ a {
   }
 }
 
-@media (max-width: 768px) {
-  body {
-    padding-top: 30px; /* Reduced padding for smaller screens */
-  }
+/* Ta sekcja została przeniesiona do media query (min-width: 481px) and (max-width: 1024px) */
 
-  .menu-container {
-    padding: 0 15px; /* Less horizontal padding */
-    height: 30px; /* Smaller menu height */
-    overflow: visible;
-    justify-content: space-between;
-  }
-
-  .menu-left {
-    padding-left: 0;
-    margin-left: 0;
-  }
-
-  .menu-right {
-    padding-right: 0;
-    margin-right: 0;
-  }
-
-  /* Smaller logo text on tablets */
-  .menu-left .logo h1 {
-    font-size: 1rem;
-  }
-
-  .menu-items {
-    gap: 12px; /* Reduced spacing between menu items */
-  }
-
-  /* Smaller navigation links */
-  .menu-items a {
-    font-size: 0.75rem;
-    padding: 4px 8px;
-  }
-
-  /* Smaller refresh button */
-  .menu-right .refresh-button {
-    font-size: 0.7rem;
-    padding: 3px 8px;
-  }
-
-  .menu-right {
-    display: flex !important;
-    overflow: visible !important;
-  }
-
-  .menu-right span {
-    display: inline-block !important;
-    visibility: visible !important;
-  }
-
-  .menu-right button {
-    display: flex !important;
-    visibility: visible !important;
-  }
-}
-
-/* Mobile view adjustments */
+/* Pionowy smartfon: 3 rzędy – 1) logo+Content Browser ver, 2) ikony+cache,bug,mail+logout, 3) Content|Projekty|Moodboard */
 @media (max-width: 480px) {
   body {
-    padding-top: 75px;
+    padding-top: 135px;
   }
 
   .top-menu-bar {
     height: auto !important;
-    min-height: 55px !important;
+    min-height: auto !important;
     overflow: visible !important;
+    background: #f8f8f8 !important;
   }
 
   .menu-container {
     height: auto !important;
-    min-height: 55px !important;
-    flex-wrap: wrap !important;
-    padding: 5px 15px !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding: 0 12px 5px !important;
+    gap: 0 !important;
   }
 
-  .menu-center {
-    order: 3;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-    flex-wrap: wrap;
-  }
-
-  .top-menu-bar-nav-btn {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-  }
-
+  /* Rząd 1: ikona + Content Browser ver: b 0.3 */
   .menu-left {
     order: 1;
-    width: 100%;
+    width: 100% !important;
+    flex: 0 0 auto !important;
     text-align: center;
+    padding: 4px 0 6px !important;
+    margin: 0 !important;
   }
 
-  /* Compact logo text for mobile */
   .menu-left .logo h1 {
     font-size: 0.9rem;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
+  .menu-left .logo h1 .logo-icon {
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  .version {
+    display: inline !important;
+    font-size: 0.7em;
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+
+  /* Rząd 2: ikony cache, bug, mail + logout */
   .menu-right {
     order: 2;
-    width: 100%;
+    width: 100% !important;
+    flex: 0 0 auto !important;
     display: flex !important;
     visibility: visible !important;
     align-items: center;
     justify-content: space-between;
-    gap: 5px;
-    padding: 5px 0;
+    gap: 6px;
+    padding: 6px 0 8px !important;
     flex-wrap: nowrap;
     overflow: visible !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   .menu-right span {
@@ -968,6 +996,9 @@ a {
     font-size: 0.75rem;
     color: #666;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 50%;
   }
 
   .menu-right button {
@@ -978,6 +1009,112 @@ a {
     width: 40px !important;
     height: 40px !important;
     font-size: 22px !important;
+  }
+
+  /* Rząd 3: Content, Projekty, Moodboard – w flow, bez absolute */
+  .menu-center.menu-center-nav {
+    order: 3;
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    flex: 0 0 auto !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    padding: 4px 0 0 !important;
+  }
+
+  .top-menu-bar-nav-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  /* Moodboard - zakładki PONIŻEJ menu (top = wysokość 3‑rzędowego menu), nie na menu */
+  .moodboard-tab {
+    top: 135px !important;
+    z-index: 101 !important;
+  }
+
+  .design-page.moodboard-page,
+  .moodboard-page {
+    height: calc(100vh - 135px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* Canvas moodboard - pod zakładkami */
+  .moodboard-body {
+    margin-top: 50px !important;
+    padding-top: 0 !important;
+  }
+}
+
+/* Pionowy smartfon: jeden styl komunikatów „Ładowanie…" – na środku ekranu */
+@media (max-width: 480px) {
+  .loading-overlay {
+    top: 135px;
+    height: calc(100vh - 135px);
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+  }
+
+  .loading-message {
+    font-size: 1.25rem;
+    font-weight: 100;
+    color: #666;
+    margin-top: 1.5em;
+  }
+
+  .design-page-loading,
+  .design-page-empty {
+    position: fixed;
+    top: 135px;
+    left: 0;
+    right: 0;
+    height: calc(100vh - 135px);
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    background: rgba(248, 248, 248, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 1.25rem;
+    font-weight: 100;
+    color: #666;
+    z-index: 50;
+  }
+
+  .moodboard-loading-wrap {
+    position: fixed !important;
+    top: 135px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: calc(100vh - 135px) !important;
+    width: 100% !important;
+    z-index: 50;
+  }
+
+  .loading-overlay--moodboard {
+    position: absolute;
+    inset: 0;
+    background: rgba(248, 248, 248, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .moodboard-loading-wrap .loading-message {
+    font-size: 1.25rem;
+    font-weight: 100;
+    color: #666;
+    margin-top: 1.5em;
   }
 }
 
@@ -1055,15 +1192,15 @@ a {
    STATE MESSAGE STYLES
    ======================================== */
 
-/* Loading progress bar - above top menu (ostry, bez blur) */
+/* Loading progress bar - na samej górze ekranu, nad menu */
 .loading-progress-bar {
   position: fixed;
-  top: 35px;
+  top: 0;
   left: 0;
   width: 0%;
   height: 3px;
   background-color: magenta;
-  z-index: 101;
+  z-index: 1000;
   transition: width 0.3s ease-out;
 }
 
@@ -3581,10 +3718,9 @@ a {
 .design-page {
   padding: 24px;
   padding-top: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  min-height: calc(100vh - 35px);
 }
 
 .design-breadcrumbs {
@@ -3629,9 +3765,16 @@ a {
 
 .design-page-loading,
 .design-page-empty {
-  color: #6b7280;
-  font-style: italic;
+  color: #666;
+  font-style: normal;
+  font-size: 1.5rem;
+  font-weight: 100;
   margin: 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
 }
 
 .design-page-header-row {
@@ -3654,9 +3797,10 @@ a {
 }
 
 .design-projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
+  justify-content: center;
 }
 
 .design-project-tile {
@@ -3670,6 +3814,8 @@ a {
   padding: 24px 16px;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
+  width: 200px;
+  flex-shrink: 0;
   font-family: inherit;
   appearance: none;
 }
@@ -4387,16 +4533,20 @@ a {
   overflow: hidden;
 }
 
-/* Zakładka przyklejona tuż pod górnym paskiem (35px) – bez przerwy */
+/* Zakładka przyklejona tuż pod górnym paskiem (35px) – bez przerwy; renderowana w portalu do body, żeby centrowanie było względem viewportu */
 .moodboard-tab {
   position: fixed;
   top: 35px;
   left: 0;
   right: 0;
+  width: 100vw;
+  max-width: 100%;
+  box-sizing: border-box;
   z-index: 90;
   flex-shrink: 0;
   padding: 0 24px;
   padding-top: 6px;
+  padding-bottom: 0;
   border-bottom: 1px solid #e5e7eb;
   background: #f0f0f0;
   display: flex;
@@ -4615,21 +4765,17 @@ a {
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Odstęp pod zakładką, żeby treść nie chowała się pod fixed tab; to samo tło co canvas – bez białego paska */
+/* Canvas tuż pod zakładkami – bez przerwy; zakładki fixed, canvas się z nimi styka */
 .moodboard-body {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding-top: 38px;
+  padding-top: 0;
+  margin-top: 0;
   position: relative;
-  background-color: #fafafa;
-  background-image: linear-gradient(
-      rgba(150, 150, 150, 0.15) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(150, 150, 150, 0.15) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: #f0f0f0;
+  overflow: hidden;
 }
 
 .moodboard-loading-wrap {
@@ -4794,13 +4940,14 @@ a {
   background-size: 20px 20px;
   position: relative;
   overflow: hidden;
-}
-
-.moodboard-canvas--space .moodboard-canvas-inner {
   cursor: grab;
 }
 
-.moodboard-canvas--panning .moodboard-canvas-inner {
+.moodboard-canvas--space {
+  cursor: grab;
+}
+
+.moodboard-canvas--panning {
   cursor: grabbing;
 }
 
@@ -4828,6 +4975,58 @@ a {
 
 .moodboard-canvas--drag-over .moodboard-canvas-hint {
   color: #6366f1;
+}
+
+.moodboard-canvas-zoom-controls {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.moodboard-zoom-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.moodboard-zoom-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.moodboard-zoom-btn:active {
+  background: #e5e7eb;
+}
+
+.moodboard-zoom-btn--reset {
+  font-size: 14px;
+}
+
+.moodboard-zoom-level {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 40px;
+  text-align: center;
 }
 
 .moodboard-drop-error {

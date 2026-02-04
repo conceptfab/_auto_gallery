@@ -3,12 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
-
-interface AuthStatus {
-  isLoggedIn: boolean;
-  email: string | null;
-  isAdmin: boolean;
-}
+import { useProtectedAuth } from '@/src/contexts/AuthContext';
 
 interface Project {
   id: string;
@@ -19,36 +14,15 @@ interface Project {
 
 const ProjectsPage: React.FC = () => {
   const router = useRouter();
+  const { authStatus, authLoading } = useProtectedAuth();
   const { trackDesignView } = useStatsTracker();
-  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
-  const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
 
   useEffect(() => {
-    if (!authStatus?.isLoggedIn || loading) return;
+    if (!authStatus?.isLoggedIn || authLoading) return;
     trackDesignView('design_list', 'projekty', 'Projekty');
-  }, [authStatus?.isLoggedIn, loading, trackDesignView]);
-
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/status');
-        const status: AuthStatus = await response.json();
-        setAuthStatus(status);
-        if (!status.isLoggedIn) {
-          router.push('/login');
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuthStatus();
-  }, [router]);
+  }, [authStatus?.isLoggedIn, authLoading, trackDesignView]);
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn) return;
@@ -69,7 +43,7 @@ const ProjectsPage: React.FC = () => {
     fetchProjects();
   }, [authStatus?.isLoggedIn]);
 
-  if (loading) {
+  if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
   }
 
@@ -88,9 +62,9 @@ const ProjectsPage: React.FC = () => {
 
       <main className="design-page">
         {projectsLoading ? (
-          <p className="design-page-loading">Ładowanie projektów...</p>
+          <LoadingOverlay message="Ładowanie projektów..." />
         ) : projects.length === 0 ? (
-          <p className="design-page-empty">Brak projektów.</p>
+          <div className="design-page-empty">Brak projektów.</div>
         ) : (
           <div className="design-projects-grid">
             {projects.map((p) => (

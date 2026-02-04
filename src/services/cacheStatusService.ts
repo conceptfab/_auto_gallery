@@ -71,8 +71,13 @@ export async function getFolderCacheStatus(
     });
     listResponse = response.data;
   } catch (err) {
+    const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+    if (status === 404) {
+      logger.debug(`Folder not found (404): ${folderPath || '/'}`);
+      return { ...emptyResponse(folderPath), error: 'Folder not found' };
+    }
     logger.error('Error fetching file list in folder-status', err);
-    return emptyResponse(folderPath);
+    return { ...emptyResponse(folderPath), error: 'Failed to fetch file list' };
   }
 
   if (listResponse.error) {

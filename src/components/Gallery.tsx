@@ -464,12 +464,7 @@ const Gallery: React.FC<GalleryProps> = ({
   };
 
   if (loading) {
-    return (
-      <LoadingOverlay
-        message="Ładowanie galerii..."
-        progress={loadingProgress}
-      />
-    );
+    return <LoadingOverlay message="Ładowanie galerii..." progress={loadingProgress} />;
   }
 
   if (error) {

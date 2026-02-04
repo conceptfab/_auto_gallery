@@ -26,6 +26,7 @@ function fileToDataUrl(file: File): Promise<string> {
 }
 
 interface PanStart {
+  pointerId: number;
   clientX: number;
   clientY: number;
   startTranslateX: number;
@@ -82,7 +83,12 @@ export default function Canvas() {
     const el = containerRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey) return;
+      // Zoom działa przez Ctrl+scroll LUB zwykły scroll gdy kursor jest na pustym obszarze
+      const target = e.target as HTMLElement;
+      const isOnItem = target.closest('.moodboard-image-item') || target.closest('.moodboard-comment-item');
+
+      if (!e.ctrlKey && isOnItem) return; // Na elemencie bez Ctrl - nie zoomuj
+
       e.preventDefault();
       const { scale: s, translateX: tx, translateY: ty } = transformRef.current;
       const rect = el.getBoundingClientRect();
@@ -168,50 +174,79 @@ export default function Canvas() {
     [addImage, clientToContent]
   );
 
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      if (
-        spacePressed &&
-        e.button === 0 &&
-        (e.target === e.currentTarget ||
-          (e.target as HTMLElement).classList.contains(
-            'moodboard-canvas-inner'
-          ))
-      ) {
-        e.preventDefault();
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        setIsPanning(true);
-        panStartRef.current = {
-          clientX: e.clientX,
-          clientY: e.clientY,
-          startTranslateX: translateX,
-          startTranslateY: translateY,
-        };
-        return;
-      }
-      if (
-        e.target === e.currentTarget ||
-        (e.target as HTMLElement).classList.contains('moodboard-canvas-inner')
-      ) {
-        setSelected(null, null);
-      }
-    },
-    [spacePressed, translateX, translateY, setSelected]
-  );
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    const start = panStartRef.current;
-    if (!start) return;
-    setTranslateX(start.startTranslateX + (e.clientX - start.clientX));
-    setTranslateY(start.startTranslateY + (e.clientY - start.clientY));
+  const isEmptyArea = useCallback((el: EventTarget | null) => {
+    const node = el as HTMLElement;
+    if (!node?.closest) return true;
+    return (
+      !node.closest('.moodboard-image-item') &&
+      !node.closest('.moodboard-comment-item')
+    );
   }, []);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (e.button === 0) {
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      // Lewy przycisk na pustym obszarze = pan
+      if (e.button === 0 && isEmptyArea(e.target)) {
+        e.preventDefault();
+        setSelected(null, null);
+        const el = containerRef.current;
+        if (el) {
+          el.setPointerCapture(e.pointerId);
+          setIsPanning(true);
+          panStartRef.current = {
+            pointerId: e.pointerId,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            startTranslateX: translateX,
+            startTranslateY: translateY,
+          };
+        }
+        return;
+      }
+    },
+    [translateX, translateY, setSelected, isEmptyArea]
+  );
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !isPanning || !panStartRef.current) return;
+
+    const onMove = (e: PointerEvent) => {
+      const start = panStartRef.current;
+      if (!start || e.pointerId !== start.pointerId) return;
+      e.preventDefault();
+      setTranslateX(start.startTranslateX + (e.clientX - start.clientX));
+      setTranslateY(start.startTranslateY + (e.clientY - start.clientY));
+    };
+
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== panStartRef.current?.pointerId) return;
+      e.preventDefault();
       try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        el.releasePointerCapture(e.pointerId);
       } catch {
-        // ignore if already released
+        // ignore
+      }
+      setIsPanning(false);
+      panStartRef.current = null;
+    };
+
+    el.addEventListener('pointermove', onMove, { capture: true });
+    el.addEventListener('pointerup', onUp, { capture: true });
+    el.addEventListener('pointercancel', onUp, { capture: true });
+    return () => {
+      el.removeEventListener('pointermove', onMove, { capture: true });
+      el.removeEventListener('pointerup', onUp, { capture: true });
+      el.removeEventListener('pointercancel', onUp, { capture: true });
+    };
+  }, [isPanning]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (e.button === 0 && panStartRef.current?.pointerId === e.pointerId) {
+      try {
+        containerRef.current?.releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
       }
       setIsPanning(false);
       panStartRef.current = null;
@@ -229,6 +264,9 @@ export default function Canvas() {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       <div
         className="moodboard-canvas-inner"
@@ -236,10 +274,6 @@ export default function Canvas() {
           transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
           transformOrigin: '0 0',
         }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
       >
         {dropError && (
           <div className="moodboard-drop-error" role="alert">
@@ -254,6 +288,37 @@ export default function Canvas() {
         ))}
       </div>
       <div className="moodboard-canvas-hint">Przeciągnij obrazki tutaj</div>
+      <div className="moodboard-canvas-zoom-controls">
+        <button
+          type="button"
+          className="moodboard-zoom-btn"
+          onClick={() => setScale((s) => Math.min(MAX_SCALE, s * 1.25))}
+          title="Powiększ (Ctrl + scroll up)"
+        >
+          +
+        </button>
+        <span className="moodboard-zoom-level">{Math.round(scale * 100)}%</span>
+        <button
+          type="button"
+          className="moodboard-zoom-btn"
+          onClick={() => setScale((s) => Math.max(MIN_SCALE, s / 1.25))}
+          title="Pomniejsz (Ctrl + scroll down)"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className="moodboard-zoom-btn moodboard-zoom-btn--reset"
+          onClick={() => {
+            setScale(1);
+            setTranslateX(0);
+            setTranslateY(0);
+          }}
+          title="Resetuj widok (100%)"
+        >
+          ⌂
+        </button>
+      </div>
     </div>
   );
 }

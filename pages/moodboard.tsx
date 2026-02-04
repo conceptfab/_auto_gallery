@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
+import { useProtectedAuth } from '@/src/contexts/AuthContext';
 import {
   MoodboardProvider,
   useMoodboard,
@@ -31,7 +31,7 @@ function MoodboardContent({ isAdmin = false }: { isAdmin?: boolean }) {
         {loading && (
           <div className="moodboard-loading-wrap">
             <div className="loading-overlay loading-overlay--moodboard">
-              <div className="loading-message">Ładowanie moodboarda…</div>
+              <div className="loading-message">Ładowanie moodboard...</div>
             </div>
           </div>
         )}
@@ -59,44 +59,16 @@ function MoodboardContent({ isAdmin = false }: { isAdmin?: boolean }) {
   );
 }
 
-interface AuthStatus {
-  isLoggedIn: boolean;
-  email: string | null;
-  isAdmin: boolean;
-}
-
 const MoodboardPage: React.FC = () => {
-  const router = useRouter();
+  const { authStatus, authLoading } = useProtectedAuth();
   const { trackDesignView } = useStatsTracker();
-  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authStatus?.isLoggedIn || loading) return;
+    if (!authStatus?.isLoggedIn || authLoading) return;
     trackDesignView('moodboard', 'moodboard', 'Moodboard');
-  }, [authStatus?.isLoggedIn, loading, trackDesignView]);
+  }, [authStatus?.isLoggedIn, authLoading, trackDesignView]);
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/status');
-        const status: AuthStatus = await response.json();
-        setAuthStatus(status);
-        if (!status.isLoggedIn) {
-          router.push('/login');
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuthStatus();
-  }, [router]);
-
-  if (loading) {
+  if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
   }
 

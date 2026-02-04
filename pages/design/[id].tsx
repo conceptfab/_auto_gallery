@@ -3,12 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
-
-interface AuthStatus {
-  isLoggedIn: boolean;
-  email: string | null;
-  isAdmin: boolean;
-}
+import { useProtectedAuth } from '@/src/contexts/AuthContext';
 
 interface Revision {
   id: string;
@@ -33,10 +28,9 @@ interface Project {
 const DesignProjectPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
+  const { authStatus, authLoading } = useProtectedAuth();
   const { trackDesignView } = useStatsTracker();
-  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
   const [projectLoading, setProjectLoading] = useState(true);
   const [addingRevision, setAddingRevision] = useState(false);
   const [editingRevision, setEditingRevision] = useState<Revision | null>(null);
@@ -65,26 +59,6 @@ const DesignProjectPage: React.FC = () => {
   const [selectedGalleryImageIndex, setSelectedGalleryImageIndex] = useState<
     number | null
   >(null);
-
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/status');
-        const status: AuthStatus = await response.json();
-        setAuthStatus(status);
-        if (!status.isLoggedIn) {
-          router.push('/login');
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuthStatus();
-  }, [router]);
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn || !id || typeof id !== 'string') return;
@@ -521,7 +495,7 @@ const DesignProjectPage: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
   }
 
@@ -538,7 +512,7 @@ const DesignProjectPage: React.FC = () => {
           <link rel="icon" href="/favicon.ico" />
         </Head>
         <main className="design-page">
-          <p className="design-page-loading">Ładowanie projektu...</p>
+          <div className="design-page-loading">Ładowanie projektu...</div>
         </main>
       </>
     );

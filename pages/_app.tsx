@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import 'line-awesome/dist/line-awesome/css/line-awesome.min.css';
 import { NotificationProvider } from '@/src/components/GlobalNotification';
+import { AuthProvider } from '@/src/contexts/AuthContext';
 import { SettingsProvider } from '@/src/contexts/SettingsContext';
 import { ThumbnailCacheProvider } from '@/src/contexts/ThumbnailCacheContext';
 
@@ -129,25 +130,27 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <NotificationProvider>
-      <SettingsProvider>
-        <ThumbnailCacheProvider>
-          {showLandscapeWarning && (
-            <div className="landscape-warning">
-              <div className="landscape-warning-content">
-                <span className="landscape-warning-icon">📱</span>
-                <p>Obróć urządzenie do pozycji pionowej</p>
-                <small>Aplikacja działa najlepiej w trybie portrait</small>
+      <AuthProvider>
+        <SettingsProvider>
+          <ThumbnailCacheProvider>
+            {showLandscapeWarning && (
+              <div className="landscape-warning">
+                <div className="landscape-warning-content">
+                  <span className="landscape-warning-icon">📱</span>
+                  <p>Obróć urządzenie do pozycji pionowej</p>
+                  <small>Aplikacja działa najlepiej w trybie portrait</small>
+                </div>
               </div>
+            )}
+            {router.pathname !== '/folders' && (
+              <DynamicTopMenuBar clientName={clientName} />
+            )}
+            <div className="app-main" key={router.pathname}>
+              <Component {...pageProps} refreshKey={0} />
             </div>
-          )}
-          {router.pathname !== '/folders' && (
-            <DynamicTopMenuBar clientName={clientName} />
-          )}
-          <div className="app-main" key={router.pathname}>
-            <Component {...pageProps} refreshKey={0} />
-          </div>
-        </ThumbnailCacheProvider>
-      </SettingsProvider>
+          </ThumbnailCacheProvider>
+        </SettingsProvider>
+      </AuthProvider>
     </NotificationProvider>
   );
 }

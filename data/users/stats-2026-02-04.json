@@ -6,6 +6,18 @@
       "timestamp": "2026-02-04T16:36:02.403Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    },
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-04T18:13:53.164Z",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+    },
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-04T18:44:19.842Z",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
     }
   ],
   "sessions": [
@@ -13,9 +25,25 @@
       "id": "sess_1770222962416_c7ajn4",
       "email": "micz@kleniewski.com",
       "startedAt": "2026-02-04T16:36:02.416Z",
-      "lastActivity": "2026-02-04T16:53:23.573Z",
+      "lastActivity": "2026-02-04T19:19:13.634Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    },
+    {
+      "id": "sess_1770228833170_81ixny",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-04T18:13:53.170Z",
+      "lastActivity": "2026-02-04T19:15:42.638Z",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36"
+    },
+    {
+      "id": "sess_1770230659848_96mg7h",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-04T18:44:19.848Z",
+      "lastActivity": "2026-02-04T19:15:13.963Z",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
     }
   ],
   "viewEvents": [
@@ -433,6 +461,1895 @@
         "screenWidth": 1920,
         "screenHeight": 1200,
         "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770224609152_mtc2sg",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T17:03:29.152Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770224959602_msh6at",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T17:09:19.602Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770225009538_ooawhq",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T17:10:09.538Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770225574751_nbsht9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T17:19:34.751Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770228752334_oui6mg",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:12:32.334Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770228760941_az6685",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:12:40.941Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770228845166_funo89",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:14:05.166Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "Meble konferencyjne"
+    },
+    {
+      "id": "view_1770228845986_w4ze39",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:14:05.986Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "Fota"
+    },
+    {
+      "id": "view_1770228846819_ai984i",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:14:06.819Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota/U100 white",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "U100 white"
+    },
+    {
+      "id": "view_1770229421183_aceqt2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:23:41.183Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770229613782_pz9n4b",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:26:53.782Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "Meble konferencyjne"
+    },
+    {
+      "id": "view_1770229615804_qzbaaj",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:26:55.804Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "Fota"
+    },
+    {
+      "id": "view_1770229780571_mw6ik7",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:29:40.572Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770229794230_7shm9s",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:29:54.230Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770229796018_5gwhk8",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:29:56.018Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770229879555_ktsrc9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:31:19.555Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770229990694_kvybte",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:33:10.695Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770229993028_dpmggt",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:33:13.028Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770229995175_emh8md",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:33:15.175Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770230231460_helynh",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:37:11.460Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770230234475_huo5z3",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:37:14.475Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770230277952_m084lr",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:37:57.952Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770230280323_f2vwzw",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:38:00.323Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770230338649_ityg5z",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:38:58.649Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770230341002_of5sbk",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:39:01.002Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "01.QX"
+    },
+    {
+      "id": "view_1770230343903_u596b2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:39:03.903Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "folderName": "U120 White"
+    },
+    {
+      "id": "view_1770230346429_vym43j",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:39:06.430Z",
+      "type": "image",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White/QX15_U120_white__Shot_A__4K_R8.webp",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      },
+      "imageName": "QX15_U120_white__Shot_A__4K_R8.webp"
+    },
+    {
+      "id": "view_1770230464684_wbpvsw",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:04.684Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230466000_i4mtp3",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:06.000Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230488485_mro39h",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:28.485Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230505395_nlgkrs",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:45.395Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230513472_oo7nt8",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:53.472Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230516855_9n88ym",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:56.855Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230517953_7tuwgl",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:41:57.953Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230666326_kvqzt8",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:44:26.326Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230676296_2k6fg5",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:44:36.296Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230710057_i2ib7n",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:45:10.057Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230716130_6xccbx",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:45:16.130Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 1334,
+        "screenHeight": 800,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230722131_uwmfo5",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:45:22.131Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 1334,
+        "screenHeight": 800,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230726682_up0keh",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:45:26.682Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230734169_5jex9e",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:45:34.169Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230788000_jm9rwi",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:46:28.000Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230792887_37otrm",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:46:32.887Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230805848_42rojm",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:46:45.848Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230858671_7p109i",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:47:38.671Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230915019_3la1pr",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:48:35.019Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230918566_oge4lw",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:48:38.566Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230931159_0bqmq1",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:48:51.159Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230946560_xl6go1",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:49:06.560Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770230970282_srfylf",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:49:30.282Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231035495_mja80x",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:50:35.495Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231064310_giwhtx",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:51:04.310Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231085796_8pwpsk",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:51:25.796Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231088333_n2oxgz",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:51:28.333Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231094236_s7e7co",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:51:34.236Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231095782_g1yw4i",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:51:35.782Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231169895_co65g2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:52:49.895Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231181161_ekpzrk",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:53:01.161Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231184843_tfbjzn",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:53:04.843Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231191723_ubwbuw",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:53:11.723Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231203606_bwojjt",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:53:23.606Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231318377_yzs8z9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:55:18.378Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231321284_l6xjf2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:55:21.284Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231340080_ubnpgl",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:55:40.080Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231366872_5bqm8b",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:56:06.872Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231373116_d9469k",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:56:13.116Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231420001_gex3ux",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:57:00.001Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231423501_l01sd3",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:57:03.501Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231432668_2648rm",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:57:12.668Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231436675_uwuyh0",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T18:57:16.675Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231495230_fkgst0",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:58:15.230Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231555483_eghvlq",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T18:59:15.483Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770231578613_439zq4",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T18:59:38.613Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231715658_wnfw61",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:01:55.658Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231718102_gg1l1a",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:01:58.102Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231727619_5t612l",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:02:07.619Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231731259_ivzjfe",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:02:11.259Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231744069_pr9k0z",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:02:24.069Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231782682_9hcxj7",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:03:02.682Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231786439_0bfsjb",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:03:06.439Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231790342_qvqd8n",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:03:10.342Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231819812_t2bdtj",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:03:39.812Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231829084_0ppqfg",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:03:49.084Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770231872619_rplf0q",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:04:32.619Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232005291_jgrsl4",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:06:45.291Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232056555_zzhpqs",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:07:36.555Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232057932_nuw3c6",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T19:07:37.932Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770232109189_pttxph",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:08:29.189Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232118301_ifuu17",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:08:38.301Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232223821_fqr44h",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:10:23.821Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232227760_r2zisy",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:10:27.760Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232288952_0byg9u",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:11:28.952Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232292086_neu768",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:11:32.086Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232298266_jfoonr",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:11:38.266Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232301741_yvgaw9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:11:41.741Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232313935_6s0e7r",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770228833170_81ixny",
+      "timestamp": "2026-02-04T19:11:53.935Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::ffff:192.168.1.47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 362,
+        "screenHeight": 804,
+        "language": "pl-PL"
+      }
+    },
+    {
+      "id": "view_1770232453754_6get1c",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770222962416_c7ajn4",
+      "timestamp": "2026-02-04T19:14:13.754Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770232454570_i2ncb2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770230659848_96mg7h",
+      "timestamp": "2026-02-04T19:14:14.570Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::ffff:192.168.1.82",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.0.0",
+        "os": "Linux",
+        "deviceType": "desktop",
+        "screenWidth": 800,
+        "screenHeight": 1334,
+        "language": "pl-PL"
       }
     }
   ],

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 interface VersionInfo {
   hash: string;
@@ -11,26 +12,18 @@ interface VersionInfo {
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
+  const { authStatus, authLoading, refetchAuth } = useAuth();
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
-    checkIfAlreadyLoggedIn();
-    loadVersionInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
-  }, []);
-
-  const checkIfAlreadyLoggedIn = async () => {
-    try {
-      const response = await fetch('/api/auth/status');
-      const result = await response.json();
-
-      if (result.isLoggedIn) {
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Error checking auth status:', error);
+    if (!authLoading && authStatus?.isLoggedIn) {
+      router.push('/');
     }
-  };
+  }, [authLoading, authStatus?.isLoggedIn, router]);
+
+  useEffect(() => {
+    loadVersionInfo();
+  }, []);
 
   const loadVersionInfo = async () => {
     try {
@@ -100,6 +93,7 @@ const LoginPage: React.FC = () => {
 
       if (response.ok) {
         setMessage('Logowanie pomyślne! Przekierowywanie...');
+        await refetchAuth();
         setTimeout(() => {
           router.push('/');
         }, 1500);

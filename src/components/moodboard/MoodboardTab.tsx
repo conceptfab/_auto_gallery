@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 import type { MoodboardBoard } from '@/src/types/moodboard';
 
@@ -263,7 +264,7 @@ export default function MoodboardTab({ isAdmin = false }: MoodboardTabProps) {
     />
   );
 
-  return (
+  const tabBar = (
     <div className="moodboard-tab">
       <div className="moodboard-tab-group">
         {boards.map((b) => (
@@ -307,4 +308,9 @@ export default function MoodboardTab({ isAdmin = false }: MoodboardTabProps) {
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(tabBar, document.body);
+  }
+  return tabBar;
 }
