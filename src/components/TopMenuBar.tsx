@@ -250,13 +250,13 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
           </button>
           <button
             type="button"
-            onClick={() => router.push('/design')}
-            title="Design"
+            onClick={() => router.push('/projekty')}
+            title="Projekty"
             className={`top-menu-bar-nav-btn ${
-              router.pathname.startsWith('/design') ? 'active' : ''
+              router.pathname.startsWith('/projekty') ? 'active' : ''
             }`}
           >
-            Design
+            Projekty
           </button>
           <button
             type="button"

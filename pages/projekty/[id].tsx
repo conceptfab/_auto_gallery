@@ -30,7 +30,7 @@ interface Project {
   revisions?: Revision[];
 }
 
-const DesignProjectPage: React.FC = () => {
+const ProjectsProjectPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   const { trackDesignView } = useStatsTracker();
@@ -108,7 +108,7 @@ const DesignProjectPage: React.FC = () => {
 
   useEffect(() => {
     if (!project || !id || typeof id !== 'string') return;
-    trackDesignView('design_project', `design/${id}`, project.name, {
+    trackDesignView('design_project', `projekty/${id}`, project.name, {
       projectId: id,
       projectName: project.name,
     });
@@ -1095,7 +1095,7 @@ const DesignProjectPage: React.FC = () => {
   );
 };
 
-export default DesignProjectPage;
+export default ProjectsProjectPage;
 
 export async function getServerSideProps() {
   return {

@@ -17,7 +17,7 @@ interface Project {
   createdAt: string;
 }
 
-const DesignPage: React.FC = () => {
+const ProjectsPage: React.FC = () => {
   const router = useRouter();
   const { trackDesignView } = useStatsTracker();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
@@ -27,7 +27,7 @@ const DesignPage: React.FC = () => {
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn || loading) return;
-    trackDesignView('design_list', 'design', 'Design');
+    trackDesignView('design_list', 'projekty', 'Projekty');
   }, [authStatus?.isLoggedIn, loading, trackDesignView]);
 
   useEffect(() => {
@@ -80,17 +80,17 @@ const DesignPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Design – CONCEPTFAB Content Browser</title>
+        <title>Projekty – CONCEPTFAB Content Browser</title>
         <meta
           name="description"
-          content="Design – CONCEPTFAB Content Browser"
+          content="Projekty – CONCEPTFAB Content Browser"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className="design-page">
-        <h1 className="design-page-title">Design</h1>
+        <h1 className="design-page-title">Projekty</h1>
         <p className="design-page-intro">Wybierz projekt.</p>
 
         {projectsLoading ? (
@@ -104,7 +104,7 @@ const DesignPage: React.FC = () => {
                 key={p.id}
                 type="button"
                 className="design-project-tile"
-                onClick={() => router.push(`/design/${p.id}`)}
+                onClick={() => router.push(`/projekty/${p.id}`)}
               >
                 <div className="design-project-tile-icon" aria-hidden>
                   <i className="las la-folder-open" />
@@ -122,7 +122,7 @@ const DesignPage: React.FC = () => {
   );
 };
 
-export default DesignPage;
+export default ProjectsPage;
 
 export async function getServerSideProps() {
   return {
