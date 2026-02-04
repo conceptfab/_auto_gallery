@@ -36,6 +36,21 @@ const AdminPanel: React.FC = () => {
     deletedDownloads: number;
   } | null>(null);
 
+  // Orphaned files cleanup
+  const [orphanedFilesScanning, setOrphanedFilesScanning] = useState(false);
+  const [orphanedFilesDeleting, setOrphanedFilesDeleting] = useState(false);
+  const [orphanedFilesScanResult, setOrphanedFilesScanResult] = useState<{
+    orphanedFiles: { path: string; type: string; size: number }[];
+    totalSize: number;
+    scannedRevisionThumbnails: number;
+    scannedGalleryFiles: number;
+    scannedMoodboardFiles: number;
+  } | null>(null);
+  const [orphanedFilesDeleteResult, setOrphanedFilesDeleteResult] = useState<{
+    deleted: number;
+    freedBytes: number;
+  } | null>(null);
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set([
       'stats',
@@ -87,6 +102,56 @@ const AdminPanel: React.FC = () => {
   const refreshAll = () => {
     fetchData();
     fetchGroups();
+  };
+
+  const handleScanOrphanedFiles = async () => {
+    setOrphanedFilesScanning(true);
+    setOrphanedFilesScanResult(null);
+    setOrphanedFilesDeleteResult(null);
+    try {
+      const res = await fetch('/api/admin/cleanup-orphaned-files', {
+        credentials: 'same-origin',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrphanedFilesScanResult(data);
+      }
+    } catch (err) {
+      logger.error('Scan orphaned files error:', err);
+    } finally {
+      setOrphanedFilesScanning(false);
+    }
+  };
+
+  const handleDeleteOrphanedFiles = async () => {
+    if (!orphanedFilesScanResult || orphanedFilesScanResult.orphanedFiles.length === 0) return;
+    if (!confirm(`Czy na pewno chcesz usunąć ${orphanedFilesScanResult.orphanedFiles.length} osieroconych plików? Ta operacja jest nieodwracalna.`)) {
+      return;
+    }
+    setOrphanedFilesDeleting(true);
+    try {
+      const res = await fetch('/api/admin/cleanup-orphaned-files', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrphanedFilesDeleteResult(data);
+        setOrphanedFilesScanResult(null);
+      }
+    } catch (err) {
+      logger.error('Delete orphaned files error:', err);
+    } finally {
+      setOrphanedFilesDeleting(false);
+    }
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleManualCleanup = async () => {
@@ -653,6 +718,119 @@ const AdminPanel: React.FC = () => {
                     logowań, {lastCleanupResult.deletedSessions} sesji,{' '}
                     {lastCleanupResult.deletedViews} wyświetleń,{' '}
                     {lastCleanupResult.deletedDownloads} pobrań
+                  </div>
+                )}
+              </div>
+
+              {/* Osierocone pliki graficzne */}
+              <div
+                style={{
+                  marginTop: '20px',
+                  padding: '15px',
+                  backgroundColor: '#fef3c7',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '6px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
+                      Osierocone pliki graficzne
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#a16207' }}>
+                      Pliki miniaturek i galerii z usuniętych rewizji/moodboardów
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleScanOrphanedFiles}
+                    disabled={orphanedFilesScanning}
+                    className="admin-btn"
+                    style={{ minWidth: '120px' }}
+                  >
+                    {orphanedFilesScanning ? 'Skanowanie...' : 'Skanuj pliki'}
+                  </button>
+                </div>
+
+                {orphanedFilesScanResult && (
+                  <div style={{ marginTop: '15px' }}>
+                    <div
+                      style={{
+                        padding: '10px',
+                        backgroundColor: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#fef2f2' : '#d1fae5',
+                        border: `1px solid ${orphanedFilesScanResult.orphanedFiles.length > 0 ? '#ef4444' : '#10b981'}`,
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        color: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#991b1b' : '#065f46',
+                      }}
+                    >
+                      <div style={{ marginBottom: '8px' }}>
+                        <strong>Przeskanowano:</strong>{' '}
+                        {orphanedFilesScanResult.scannedRevisionThumbnails} miniaturek rewizji,{' '}
+                        {orphanedFilesScanResult.scannedGalleryFiles} plików galerii,{' '}
+                        {orphanedFilesScanResult.scannedMoodboardFiles} plików moodboardu
+                      </div>
+                      {orphanedFilesScanResult.orphanedFiles.length > 0 ? (
+                        <>
+                          <div style={{ marginBottom: '8px' }}>
+                            <strong>Znaleziono {orphanedFilesScanResult.orphanedFiles.length} osieroconych plików</strong>{' '}
+                            ({formatBytes(orphanedFilesScanResult.totalSize)})
+                          </div>
+                          <div
+                            style={{
+                              maxHeight: '150px',
+                              overflow: 'auto',
+                              backgroundColor: '#fff',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              padding: '8px',
+                              marginBottom: '10px',
+                              fontSize: '12px',
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {orphanedFilesScanResult.orphanedFiles.map((f, i) => (
+                              <div key={i} style={{ marginBottom: '2px' }}>
+                                <span style={{ color: '#666' }}>[{f.type}]</span> {f.path}{' '}
+                                <span style={{ color: '#999' }}>({formatBytes(f.size)})</span>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            onClick={handleDeleteOrphanedFiles}
+                            disabled={orphanedFilesDeleting}
+                            className="admin-btn admin-btn--danger"
+                            style={{ minWidth: '120px' }}
+                          >
+                            {orphanedFilesDeleting ? 'Usuwanie...' : 'Usuń osierocone pliki'}
+                          </button>
+                        </>
+                      ) : (
+                        <div>Brak osieroconych plików</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {orphanedFilesDeleteResult && (
+                  <div
+                    style={{
+                      marginTop: '15px',
+                      padding: '10px',
+                      backgroundColor: '#d1fae5',
+                      border: '1px solid #10b981',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      color: '#065f46',
+                    }}
+                  >
+                    <strong>Usunięto:</strong> {orphanedFilesDeleteResult.deleted} plików,
+                    zwolniono {formatBytes(orphanedFilesDeleteResult.freedBytes)}
                   </div>
                 )}
               </div>
