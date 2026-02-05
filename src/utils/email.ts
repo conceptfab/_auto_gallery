@@ -80,8 +80,6 @@ export async function sendLoginCode(
   code: string
 ): Promise<void> {
   logger.emailEvent('sending login code', email);
-  const appBase = ADMIN_PANEL_URL.replace(/\/admin\/?$/, '');
-  const copyUrl = `${appBase}/copy-code?code=${code}`;
 
   try {
     const result = await resend.emails.send({
@@ -96,13 +94,6 @@ export async function sendLoginCode(
         <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
           <h1 style="color: #333; font-size: 32px; letter-spacing: 8px; margin: 0;">${code}</h1>
         </div>
-
-        <p style="text-align: center; margin: 24px 0;">
-          <a href="${copyUrl}"
-             style="background-color: #333; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600; display: inline-block;">
-            Kopiuj kod do schowka
-          </a>
-        </p>
 
         <p><strong>Ważne:</strong> Ten kod jest ważny przez <strong>15 minut</strong> od momentu otrzymania tej wiadomości.</p>
 
@@ -126,8 +117,6 @@ export async function sendAdminLoginCode(
   code: string
 ): Promise<void> {
   logger.emailEvent('sending admin login code', email);
-  const appBase = ADMIN_PANEL_URL.replace(/\/admin\/?$/, '');
-  const copyUrl = `${appBase}/copy-code?code=${code}`;
 
   try {
     const result = await resend.emails.send({
@@ -142,13 +131,6 @@ export async function sendAdminLoginCode(
         <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
           <h1 style="color: #333; font-size: 32px; letter-spacing: 8px; margin: 0;">${code}</h1>
         </div>
-
-        <p style="text-align: center; margin: 24px 0;">
-          <a href="${copyUrl}"
-             style="background-color: #333; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600; display: inline-block;">
-            Kopiuj kod do schowka
-          </a>
-        </p>
 
         <p><strong>Ważne:</strong> Ten kod jest ważny przez <strong>15 minut</strong> od momentu otrzymania tej wiadomości.</p>
 
