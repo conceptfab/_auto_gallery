@@ -9,6 +9,33 @@ import type { Revision, Project } from '@/src/types/projects';
 
 export type { Revision, Project };
 
+/** Generuje URL-friendly slug z nazwy projektu (obsługuje polskie znaki). */
+function generateSlug(name: string, existingSlugs: string[] = []): string {
+  const polishMap: Record<string, string> = {
+    'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n',
+    'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
+    'Ą': 'a', 'Ć': 'c', 'Ę': 'e', 'Ł': 'l', 'Ń': 'n',
+    'Ó': 'o', 'Ś': 's', 'Ź': 'z', 'Ż': 'z',
+  };
+  let slug = name
+    .split('')
+    .map((c) => polishMap[c] || c)
+    .join('')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!slug) slug = 'projekt';
+  let final = slug;
+  let i = 2;
+  while (existingSlugs.includes(final)) {
+    final = `${slug}-${i}`;
+    i++;
+  }
+  return final;
+}
+
 async function getDataDir(): Promise<string> {
   try {
     await fsp.access('/data-storage');
@@ -184,11 +211,26 @@ async function migrateThumbnailsToFiles(projects: Project[]): Promise<boolean> {
   return dirty;
 }
 
+/** Jednorazowa migracja: nadaj slug projektom które go nie mają. */
+function migrateSlugs(projects: Project[]): boolean {
+  let dirty = false;
+  const usedSlugs: string[] = projects.filter((p) => p.slug).map((p) => p.slug!);
+  for (const project of projects) {
+    if (!project.slug) {
+      project.slug = generateSlug(project.name, usedSlugs);
+      usedSlugs.push(project.slug);
+      dirty = true;
+    }
+  }
+  return dirty;
+}
+
 export async function getProjects(): Promise<Project[]> {
   const filePath = await getProjectsFilePath();
   const projects = await ensureProjectsFile(filePath);
-  const dirty = await migrateThumbnailsToFiles(projects);
-  if (dirty) {
+  const dirtyThumbs = await migrateThumbnailsToFiles(projects);
+  const dirtySlugs = migrateSlugs(projects);
+  if (dirtyThumbs || dirtySlugs) {
     const tmpPath = filePath + '.tmp';
     await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
     await fsp.rename(tmpPath, filePath);
@@ -202,8 +244,10 @@ export async function addProject(
 ): Promise<Project> {
   const filePath = await getProjectsFilePath();
   const projects = await ensureProjectsFile(filePath);
+  const existingSlugs = projects.filter((p) => p.slug).map((p) => p.slug!);
   const project: Project = {
     id: crypto.randomUUID(),
+    slug: generateSlug(name.trim(), existingSlugs),
     name: name.trim(),
     description: description?.trim() || undefined,
     createdAt: new Date().toISOString(),
@@ -225,6 +269,8 @@ export async function updateProject(
   if (idx === -1) return null;
   if (updates.name !== undefined) {
     projects[idx].name = updates.name.trim();
+    const existingSlugs = projects.filter((_, i) => i !== idx && projects[i].slug).map((p) => p.slug!);
+    projects[idx].slug = generateSlug(updates.name.trim(), existingSlugs);
   }
   if (updates.description !== undefined) {
     projects[idx].description =

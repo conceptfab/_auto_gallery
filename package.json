@@ -1,6 +1,6 @@
 {
   "name": "Content Browser",
-  "version": "b 0.3e",
+  "version": "b 0.3f",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

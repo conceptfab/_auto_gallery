@@ -16,6 +16,7 @@ export interface Revision {
 
 export interface Project {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   createdAt: string;

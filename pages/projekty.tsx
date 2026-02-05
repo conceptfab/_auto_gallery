@@ -7,6 +7,7 @@ import { useProtectedAuth } from '@/src/contexts/AuthContext';
 
 interface Project {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   createdAt: string;
@@ -72,7 +73,7 @@ const ProjectsPage: React.FC = () => {
                 key={p.id}
                 type="button"
                 className="design-project-tile"
-                onClick={() => router.push(`/projekty/${p.id}`)}
+                onClick={() => router.push(`/projekty/${p.slug || p.id}`)}
               >
                 <div className="design-project-tile-icon" aria-hidden>
                   <i className="las la-folder-open" />

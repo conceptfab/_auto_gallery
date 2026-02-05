@@ -19,6 +19,7 @@ interface Revision {
 
 interface Project {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   createdAt: string;
@@ -67,7 +68,7 @@ const ProjectsProjectPage: React.FC = () => {
         const res = await fetch('/api/projects');
         const data = await res.json();
         if (data.success && Array.isArray(data.projects)) {
-          const found = data.projects.find((p: Project) => p.id === id);
+          const found = data.projects.find((p: Project) => p.slug === id || p.id === id);
           setProject(found ?? null);
         }
       } catch (error) {
@@ -117,7 +118,7 @@ const ProjectsProjectPage: React.FC = () => {
       const res = await fetch('/api/projects');
       const data = await res.json();
       if (data.success && Array.isArray(data.projects)) {
-        const found = data.projects.find((p: Project) => p.id === id);
+        const found = data.projects.find((p: Project) => p.slug === id || p.id === id);
         setProject(found ?? null);
       }
     } catch (error) {
