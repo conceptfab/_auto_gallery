@@ -87,18 +87,14 @@ export async function sendLoginCode(
       to: email,
       subject: 'Kod dostępu do Content Browser',
       html: `
-        <h2>Twój kod dostępu do Content Browser</h2>
-        <p>Witaj!</p>
-        <p>Twój wniosek o dostęp został zatwierdzony. Oto Twój kod dostępu:</p>
+        <h2>Twój kod dostępu</h2>
 
         <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
           <h1 style="color: #333; font-size: 32px; letter-spacing: 8px; margin: 0;">${code}</h1>
         </div>
 
-        <p><strong>Ważne:</strong> Ten kod jest ważny przez <strong>15 minut</strong> od momentu otrzymania tej wiadomości.</p>
+        <p>Kod ważny przez <strong>15 minut</strong>.</p>
 
-        <p>Aby się zalogować, wejdź na stronę i wprowadź swój email oraz powyższy kod.</p>
-        
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
           Jeśli nie prosiłeś o dostęp, zignoruj tę wiadomość.
         </p>
