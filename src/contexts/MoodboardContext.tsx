@@ -15,6 +15,7 @@ import {
   MoodboardImage,
   MoodboardGroup,
   MoodboardAppState,
+  MOODBOARD_STORAGE_KEY,
 } from '@/src/types/moodboard';
 
 interface MoodboardContextValue extends MoodboardBoard {
@@ -43,6 +44,7 @@ interface MoodboardContextValue extends MoodboardBoard {
   updateGroup: (id: string, patch: Partial<MoodboardGroup>) => void;
   removeGroup: (id: string) => void;
   autoGroupItem: (itemId: string, x: number, y: number, width: number, height: number) => void;
+  updateViewport: (viewport: { scale: number; translateX: number; translateY: number }) => void;
 }
 
 const MoodboardContext = createContext<MoodboardContextValue | null>(null);
@@ -80,6 +82,20 @@ const emptyBoard = (): MoodboardBoard => ({
 
 export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   const [appState, setAppState] = useState<MoodboardAppState>(() => {
+    // Try to load from localStorage for instant feedback
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(MOODBOARD_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && Array.isArray(parsed.boards) && parsed.activeId) {
+            return parsed;
+          }
+        }
+      } catch (_e) {
+        // ignore
+      }
+    }
     const first = emptyBoard();
     return { boards: [first], activeId: first.id };
   });
@@ -154,6 +170,11 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   );
 
   const scheduleSave = useCallback((nextAppState: MoodboardAppState) => {
+    // Save to localStorage immediately for fast recovery on reload
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(MOODBOARD_STORAGE_KEY, JSON.stringify(nextAppState));
+    }
+
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       saveTimeoutRef.current = null;
@@ -163,6 +184,20 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
           setSaveError(err instanceof Error ? err.message : 'Błąd zapisu')
       );
     }, DEBOUNCE_SAVE_MS);
+  }, []);
+
+  // Save state immediately (e.g. on unmount or critical actions)
+  const saveStateImmediate = useCallback(async (nextAppState: MoodboardAppState) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    try {
+      await saveStateToServer(nextAppState);
+      setSaveError(null);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Błąd zapisu');
+    }
   }, []);
 
   const setActiveBoard = useCallback(
@@ -228,16 +263,12 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
         boards: [...prev.boards, newBoard],
         activeId: prev.activeId, // aktywna zakładka zostaje na środku, nowa pojawia się po prawej
       };
-      saveStateToServer(next).then(
-        () => setSaveError(null),
-        (err) =>
-          setSaveError(err instanceof Error ? err.message : 'Błąd zapisu')
-      );
+      saveStateImmediate(next);
       return next;
     });
     setSelectedId(null);
     setSelectedType(null);
-  }, []);
+  }, [saveStateImmediate]);
 
   const addImage = useCallback(
     (image: Omit<MoodboardImage, 'id'> & { id?: string }) => {
@@ -539,9 +570,31 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updateViewport = useCallback(
+    (viewport: { scale: number; translateX: number; translateY: number }) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId ? { ...b, viewport } : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const appStateRef = useRef(appState);
+  appStateRef.current = appState;
+
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+        // Zapisz natychmiast przy odmontowaniu jeśli jest coś w kolejce
+        saveStateToServer(appStateRef.current).catch(console.error);
+      }
     };
   }, []);
 
@@ -571,6 +624,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       removeGroup,
       autoGroupItem,
       setHoveredGroup,
+      updateViewport,
       hoveredGroupId,
       lastAddedGroupId,
     }),
@@ -599,6 +653,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       removeGroup,
       autoGroupItem,
       setHoveredGroup,
+      updateViewport,
       hoveredGroupId,
       lastAddedGroupId,
     ]

@@ -322,7 +322,7 @@ export async function runScan(isScheduled = false): Promise<{
 }
 
 /**
- * Regeneruje miniaturki dla zmienionych plików
+ * Regeneruje miniaturki dla zmienionych plików (równolegle z limitem)
  */
 async function regenerateThumbnailsForChanges(
   changes: HashChangeEvent[]
@@ -336,26 +336,28 @@ async function regenerateThumbnailsForChanges(
     .map((c) => c.path);
 
   let generated = 0;
-
   const baseUrl = GALLERY_BASE_URL.endsWith('/')
     ? GALLERY_BASE_URL
     : GALLERY_BASE_URL + '/';
 
-  for (const filePath of filesToRegenerate) {
-    try {
-      const sourceUrl = new URL(filePath.replace(/^\//, ''), baseUrl).href;
+  // Procesuj w paczkach po 5 plików
+  const CONCURRENCY = 5;
+  for (let i = 0; i < filesToRegenerate.length; i += CONCURRENCY) {
+    const chunk = filesToRegenerate.slice(i, i + CONCURRENCY);
+    await Promise.all(
+      chunk.map(async (filePath) => {
+        try {
+          const sourceUrl = new URL(filePath.replace(/^\//, ''), baseUrl).href;
+          await generateThumbnails(sourceUrl, filePath, config);
+          generated++;
+        } catch (error) {
+          logger.error(`Failed to generate thumbnails for ${filePath}:`, error);
+        }
+      })
+    );
 
-      await generateThumbnails(sourceUrl, filePath, config);
-      generated++;
-
-      // Loguj co kilka plików
-      if (generated % 10 === 0) {
-        logger.info(
-          `Generated thumbnails for ${generated}/${filesToRegenerate.length} files`
-        );
-      }
-    } catch (error) {
-      logger.error(`Failed to generate thumbnails for ${filePath}:`, error);
+    if (generated > 0 && generated % 10 === 0) {
+      logger.info(`Generated thumbnails for ${generated}/${filesToRegenerate.length} files`);
     }
   }
 
@@ -397,8 +399,6 @@ export function isScanRunning(): boolean {
 
 /**
  * Pobiera status schedulera.
- * Przy pierwszym wywołaniu (po deployu) automatycznie uruchamia scheduler,
- * żeby nie zależeć od instrumentation ani od konkretnego endpointu.
  */
 export function getSchedulerStatus(): {
   isRunning: boolean;
@@ -428,7 +428,7 @@ export async function forceScan(): Promise<{
 }
 
 /**
- * Regeneruje wszystkie miniaturki (pełny rebuild)
+ * Regeneruje wszystkie miniaturki (pełny rebuild - równolegle z limitem)
  */
 export async function regenerateAllThumbnails(): Promise<{
   success: boolean;
@@ -458,22 +458,27 @@ export async function regenerateAllThumbnails(): Promise<{
       ? GALLERY_BASE_URL
       : GALLERY_BASE_URL + '/';
 
-    for (const file of files) {
-      try {
-        const sourceUrl = new URL(file.path.replace(/^\//, ''), baseUrl).href;
-
-        const results = await generateThumbnails(sourceUrl, file.path, config);
-        if (results.size > 0) {
-          generated++;
-        } else {
-          failed++;
-        }
-
-        if (generated % 20 === 0 && generated > 0) {
-          logger.info(`Progress: ${generated}/${files.length} files`);
-        }
-      } catch {
-        failed++;
+    const CONCURRENCY = 5;
+    for (let i = 0; i < files.length; i += CONCURRENCY) {
+      const chunk = files.slice(i, i + CONCURRENCY);
+      await Promise.all(
+        chunk.map(async (file) => {
+          try {
+            const sourceUrl = new URL(file.path.replace(/^\//, ''), baseUrl).href;
+            const results = await generateThumbnails(sourceUrl, file.path, config);
+            if (results.size > 0) {
+              generated++;
+            } else {
+              failed++;
+            }
+          } catch {
+            failed++;
+          }
+        })
+      );
+      
+      if (generated % 20 === 0 && generated > 0) {
+        logger.info(`Progress: ${generated}/${files.length} files`);
       }
     }
 
@@ -488,14 +493,7 @@ export async function regenerateAllThumbnails(): Promise<{
     // Wyślij powiadomienie email jeśli włączone
     const emailConfig =
       cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
-    if (!emailConfig.enabled || !emailConfig.notifyOnRebuild) {
-      console.log(
-        '[Rebuild] Powiadomienie email pominięte (włącz je w Konfiguracja → Powiadomienia email)'
-      );
-    } else {
-      console.log(
-        '[Rebuild] Wysyłam powiadomienie email o zakończeniu regeneracji...'
-      );
+    if (emailConfig.enabled && emailConfig.notifyOnRebuild) {
       await sendRebuildNotification(
         {
           success: true,
@@ -513,32 +511,7 @@ export async function regenerateAllThumbnails(): Promise<{
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
     await addHistoryEntry('error', `Błąd regeneracji: ${errorMessage}`);
-
-    // Wyślij powiadomienie email o błędzie jeśli włączone
-    const cacheData = await getCacheData();
-    const emailConfig =
-      cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
-    if (!emailConfig.enabled || !emailConfig.notifyOnError) {
-      console.log(
-        '[Rebuild] Powiadomienie email o błędzie pominięte (włącz w Konfiguracja → Powiadomienia email)'
-      );
-    } else {
-      console.log(
-        '[Rebuild] Wysyłam powiadomienie email o błędzie regeneracji...'
-      );
-      await sendRebuildNotification(
-        {
-          success: false,
-          duration: Date.now() - startTime,
-          filesProcessed: 0,
-          thumbnailsGenerated: generated,
-          failed,
-          error: errorMessage,
-        },
-        emailConfig.email || undefined
-      );
-    }
-
+    
     return {
       success: false,
       generated,
@@ -549,7 +522,7 @@ export async function regenerateAllThumbnails(): Promise<{
 }
 
 /**
- * Przebudowuje miniaturki dla konkretnego folderu
+ * Przebudowuje miniaturki dla konkretnego folderu (równolegle z limitem)
  */
 export async function rebuildFolderThumbnails(folderPath: string): Promise<{
   success: boolean;
@@ -565,7 +538,6 @@ export async function rebuildFolderThumbnails(folderPath: string): Promise<{
     const cacheData = await getCacheData();
     const config = cacheData.thumbnailConfig;
 
-    // Filtruj pliki w określonym folderze
     const normalizedPath = folderPath.startsWith('/')
       ? folderPath
       : '/' + folderPath;
@@ -583,22 +555,27 @@ export async function rebuildFolderThumbnails(folderPath: string): Promise<{
       ? GALLERY_BASE_URL
       : GALLERY_BASE_URL + '/';
 
-    for (const file of files) {
-      try {
-        const sourceUrl = new URL(file.path.replace(/^\//, ''), baseUrl).href;
-        const results = await generateThumbnails(sourceUrl, file.path, config);
-        filesProcessed++;
-        if (results.size > 0) {
-          thumbnailsGenerated++;
-        }
-      } catch {
-        // Kontynuuj z pozostałymi plikami
-      }
+    const CONCURRENCY = 5;
+    for (let i = 0; i < files.length; i += CONCURRENCY) {
+      const chunk = files.slice(i, i + CONCURRENCY);
+      await Promise.all(
+        chunk.map(async (file) => {
+          try {
+            const sourceUrl = new URL(file.path.replace(/^\//, ''), baseUrl).href;
+            const results = await generateThumbnails(sourceUrl, file.path, config);
+            filesProcessed++;
+            if (results.size > 0) {
+              thumbnailsGenerated++;
+            }
+          } catch {
+            // Kontynuuj
+          }
+        })
+      );
     }
 
     const duration = Date.now() - startTime;
 
-    // Zapisz informację o ostatnio przebudowanym folderze
     await updateCacheData((data) => {
       data.lastRebuiltFolder = {
         path: folderPath,
@@ -615,46 +592,13 @@ export async function rebuildFolderThumbnails(folderPath: string): Promise<{
     );
 
     return { success: true, filesProcessed, thumbnailsGenerated, duration };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-    const duration = Date.now() - startTime;
-    logger.error(`Error rebuilding folder ${folderPath}:`, error);
-
-    // Wyślij powiadomienie email o błędzie (przy awarii przebudowy folderu)
-    try {
-      const cacheData = await getCacheData();
-      const emailConfig =
-        cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
-      if (emailConfig.enabled && emailConfig.notifyOnError) {
-        console.log(
-          '[Rebuild folder] Wysyłam powiadomienie email o błędzie...'
-        );
-        await sendRebuildNotification(
-          {
-            success: false,
-            duration,
-            filesProcessed,
-            thumbnailsGenerated: thumbnailsGenerated,
-            failed: 0,
-            error: `Błąd przebudowy folderu ${folderPath}: ${errorMessage}`,
-          },
-          emailConfig.email || undefined
-        );
-      }
-    } catch (emailErr) {
-      logger.error(
-        'Failed to send folder rebuild error notification',
-        emailErr
-      );
-      console.error('[Rebuild folder] Błąd wysyłki powiadomienia:', emailErr);
-    }
-
+  } catch (_error) {
     return {
       success: false,
       filesProcessed,
       thumbnailsGenerated,
-      duration,
+      duration: Date.now() - startTime,
     };
   }
 }
+

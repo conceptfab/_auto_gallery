@@ -78,8 +78,8 @@ export async function generateThumbnails(
       throw new Error('Invalid image metadata');
     }
 
-    // Generuj każdy rozmiar
-    for (const size of config.sizes) {
+    // Generuj wszystkie rozmiary równolegle
+    const sizePromises = config.sizes.map(async (size) => {
       try {
         const outputBuffer = await processImage(
           imageBuffer,
@@ -103,7 +103,10 @@ export async function generateThumbnails(
           sizeError
         );
       }
-    }
+    });
+
+    await Promise.all(sizePromises);
+
 
     if (results.size > 0) {
       logger.info(`Generated ${results.size} thumbnails for ${originalPath}`);

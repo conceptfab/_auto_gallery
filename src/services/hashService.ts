@@ -148,13 +148,11 @@ async function scanFolderRecursive(
   hashes: FileHash[],
 ): Promise<void> {
   try {
-    // Użyj generateListUrl z tokenem HMAC
     const listUrl = generateListUrl(folderPath);
     logger.debug(`Scanning folder: ${folderPath || 'root'}, URL: ${listUrl.substring(0, 100)}...`);
 
     const response = await axios.get<PHPListResponse>(listUrl, { timeout: 30000 });
 
-    // PHP zwraca { folders: [], files: [] } lub { error: "..." }
     if (response.data.error) {
       logger.warn(`Failed to list folder ${folderPath}: ${response.data.error}`);
       return;
@@ -166,7 +164,7 @@ async function scanFolderRecursive(
     logger.debug(`Response for ${folderPath || 'root'}: folders=${folders.length}, files=${files.length}`);
 
     // Przetwarzaj pliki (tylko obrazy)
-    for (const file of files) {
+    const fileProcessingPromises = files.map(async (file) => {
       if (/\.(jpg|jpeg|png|gif|webp|avif)$/i.test(file.name)) {
         const hash = await computeFileMetadataHash({
           name: file.name,
@@ -174,24 +172,31 @@ async function scanFolderRecursive(
           lastModified: file.modified,
         });
 
-        hashes.push({
+        return {
           path: file.path,
           hash,
           size: file.size || 0,
           lastModified: file.modified || '',
           lastChecked: new Date().toISOString(),
-        });
+        };
       }
+      return null;
+    });
+
+    const fileResults = await Promise.all(fileProcessingPromises);
+    for (const res of fileResults) {
+      if (res) hashes.push(res);
     }
 
-    // Rekurencja do podfolderów
-    for (const folder of folders) {
-      await scanFolderRecursive(folder.path, hashes);
+    // Rekurencja do podfolderów (równolegle)
+    if (folders.length > 0) {
+      await Promise.all(folders.map(folder => scanFolderRecursive(folder.path, hashes)));
     }
   } catch (error) {
     logger.error(`Error scanning folder ${folderPath}:`, error);
   }
 }
+
 
 /**
  * Pobiera statystyki zmian

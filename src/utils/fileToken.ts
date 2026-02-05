@@ -33,8 +33,8 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
-// URL do skryptu proxy na serwerze PHP
-const FILE_PROXY_URL = getRequiredEnv('FILE_PROXY_URL');
+// URL do skryptów pomocniczych na serwerze PHP
+const getFileUrl = (name: string) => getRequiredEnv(name);
 
 // Czas ważności tokenu w sekundach (2 godziny)
 const TOKEN_EXPIRY_SECONDS = 7200;
@@ -47,6 +47,7 @@ const TOKEN_EXPIRY_SECONDS = 7200;
 export function generateSignedUrl(filePath: string): string {
   const secretKey = getSecretKey();
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
+  const proxyUrl = getFileUrl('FILE_PROXY_URL');
 
   // Token = HMAC-SHA256(filePath|expires, secret)
   const token = crypto
@@ -60,7 +61,7 @@ export function generateSignedUrl(filePath: string): string {
     expires: expires.toString(),
   });
 
-  return `${FILE_PROXY_URL}?${params.toString()}`;
+  return `${proxyUrl}?${params.toString()}`;
 }
 
 /**
@@ -92,7 +93,7 @@ export function isFileProtectionEnabled(): boolean {
  */
 export function generateListUrl(folder: string = ''): string {
   const secretKey = getSecretKey();
-  const FILE_LIST_URL = getRequiredEnv('FILE_LIST_URL');
+  const fileListUrl = getFileUrl('FILE_LIST_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
 
   // Token dla listowania = HMAC-SHA256("list|folder|expires", secret)
@@ -107,16 +108,10 @@ export function generateListUrl(folder: string = ''): string {
     expires: expires.toString(),
   });
 
-  return `${FILE_LIST_URL}?${params.toString()}`;
+  return `${fileListUrl}?${params.toString()}`;
 }
 
 // ========== FILE MANAGEMENT TOKENS ==========
-
-const FILE_UPLOAD_URL = getRequiredEnv('FILE_UPLOAD_URL');
-const FILE_DELETE_URL = getRequiredEnv('FILE_DELETE_URL');
-const FILE_RENAME_URL = getRequiredEnv('FILE_RENAME_URL');
-const FILE_MKDIR_URL = getRequiredEnv('FILE_MKDIR_URL');
-const FILE_MOVE_URL = getRequiredEnv('FILE_MOVE_URL');
 
 /**
  * Generuje token dla uploadu plików
@@ -127,13 +122,14 @@ export function generateUploadToken(folder: string = ''): {
   url: string;
 } {
   const secretKey = getSecretKey();
+  const fileUploadUrl = getFileUrl('FILE_UPLOAD_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
     .createHmac('sha256', secretKey)
     .update(`upload|${folder}|${expires}`)
     .digest('hex');
 
-  return { token, expires, url: FILE_UPLOAD_URL };
+  return { token, expires, url: fileUploadUrl };
 }
 
 /**
@@ -145,13 +141,14 @@ export function generateDeleteToken(path: string): {
   url: string;
 } {
   const secretKey = getSecretKey();
+  const fileDeleteUrl = getFileUrl('FILE_DELETE_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
     .createHmac('sha256', secretKey)
     .update(`delete|${path}|${expires}`)
     .digest('hex');
 
-  return { token, expires, url: FILE_DELETE_URL };
+  return { token, expires, url: fileDeleteUrl };
 }
 
 /**
@@ -162,13 +159,14 @@ export function generateRenameToken(
   newName: string
 ): { token: string; expires: number; url: string } {
   const secretKey = getSecretKey();
+  const fileRenameUrl = getFileUrl('FILE_RENAME_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
     .createHmac('sha256', secretKey)
     .update(`rename|${oldPath}|${newName}|${expires}`)
     .digest('hex');
 
-  return { token, expires, url: FILE_RENAME_URL };
+  return { token, expires, url: fileRenameUrl };
 }
 
 /**
@@ -179,13 +177,14 @@ export function generateMkdirToken(
   folderName: string
 ): { token: string; expires: number; url: string } {
   const secretKey = getSecretKey();
+  const fileMkdirUrl = getFileUrl('FILE_MKDIR_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
     .createHmac('sha256', secretKey)
     .update(`mkdir|${parentFolder}|${folderName}|${expires}`)
     .digest('hex');
 
-  return { token, expires, url: FILE_MKDIR_URL };
+  return { token, expires, url: fileMkdirUrl };
 }
 
 /**
@@ -196,11 +195,12 @@ export function generateMoveToken(
   targetFolder: string
 ): { token: string; expires: number; url: string } {
   const secretKey = getSecretKey();
+  const fileMoveUrl = getFileUrl('FILE_MOVE_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
   const token = crypto
     .createHmac('sha256', secretKey)
     .update(`move|${sourcePath}|${targetFolder}|${expires}`)
     .digest('hex');
 
-  return { token, expires, url: FILE_MOVE_URL };
+  return { token, expires, url: fileMoveUrl };
 }

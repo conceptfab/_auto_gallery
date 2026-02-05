@@ -59,6 +59,13 @@ export interface MoodboardGroup {
   labelColor?: string;   // kolor tekstu etykiety
 }
 
+/** Widok (zoom i pozycja) moodboardu */
+export interface MoodboardViewport {
+  scale: number;
+  translateX: number;
+  translateY: number;
+}
+
 /** Pojedyncza tablica moodboard (jedna zakładka) */
 export interface MoodboardBoard {
   id: string;
@@ -66,6 +73,7 @@ export interface MoodboardBoard {
   images: MoodboardImage[];
   comments: MoodboardComment[];
   groups?: MoodboardGroup[];
+  viewport?: MoodboardViewport;
 }
 
 /** Stan pojedynczego moodboarda (legacy / wewnętrzny) */

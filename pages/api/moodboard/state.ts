@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
 import { getEmailFromCookie } from '@/src/utils/auth';
-import type { MoodboardAppState, MoodboardBoard } from '@/src/types/moodboard';
+import type { MoodboardAppState, MoodboardBoard, MoodboardViewport } from '@/src/types/moodboard';
 import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
@@ -96,9 +96,11 @@ function toAppState(raw: unknown): MoodboardAppState {
   const name = typeof obj.name === 'string' ? obj.name : undefined;
   const images = Array.isArray(obj.images) ? obj.images : [];
   const comments = Array.isArray(obj.comments) ? obj.comments : [];
+  const groups = Array.isArray(obj.groups) ? obj.groups : [];
+  const viewport = (obj.viewport && typeof obj.viewport === 'object') ? (obj.viewport as MoodboardViewport) : undefined;
   const id = generateId();
   return {
-    boards: [{ id, name, images, comments }],
+    boards: [{ id, name, images, comments, groups, viewport }],
     activeId: id,
   };
 }
@@ -171,6 +173,7 @@ async function loadAppStateFromFiles(
       id: validActiveId,
       images: [],
       comments: [],
+      groups: [],
     };
     boards.push(newBoard);
     await fsp.writeFile(
@@ -201,15 +204,17 @@ function normalizeAppState(body: unknown): MoodboardAppState {
         ? (obj.activeId as string)
         : boards[0]?.id ?? generateId();
     if (boards.length === 0) {
-      return { boards: [{ id: activeId, images: [], comments: [] }], activeId };
+      return { boards: [{ id: activeId, images: [], comments: [], groups: [] }], activeId };
     }
     return { boards, activeId };
   }
   const name = typeof obj.name === 'string' ? obj.name : undefined;
   const images = Array.isArray(obj.images) ? obj.images : [];
   const comments = Array.isArray(obj.comments) ? obj.comments : [];
+  const groups = Array.isArray(obj.groups) ? obj.groups : [];
+  const viewport = (obj.viewport && typeof obj.viewport === 'object') ? (obj.viewport as MoodboardViewport) : undefined;
   const id = generateId();
-  return { boards: [{ id, name, images, comments }], activeId: id };
+  return { boards: [{ id, name, images, comments, groups, viewport }], activeId: id };
 }
 
 export default async function handler(

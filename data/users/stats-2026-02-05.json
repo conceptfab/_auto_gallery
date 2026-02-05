@@ -13,7 +13,7 @@
       "id": "sess_1770296553708_ztf1cc",
       "email": "micz@kleniewski.com",
       "startedAt": "2026-02-05T13:02:33.708Z",
-      "lastActivity": "2026-02-05T19:11:59.242Z",
+      "lastActivity": "2026-02-05T19:46:31.200Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
     }
@@ -856,6 +856,338 @@
         "screenHeight": 1200,
         "language": "pl"
       }
+    },
+    {
+      "id": "view_1770320379147_emh75s",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:39:39.147Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770320380661_fr8q0i",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:39:40.661Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/02.QS",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "02.QS"
+    },
+    {
+      "id": "view_1770320382423_tqqd2c",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:39:42.423Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/02.QS/U100 white",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U100 white"
+    },
+    {
+      "id": "view_1770320562310_diwkbl",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:42:42.310Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770320575848_jdrd9h",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:42:55.848Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770320577255_tf6wq8",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:42:57.255Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770320586254_vx916m",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:43:06.254Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770320643493_zgxoai",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:44:03.493Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Meble konferencyjne"
+    },
+    {
+      "id": "view_1770320645343_5amxr2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:44:05.343Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Fota"
+    },
+    {
+      "id": "view_1770320646757_wbfgi7",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:44:06.757Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota/U100 white",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U100 white"
+    },
+    {
+      "id": "view_1770320650531_nzqmkq",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:44:10.531Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770320651603_82xhsd",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:44:11.603Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "01.QX"
+    },
+    {
+      "id": "view_1770320654016_osyns9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:44:14.016Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U120 White"
+    },
+    {
+      "id": "view_1770320739479_7njmys",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:45:39.479Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Meble konferencyjne"
+    },
+    {
+      "id": "view_1770320740923_qqlq3h",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:45:40.923Z",
+      "type": "folder",
+      "path": "metro/Meble gabinetowe",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Meble gabinetowe"
+    },
+    {
+      "id": "view_1770320742115_trlhw9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T19:45:42.115Z",
+      "type": "folder",
+      "path": "metro/Meble gabinetowe/CUBE",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "CUBE"
     }
   ],
   "downloadEvents": []

@@ -72,17 +72,65 @@ export default function Canvas() {
     updateGroup,
     removeGroup,
     setSelected, 
-    activeId 
+    activeId,
+    viewport,
+    updateViewport
   } = useMoodboard();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropError, setDropError] = useState<string | null>(null);
-  const [scale, setScale] = useState(1);
-  const [translateX, setTranslateX] = useState(0);
-  const [translateY, setTranslateY] = useState(0);
+  
+  // Initialize from context if available, otherwise defaults
+  const [scale, setScale] = useState(viewport?.scale ?? 1);
+  const [translateX, setTranslateX] = useState(viewport?.translateX ?? 0);
+  const [translateY, setTranslateY] = useState(viewport?.translateY ?? 0);
+  
   const [spacePressed, setSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef<PanStart | null>(null);
+
+  // Sync state when active board changes
+  const lastActiveIdRef = useRef(activeId);
+  const isFirstMountRef = useRef(true);
+
+  useEffect(() => {
+    // On first mount OR when active board changes, sync from context
+    if (isFirstMountRef.current || activeId !== lastActiveIdRef.current) {
+      isFirstMountRef.current = false;
+      lastActiveIdRef.current = activeId;
+      
+      if (viewport) {
+        setScale(viewport.scale);
+        setTranslateX(viewport.translateX);
+        setTranslateY(viewport.translateY);
+      } else {
+        // Fallback or auto-fit if new board
+        setScale(1);
+        setTranslateX(0);
+        setTranslateY(0);
+      }
+    }
+  }, [activeId, viewport]);
+
+  // Handle persistence to server (debounced via effect)
+  const lastSyncedRef = useRef({ scale, translateX, translateY });
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Only update if it actually changed from current context value AND it's different from what we last synced
+      if (
+        (scale !== viewport?.scale ||
+        translateX !== viewport?.translateX ||
+        translateY !== viewport?.translateY) &&
+        (scale !== lastSyncedRef.current.scale ||
+        translateX !== lastSyncedRef.current.translateX ||
+        translateY !== lastSyncedRef.current.translateY)
+      ) {
+        lastSyncedRef.current = { scale, translateX, translateY };
+        updateViewport({ scale, translateX, translateY });
+      }
+    }, 1500); // 1.5s local debounce
+    return () => clearTimeout(timer);
+  }, [scale, translateX, translateY, updateViewport, viewport]);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; contentX: number; contentY: number } | null>(null);
