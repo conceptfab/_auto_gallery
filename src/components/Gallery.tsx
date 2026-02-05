@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { useRouter } from 'next/router';
 import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
 import ImageMetadata from './ImageMetadata';
@@ -214,11 +215,14 @@ interface GalleryProps {
   isAdmin?: boolean;
 }
 
+const LOGIN_REQUIRED_MSG = 'Zaloguj się, aby zobaczyć galerię.';
+
 const Gallery: React.FC<GalleryProps> = ({
   refreshKey,
   groupId,
   isAdmin = false,
 }) => {
+  const router = useRouter();
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -400,6 +404,10 @@ const Gallery: React.FC<GalleryProps> = ({
         setError(null);
         setLoadingProgress(LOADING_PROGRESS_COMPLETE);
       } else {
+        if (data.error === LOGIN_REQUIRED_MSG) {
+          router.replace('/login');
+          return;
+        }
         const noGroupMessage =
           'Nie masz przypisanej grupy. Skontaktuj się z administratorem.';
         const isNoGroup = data.error === noGroupMessage;
