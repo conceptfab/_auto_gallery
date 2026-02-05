@@ -1,0 +1,9 @@
+{
+  "general": {
+    "previewFeatures": true
+  },
+  "ui": {
+    "showMemoryUsage": true,
+    "showModelInfoInChat": true
+  }
+}

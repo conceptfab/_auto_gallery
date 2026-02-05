@@ -4,6 +4,7 @@ import {
   removeAdminCode,
   cleanupExpiredAdminCodes,
   loginAdmin,
+  getSessionDurationSeconds,
 } from '../../../../src/utils/storage';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { logger } from '../../../../src/utils/logger';
@@ -67,11 +68,14 @@ export default async function handler(
       await loginAdmin(email);
     }
 
+    // Pobierz czas trwania sesji z ustawień
+    const maxAge = await getSessionDurationSeconds();
+
     // Ustaw admin cookie
     const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
-      `admin_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict${secure}`,
-      `admin_logged=true; Path=/; Max-Age=43200; SameSite=Strict; HttpOnly${secure}`,
+      `admin_email=${email}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Strict${secure}`,
+      `admin_logged=true; Path=/; Max-Age=${maxAge}; SameSite=Strict; HttpOnly${secure}`,
     ]);
 
     res.status(200).json({

@@ -40,6 +40,7 @@ interface StorageData {
     autoCleanupDays?: number;
     historyRetentionDays?: number;
     thumbnailAnimationDelay?: number;
+    sessionDurationHours?: number;
   };
   // Statystyki użytkowników
   stats?: StatsData;
@@ -123,6 +124,7 @@ interface SettingsFile {
   autoCleanupDays?: number;
   historyRetentionDays?: number;
   thumbnailAnimationDelay?: number;
+  sessionDurationHours?: number;
 }
 
 // Normalizacja LoginCode z pliku (daty jako string) do LoginCode (Date)
@@ -527,6 +529,13 @@ export async function updateSettings(
   updater(merged);
   await saveSettings(merged);
   if (cachedData) cachedData.settings = merged;
+}
+
+/** Zwraca czas trwania sesji w sekundach na podstawie ustawień (domyślnie 12h = 43200s). */
+export async function getSessionDurationSeconds(): Promise<number> {
+  const settings = await loadSettings();
+  const hours = settings.sessionDurationHours ?? 12;
+  return hours * 3600;
 }
 
 // Funkcje pomocnicze (core – pending)

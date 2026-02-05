@@ -18,6 +18,7 @@ export default async function handler(
         autoCleanupDays: rawSettings.autoCleanupDays ?? 7,
         historyRetentionDays: rawSettings.historyRetentionDays ?? 7,
         thumbnailAnimationDelay: rawSettings.thumbnailAnimationDelay ?? 55,
+        sessionDurationHours: rawSettings.sessionDurationHours ?? 12,
       };
       return res.status(200).json({ success: true, settings });
     } catch (error: unknown) {
@@ -44,6 +45,7 @@ export default async function handler(
         autoCleanupDays,
         historyRetentionDays,
         thumbnailAnimationDelay,
+        sessionDurationHours,
       } = req.body;
 
       // Walidacja
@@ -93,6 +95,16 @@ export default async function handler(
           error: 'thumbnailAnimationDelay musi być liczbą od 0 do 1000',
         });
       }
+      if (
+        sessionDurationHours !== undefined &&
+        (typeof sessionDurationHours !== 'number' ||
+          sessionDurationHours < 12 ||
+          sessionDurationHours > 336)
+      ) {
+        return res.status(400).json({
+          error: 'sessionDurationHours musi być liczbą od 12 do 336 (14 dni)',
+        });
+      }
 
       await updateSettings((settings) => {
         if (highlightKeywords !== undefined) {
@@ -109,6 +121,9 @@ export default async function handler(
         }
         if (thumbnailAnimationDelay !== undefined) {
           settings.thumbnailAnimationDelay = thumbnailAnimationDelay;
+        }
+        if (sessionDurationHours !== undefined) {
+          settings.sessionDurationHours = sessionDurationHours;
         }
       });
 

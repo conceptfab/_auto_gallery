@@ -22,10 +22,10 @@ export async function isUserLoggedIn(email: string): Promise<boolean> {
   return await storageIsLoggedIn(email);
 }
 
-export function setAuthCookie(res: NextApiResponse, email: string): void {
+export function setAuthCookie(res: NextApiResponse, email: string, maxAgeSeconds = 43200): void {
   res.setHeader('Set-Cookie', [
-    `auth_email=${email}; Path=/; Max-Age=43200; HttpOnly; SameSite=Strict${cookieSecure}`,
-    `auth_logged=true; Path=/; Max-Age=43200; SameSite=Strict${cookieSecure}`,
+    `auth_email=${email}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Strict${cookieSecure}`,
+    `auth_logged=true; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Strict${cookieSecure}`,
   ]);
 }
 

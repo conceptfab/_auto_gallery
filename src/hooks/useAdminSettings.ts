@@ -8,6 +8,7 @@ const defaultSettings: AdminSettings = {
   autoCleanupDays: 7,
   historyRetentionDays: 7,
   thumbnailAnimationDelay: 55,
+  sessionDurationHours: 12,
 };
 
 export function useAdminSettings() {

@@ -540,6 +540,44 @@ const AdminPanel: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="admin-form-box">
+                <h3>Czas trwania sesji (cookies)</h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                    Jak długo ciasteczka utrzymują zalogowanie użytkownika
+                  </p>
+                  <select
+                    value={settings.sessionDurationHours}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      updateSettings({ sessionDurationHours: value });
+                    }}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      minWidth: '120px',
+                    }}
+                  >
+                    <option value={12}>12 godzin</option>
+                    <option value={24}>1 dzień</option>
+                    <option value={48}>2 dni</option>
+                    <option value={72}>3 dni</option>
+                    <option value={168}>7 dni</option>
+                    <option value={336}>14 dni</option>
+                  </select>
+                </div>
+              </div>
             </>
           )}
         </section>

@@ -1,5 +1,8 @@
 {
   "highlightKeywords": true,
+  "thumbnailAnimationDelay": 610,
+  "autoCleanupDays": 7,
+  "historyRetentionDays": 7,
   "autoCleanupEnabled": true,
-  "thumbnailAnimationDelay": 610
+  "sessionDurationHours": 168
 }

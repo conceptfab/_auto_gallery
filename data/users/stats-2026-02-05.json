@@ -1,0 +1,44 @@
+{
+  "date": "2026-02-05",
+  "logins": [
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-05T13:02:33.578Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sess_1770296553708_ztf1cc",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-05T13:02:33.708Z",
+      "lastActivity": "2026-02-05T13:05:45.304Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    }
+  ],
+  "viewEvents": [
+    {
+      "id": "view_1770296564550_uj6j2f",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770296553708_ztf1cc",
+      "timestamp": "2026-02-05T13:02:44.550Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    }
+  ],
+  "downloadEvents": []
+}

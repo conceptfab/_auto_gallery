@@ -34,4 +34,5 @@ export interface AdminSettings {
   autoCleanupDays: number;
   historyRetentionDays: number;
   thumbnailAnimationDelay: number;
+  sessionDurationHours: number;
 }

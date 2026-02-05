@@ -4,6 +4,7 @@ import {
   getActiveCode,
   removeActiveCode,
   cleanupExpiredCodes,
+  getSessionDurationSeconds,
 } from '../../../src/utils/storage';
 import { loginUser, setAuthCookie } from '../../../src/utils/auth';
 import { withRateLimit } from '../../../src/utils/rateLimiter';
@@ -43,8 +44,11 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     // Zaloguj użytkownika
     await loginUser(email);
 
+    // Pobierz czas trwania sesji z ustawień
+    const maxAge = await getSessionDurationSeconds();
+
     // Ustaw ciasteczka autoryzacyjne
-    setAuthCookie(res, email);
+    setAuthCookie(res, email, maxAge);
 
     // Dane o środowisku klienta
     const ip =
@@ -61,8 +65,8 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     // nie nadpisując istniejących
     const existingCookies = res.getHeader('Set-Cookie');
     const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-    const sessionCookie = `session_id=${session.id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=43200${secure}`;
-    const statsSessionCookie = `stats_session_id=${session.id}; Path=/; SameSite=Strict; Max-Age=43200${secure}`;
+    const sessionCookie = `session_id=${session.id}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
+    const statsSessionCookie = `stats_session_id=${session.id}; Path=/; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 
     if (Array.isArray(existingCookies)) {
       res.setHeader('Set-Cookie', [

@@ -26,7 +26,8 @@
       "Bash(jq:*)",
       "Bash(tree:*)",
       "Bash(Get-ChildItem -Path \"C:\\\\_cloud\\\\__Content_Browser\\\\src\" -Recurse -Filter \"*.ts\" -o -Filter \"*.tsx\")",
-      "Bash(Measure-Object)"
+      "Bash(Measure-Object)",
+      "Bash(npx next build)"
     ],
     "deny": [],
     "ask": []
