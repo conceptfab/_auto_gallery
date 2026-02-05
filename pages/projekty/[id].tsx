@@ -153,6 +153,15 @@ const ProjectsProjectPage: React.FC = () => {
 
   const handleSaveRevision = async () => {
     if (!project || !editingRevision) return;
+    const revStillInProject = (project.revisions ?? []).some(
+      (r) => r.id === editingRevision.id
+    );
+    if (!revStillInProject) {
+      closeEditRevision();
+      await refreshProject();
+      alert('Rewizja została usunięta lub zmieniona. Odświeżono listę.');
+      return;
+    }
     setSavingRevisionId(editingRevision.id);
     try {
       const res = await fetch('/api/admin/projects/update-revision', {
@@ -161,18 +170,22 @@ const ProjectsProjectPage: React.FC = () => {
         body: JSON.stringify({
           projectId: project.id,
           revisionId: editingRevision.id,
-          label: editLabel.trim() || undefined,
-          description: editDescription.trim() || undefined,
-          embedUrl:
-            editEmbedUrl.trim() === '' ? '' : editEmbedUrl.trim() || undefined,
+          label: editLabel.trim(),
+          description: editDescription.trim(),
+          embedUrl: editEmbedUrl.trim(),
         }),
       });
-      const data = await res.json();
-      if (data.success) {
+      let data: { success?: boolean; error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        // odpowiedź nie JSON
+      }
+      if (res.ok && data.success) {
         closeEditRevision();
         await refreshProject();
       } else {
-        alert(data.error || 'Błąd zapisywania');
+        alert(data.error || `Błąd zapisywania (${res.status})`);
       }
     } catch (error) {
       console.error('Error saving revision', error);
@@ -236,7 +249,7 @@ const ProjectsProjectPage: React.FC = () => {
 
   const handleGalleryFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files?.length || !id || typeof id !== 'string' || !editingRevision) {
+    if (!files?.length || !project || !editingRevision) {
       e.target.value = '';
       return;
     }
@@ -280,7 +293,7 @@ const ProjectsProjectPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: id,
+          projectId: project.id,
           revisionId: editingRevision.id,
           images: dataUrls,
         }),
@@ -303,69 +316,47 @@ const ProjectsProjectPage: React.FC = () => {
     }
   };
 
-  const handleAddThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddThumbnail = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !id || typeof id !== 'string' || !editingRevision) return;
+    if (!file || !project || !editingRevision) return;
     const type = file.type.toLowerCase();
     if (
       !type.startsWith('image/') ||
       !['image/jpeg', 'image/png', 'image/webp'].includes(type)
     ) {
       alert('Wybierz plik obrazu: JPEG, PNG lub WebP.');
+      e.target.value = '';
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          alert('Błąd konwersji obrazu.');
-          return;
-        }
-        ctx.drawImage(img, 0, 0);
-        const webpDataUrl = canvas.toDataURL('image/webp', 0.85);
-        const revId = editingRevision.id;
-        fetch('/api/admin/projects/update-revision', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            projectId: id,
-            revisionId: revId,
-            thumbnailDataUrl: webpDataUrl,
-            screenshotDataUrl: '',
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success && data.revision) {
-              refreshProject().then(() => {
-                setEditingRevision((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        thumbnailPath: data.revision.thumbnailPath,
-                        thumbnailDataUrl: undefined,
-                        screenshotDataUrl: undefined,
-                      }
-                    : null
-                );
-              });
-            } else alert(data.error || 'Błąd dodawania miniaturki');
-          })
-          .catch((err) => {
-            console.error('Error adding thumbnail', err);
-            alert('Błąd dodawania miniaturki');
-          });
-      };
-      img.onerror = () => alert('Nie udało się wczytać obrazu.');
-      img.src = dataUrl;
-    };
-    reader.readAsDataURL(file);
+    const form = new FormData();
+    form.append('projectId', project.id);
+    form.append('revisionId', editingRevision.id);
+    form.append('file', file);
+    try {
+      const res = await fetch('/api/admin/projects/upload-thumbnail', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await res.json();
+      if (data.success && data.revision) {
+        await refreshProject();
+        setEditingRevision((prev) =>
+          prev
+            ? {
+                ...prev,
+                thumbnailPath: data.revision.thumbnailPath,
+                thumbnailDataUrl: undefined,
+                screenshotDataUrl: undefined,
+              }
+            : null
+        );
+      } else {
+        alert(data.error || 'Błąd dodawania miniaturki');
+      }
+    } catch (err) {
+      console.error('Error adding thumbnail', err);
+      alert('Błąd dodawania miniaturki');
+    }
     e.target.value = '';
   };
 
@@ -410,7 +401,7 @@ const ProjectsProjectPage: React.FC = () => {
   }, [showGalleryForRevision]);
 
   const handleDeleteRevision = async (rev: Revision) => {
-    if (!id || typeof id !== 'string') return;
+    if (!project) return;
     if (!confirm(`Usunąć rewizję "${rev.label || rev.id.slice(0, 8)}"?`))
       return;
     setDeletingRevisionId(rev.id);
@@ -418,11 +409,20 @@ const ProjectsProjectPage: React.FC = () => {
       const res = await fetch('/api/admin/projects/delete-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: id, revisionId: rev.id }),
+        body: JSON.stringify({ projectId: project.id, revisionId: rev.id }),
       });
-      const data = await res.json();
-      if (data.success) await refreshProject();
-      else alert(data.error || 'Błąd usuwania rewizji');
+      let data: { success?: boolean; error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        // odpowiedź nie JSON (np. 404 HTML)
+      }
+      if (res.ok && data.success) {
+        if (editingRevision?.id === rev.id) closeEditRevision();
+        await refreshProject();
+      } else {
+        alert(data.error || `Błąd usuwania rewizji (${res.status})`);
+      }
     } catch (error) {
       console.error('Error deleting revision', error);
       alert('Błąd usuwania rewizji');
@@ -476,7 +476,7 @@ const ProjectsProjectPage: React.FC = () => {
       const res = await fetch('/api/admin/projects/reorder-revisions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: id, revisionIds }),
+        body: JSON.stringify({ projectId: project.id, revisionIds }),
       });
       const data = await res.json();
       if (data.success) await refreshProject();

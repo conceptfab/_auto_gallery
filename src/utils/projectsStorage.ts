@@ -317,6 +317,8 @@ export async function updateProjectRevision(
     embedUrl?: string;
     thumbnailDataUrl?: string;
     screenshotDataUrl?: string;
+    /** Ścieżka do pliku miniaturki już zapisanego w data-storage (np. z upload-thumbnail). */
+    thumbnailPath?: string;
   }
 ): Promise<Revision | null> {
   const filePath = await getProjectsFilePath();
@@ -340,6 +342,11 @@ export async function updateProjectRevision(
   if (updates.embedUrl !== undefined) {
     revisions[rIdx].embedUrl =
       updates.embedUrl.trim() === '' ? undefined : updates.embedUrl.trim();
+  }
+  if (updates.thumbnailPath !== undefined) {
+    revisions[rIdx].thumbnailPath = updates.thumbnailPath || undefined;
+    revisions[rIdx].thumbnailDataUrl = undefined;
+    revisions[rIdx].screenshotDataUrl = undefined;
   }
   if (updates.thumbnailDataUrl !== undefined) {
     if (updates.thumbnailDataUrl === '') {
@@ -410,6 +417,7 @@ export async function deleteProjectRevision(
   const rIdx = revisions.findIndex((r) => r.id === revisionId);
   if (rIdx === -1) return false;
   revisions.splice(rIdx, 1);
+  project.revisions = revisions;
   const tmpPath = filePath + '.tmp';
   await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
   await fsp.rename(tmpPath, filePath);

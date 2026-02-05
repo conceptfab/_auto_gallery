@@ -1,12 +1,22 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { updateProjectRevision } from '@/src/utils/projectsStorage';
+import {
+  updateProjectRevision,
+  getProjects,
+} from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
+
+export const config = {
+  api: {
+    bodyParser: { sizeLimit: '4mb' },
+  },
+};
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
+    const body = req.body ?? {};
     const {
       projectId,
       revisionId,
@@ -15,7 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       embedUrl,
       thumbnailDataUrl,
       screenshotDataUrl,
-    } = req.body;
+    } = body;
     if (!projectId || typeof projectId !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
@@ -46,6 +56,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         error:
           'Podaj label, description, embedUrl, thumbnailDataUrl lub screenshotDataUrl',
       });
+    }
+    const projects = await getProjects();
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) {
+      return res.status(404).json({ error: 'Projekt nie znaleziony' });
+    }
+    const revisionExists = (project.revisions ?? []).some((r) => r.id === revisionId);
+    if (!revisionExists) {
+      return res.status(404).json({ error: 'Rewizja nie znaleziona' });
     }
     const revision = await updateProjectRevision(
       projectId,

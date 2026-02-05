@@ -54,7 +54,15 @@ export default async function handler(
 
   const filePath = await getGalleryFilePath(projectId, revisionId, filename);
   if (!filePath) {
-    return res.status(404).json({ error: 'Plik nie istnieje' });
+    // Plik nie na dysku (np. po migracji danych) – zwróć 1×1 transparent, żeby <img> nie psuło layoutu
+    const transparentGif = Buffer.from(
+      'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+      'base64'
+    );
+    res.setHeader('Content-Type', 'image/gif');
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.setHeader('X-Image-Status', 'placeholder');
+    return res.send(transparentGif);
   }
 
   try {

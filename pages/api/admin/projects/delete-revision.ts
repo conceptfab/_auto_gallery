@@ -1,5 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { deleteProjectRevision } from '@/src/utils/projectsStorage';
+import {
+  deleteProjectRevision,
+  getProjects,
+} from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,12 +10,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { projectId, revisionId } = req.body;
+    const body = req.body ?? {};
+    const { projectId, revisionId } = body;
     if (!projectId || typeof projectId !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
     if (!revisionId || typeof revisionId !== 'string') {
       return res.status(400).json({ error: 'Id rewizji jest wymagane' });
+    }
+    const projects = await getProjects();
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) {
+      return res.status(404).json({ error: 'Projekt nie znaleziony' });
+    }
+    const revisionExists = (project.revisions ?? []).some((r) => r.id === revisionId);
+    if (!revisionExists) {
+      return res.status(404).json({ error: 'Rewizja nie znaleziona' });
     }
     const deleted = await deleteProjectRevision(projectId, revisionId);
     if (!deleted) {
