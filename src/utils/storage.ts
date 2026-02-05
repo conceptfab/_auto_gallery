@@ -504,17 +504,20 @@ export async function getWhitelist(): Promise<string[]> {
 }
 
 export async function addToWhitelist(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const list = await loadWhitelist();
-  if (!list.includes(email)) {
-    list.push(email);
+  // Sprawdź case-insensitive
+  if (!list.some((e) => e.toLowerCase() === normalizedEmail)) {
+    list.push(normalizedEmail);
     await saveWhitelist(list);
     if (cachedData) cachedData.whitelist = list;
   }
 }
 
 export async function removeFromWhitelist(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const list = await loadWhitelist();
-  const next = list.filter((e) => e !== email);
+  const next = list.filter((e) => e.toLowerCase() !== normalizedEmail);
   if (next.length !== list.length) {
     await saveWhitelist(next);
     if (cachedData) cachedData.whitelist = next;
@@ -526,17 +529,20 @@ export async function getBlacklist(): Promise<string[]> {
 }
 
 export async function addToBlacklist(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const list = await loadBlacklist();
-  if (!list.includes(email)) {
-    list.push(email);
+  // Sprawdź case-insensitive
+  if (!list.some((e) => e.toLowerCase() === normalizedEmail)) {
+    list.push(normalizedEmail);
     await saveBlacklist(list);
     if (cachedData) cachedData.blacklist = list;
   }
 }
 
 export async function removeFromBlacklist(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const list = await loadBlacklist();
-  const next = list.filter((e) => e !== email);
+  const next = list.filter((e) => e.toLowerCase() !== normalizedEmail);
   if (next.length !== list.length) {
     await saveBlacklist(next);
     if (cachedData) cachedData.blacklist = next;
@@ -578,24 +584,28 @@ export async function removeActiveCode(email: string): Promise<void> {
 }
 
 export async function loginUser(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const codes = await loadCodes();
-  if (!codes.loggedInUsers.includes(email)) {
-    codes.loggedInUsers.push(email);
+  // Sprawdź case-insensitive
+  if (!codes.loggedInUsers.some((u) => u.toLowerCase() === normalizedEmail)) {
+    codes.loggedInUsers.push(normalizedEmail);
     await saveCodes(codes);
     if (cachedData) cachedData.loggedInUsers = codes.loggedInUsers;
   }
 }
 
 export async function logoutUser(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const codes = await loadCodes();
-  codes.loggedInUsers = codes.loggedInUsers.filter((u) => u !== email);
+  codes.loggedInUsers = codes.loggedInUsers.filter((u) => u.toLowerCase() !== normalizedEmail);
   await saveCodes(codes);
   if (cachedData) cachedData.loggedInUsers = codes.loggedInUsers;
 }
 
 export async function isUserLoggedIn(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
   const data = await getData();
-  return data.loggedInUsers.includes(email);
+  return data.loggedInUsers.some((u) => u.toLowerCase() === normalizedEmail);
 }
 
 export async function cleanupExpiredCodes(): Promise<number> {
@@ -768,13 +778,17 @@ export async function addUserToGroup(
   groupId: string,
   email: string
 ): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
   const groups = await loadGroups();
+  // Usuń użytkownika ze wszystkich grup (case-insensitive)
   groups.forEach((g) => {
-    g.users = g.users.filter((u) => u !== email);
+    g.users = g.users.filter((u) => u.toLowerCase() !== normalizedEmail);
   });
   const group = groups.find((g) => g.id === groupId);
-  if (!group || group.users.includes(email)) return false;
-  group.users.push(email);
+  if (!group) return false;
+  // Sprawdź czy już jest (case-insensitive) - nie powinno być po usunięciu powyżej
+  if (group.users.some((u) => u.toLowerCase() === normalizedEmail)) return false;
+  group.users.push(normalizedEmail);
   await saveGroups(groups);
   if (cachedData) cachedData.groups = groups;
   return true;
@@ -784,10 +798,11 @@ export async function removeUserFromGroup(
   groupId: string,
   email: string
 ): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
   const groups = await loadGroups();
   const group = groups.find((g) => g.id === groupId);
   if (!group) return false;
-  const index = group.users.indexOf(email);
+  const index = group.users.findIndex((u) => u.toLowerCase() === normalizedEmail);
   if (index === -1) return false;
   group.users.splice(index, 1);
   await saveGroups(groups);
@@ -797,5 +812,8 @@ export async function removeUserFromGroup(
 
 export async function getUserGroup(email: string): Promise<UserGroup | null> {
   const groups = await loadGroups();
-  return groups.find((g) => g.users.includes(email)) || null;
+  const normalizedEmail = email.trim().toLowerCase();
+  return groups.find((g) =>
+    g.users.some((u) => u.toLowerCase() === normalizedEmail)
+  ) || null;
 }

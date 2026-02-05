@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import { logger } from '../utils/logger';
 import { useNotification } from './GlobalNotification';
+import { useAuth } from '../contexts/AuthContext';
 
 const BUG_MAX_ATTACHMENTS = 5;
 const BUG_MAX_SIZE_BYTES = 1024 * 1024; // 1 MB
@@ -32,6 +33,7 @@ interface CacheStatusInfo {
 
 const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
   const router = useRouter();
+  const { refetchAuth } = useAuth();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [cacheStatus, setCacheStatus] = useState<CacheStatusInfo | null>(null);
@@ -203,13 +205,17 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
           method: 'POST',
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        // Przekieruj NAJPIERW, potem refetch - unika pokazania błędów na stronie
         showSuccess('Wylogowano pomyślnie');
-        router.push('/admin-login');
+        await router.push('/admin-login');
+        refetchAuth(); // Bez await - odświeżenie w tle po przekierowaniu
       } else {
         const response = await fetch('/api/auth/logout', { method: 'POST' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        // Przekieruj NAJPIERW, potem refetch - unika pokazania błędów na stronie
         showSuccess('Wylogowano pomyślnie');
-        router.push('/login');
+        await router.push('/login');
+        refetchAuth(); // Bez await - odświeżenie w tle po przekierowaniu
       }
     } catch (error) {
       logger.error('Error logging out', error);

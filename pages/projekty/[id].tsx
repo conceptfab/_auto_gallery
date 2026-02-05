@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
-import { useProtectedAuth } from '@/src/contexts/AuthContext';
+import { useProtectedAuth, useAuth } from '@/src/contexts/AuthContext';
 
 interface Revision {
   id: string;
@@ -30,6 +30,7 @@ const ProjectsProjectPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   const { authStatus, authLoading } = useProtectedAuth();
+  const { refetchAuth } = useAuth();
   const { trackDesignView } = useStatsTracker();
   const [project, setProject] = useState<Project | null>(null);
   const [projectLoading, setProjectLoading] = useState(true);
@@ -66,6 +67,11 @@ const ProjectsProjectPage: React.FC = () => {
     const fetchProject = async () => {
       try {
         const res = await fetch('/api/projects');
+        if (res.status === 401) {
+          await refetchAuth();
+          router.replace('/login');
+          return;
+        }
         const data = await res.json();
         if (data.success && Array.isArray(data.projects)) {
           const found = data.projects.find((p: Project) => p.slug === id || p.id === id);
@@ -79,7 +85,7 @@ const ProjectsProjectPage: React.FC = () => {
     };
     setProjectLoading(true);
     fetchProject();
-  }, [authStatus?.isLoggedIn, id]);
+  }, [authStatus?.isLoggedIn, id, refetchAuth, router]);
 
   useEffect(() => {
     if (!project || !id || typeof id !== 'string') return;
@@ -116,6 +122,11 @@ const ProjectsProjectPage: React.FC = () => {
     if (!id || typeof id !== 'string') return;
     try {
       const res = await fetch('/api/projects');
+      if (res.status === 401) {
+        await refetchAuth();
+        router.replace('/login');
+        return;
+      }
       const data = await res.json();
       if (data.success && Array.isArray(data.projects)) {
         const found = data.projects.find((p: Project) => p.slug === id || p.id === id);

@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
-import { useProtectedAuth } from '@/src/contexts/AuthContext';
+import { useProtectedAuth, useAuth } from '@/src/contexts/AuthContext';
 
 interface Project {
   id: string;
@@ -16,6 +16,7 @@ interface Project {
 const ProjectsPage: React.FC = () => {
   const router = useRouter();
   const { authStatus, authLoading } = useProtectedAuth();
+  const { refetchAuth } = useAuth();
   const { trackDesignView } = useStatsTracker();
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -30,6 +31,11 @@ const ProjectsPage: React.FC = () => {
     const fetchProjects = async () => {
       try {
         const res = await fetch('/api/projects');
+        if (res.status === 401) {
+          await refetchAuth();
+          router.replace('/login');
+          return;
+        }
         const data = await res.json();
         if (data.success && Array.isArray(data.projects)) {
           setProjects(data.projects);
@@ -42,7 +48,7 @@ const ProjectsPage: React.FC = () => {
     };
     setProjectsLoading(true);
     fetchProjects();
-  }, [authStatus?.isLoggedIn]);
+  }, [authStatus?.isLoggedIn, refetchAuth, router]);
 
   if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;

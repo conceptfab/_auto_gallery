@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  memo,
+  useMemo,
+} from 'react';
 import { useRouter } from 'next/router';
 import { GalleryFolder, ImageFile, GalleryResponse } from '@/src/types/gallery';
 import ImageGrid from './ImageGrid';
@@ -223,6 +230,7 @@ const Gallery: React.FC<GalleryProps> = ({
   isAdmin = false,
 }) => {
   const router = useRouter();
+  const redirectingToLoginRef = useRef(false);
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -336,6 +344,7 @@ const Gallery: React.FC<GalleryProps> = ({
   }, [refreshKey]);
 
   const fetchGalleryData = async () => {
+    if (redirectingToLoginRef.current) return;
     try {
       logger.info('Fetching gallery data');
       setLoading(true);
@@ -371,6 +380,11 @@ const Gallery: React.FC<GalleryProps> = ({
       }
 
       if (!response.ok) {
+        if (response.status === 429) {
+          redirectingToLoginRef.current = true;
+          router.replace('/login');
+          return;
+        }
         throw new Error(`API returned ${response.status}`);
       }
 
@@ -405,6 +419,7 @@ const Gallery: React.FC<GalleryProps> = ({
         setLoadingProgress(LOADING_PROGRESS_COMPLETE);
       } else {
         if (data.error === LOGIN_REQUIRED_MSG) {
+          redirectingToLoginRef.current = true;
           router.replace('/login');
           return;
         }
@@ -423,6 +438,14 @@ const Gallery: React.FC<GalleryProps> = ({
         setError(data.error || 'Brak danych w galerii');
       }
     } catch (err: unknown) {
+      if (
+        err instanceof Error &&
+        err.message.includes('429')
+      ) {
+        redirectingToLoginRef.current = true;
+        router.replace('/login');
+        return;
+      }
       logger.error('Fetch error', err);
       if (err instanceof Error && err.name === 'AbortError') {
         setError('Timeout - API nie odpowiada');

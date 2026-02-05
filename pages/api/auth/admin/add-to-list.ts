@@ -38,20 +38,25 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid email address' });
     }
 
+    // Normalizuj email do lowercase dla spójności
+    const normalizedEmail = email.trim().toLowerCase();
+
     if (listType === 'whitelist') {
       const whitelist = await getWhitelist();
-      if (whitelist.includes(email)) {
+      const whitelistLower = whitelist.map((e) => e.toLowerCase());
+      if (whitelistLower.includes(normalizedEmail)) {
         return res.status(400).json({ error: 'Email already in whitelist' });
       }
-      await addToWhitelist(email);
-      logger.debug('Dodano email do białej listy:', email);
+      await addToWhitelist(normalizedEmail);
+      logger.debug('Dodano email do białej listy:', normalizedEmail);
     } else if (listType === 'blacklist') {
       const blacklist = await getBlacklist();
-      if (blacklist.includes(email)) {
+      const blacklistLower = blacklist.map((e) => e.toLowerCase());
+      if (blacklistLower.includes(normalizedEmail)) {
         return res.status(400).json({ error: 'Email already in blacklist' });
       }
-      await addToBlacklist(email);
-      logger.debug('Dodano email do czarnej listy:', email);
+      await addToBlacklist(normalizedEmail);
+      logger.debug('Dodano email do czarnej listy:', normalizedEmail);
     } else {
       return res
         .status(400)

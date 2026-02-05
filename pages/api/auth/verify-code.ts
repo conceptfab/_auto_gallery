@@ -21,7 +21,10 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Email and code required' });
     }
 
-    const loginCode = await getActiveCode(email);
+    // Normalizuj email do lowercase dla spójnych porównań
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const loginCode = await getActiveCode(normalizedEmail);
 
     if (!loginCode) {
       return res.status(404).json({ error: 'No active code for this email' });
@@ -29,7 +32,7 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
 
     // Sprawdź czy kod nie wygasł
     if (new Date() > loginCode.expiresAt) {
-      await removeActiveCode(email);
+      await removeActiveCode(normalizedEmail);
       return res.status(410).json({ error: 'Code has expired' });
     }
 
@@ -39,16 +42,16 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Kod poprawny - usuń z aktywnych
-    await removeActiveCode(email);
+    await removeActiveCode(normalizedEmail);
 
-    // Zaloguj użytkownika
-    await loginUser(email);
+    // Zaloguj użytkownika (ze znormalizowanym emailem)
+    await loginUser(normalizedEmail);
 
     // Pobierz czas trwania sesji z ustawień
     const maxAge = await getSessionDurationSeconds();
 
-    // Ustaw ciasteczka autoryzacyjne
-    setAuthCookie(res, email, maxAge);
+    // Ustaw ciasteczka autoryzacyjne (ze znormalizowanym emailem)
+    setAuthCookie(res, normalizedEmail, maxAge);
 
     // Dane o środowisku klienta
     const ip =
@@ -58,8 +61,8 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     const userAgent = req.headers['user-agent'] || 'unknown';
 
     // Zarejestruj logowanie i rozpocznij sesję statystyk
-    await recordLogin(email, ip, userAgent);
-    const session = await startSession(email, ip, userAgent);
+    await recordLogin(normalizedEmail, ip, userAgent);
+    const session = await startSession(normalizedEmail, ip, userAgent);
 
     // Dodaj cookie z session_id (HttpOnly) oraz stats_session_id (widoczne dla frontu),
     // nie nadpisując istniejących
@@ -86,7 +89,7 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({
       message: 'Login successful',
-      email,
+      email: normalizedEmail,
       success: true,
       sessionId: session.id,
     });

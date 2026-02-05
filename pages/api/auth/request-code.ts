@@ -35,39 +35,44 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Email too long' });
     }
 
-    // Sprawdź czy email jest na czarnej liście
+    // Normalizuj email do lowercase dla spójnych porównań
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Sprawdź czy email jest na czarnej liście (case-insensitive)
     const blacklist = await getBlacklist();
-    if (blacklist.includes(email)) {
+    const blacklistLower = blacklist.map((e) => e.toLowerCase());
+    if (blacklistLower.includes(normalizedEmail)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Sprawdź czy email jest na białej liście
+    // Sprawdź czy email jest na białej liście (case-insensitive)
     const whitelist = await getWhitelist();
-    if (whitelist.includes(email)) {
+    const whitelistLower = whitelist.map((e) => e.toLowerCase());
+    if (whitelistLower.includes(normalizedEmail)) {
       // Email jest na białej liście - wygeneruj i wyślij kod od razu
       const code = generateCode();
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minut
 
       const loginCode: LoginCode = {
-        email,
+        email: normalizedEmail,
         code,
         expiresAt,
         createdAt: new Date(),
       };
 
-      await addActiveCode(email, loginCode);
+      await addActiveCode(normalizedEmail, loginCode);
 
-      // Wyślij kod na email
+      // Wyślij kod na email (używamy oryginalnego emaila dla wysyłki)
       try {
-        await sendLoginCode(email, code);
+        await sendLoginCode(normalizedEmail, code);
         logger.info(
           'Kod wysłany automatycznie do użytkownika z białej listy:',
-          email
+          normalizedEmail
         );
 
         res.status(200).json({
           message: 'Code sent to your email',
-          email,
+          email: normalizedEmail,
         });
         return;
       } catch (emailError) {
@@ -77,34 +82,34 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Email nie jest na białej liście - standardowy proces (pending + powiadomienie do admina)
-    // Sprawdź czy email nie został już wysłany w ostatnich 5 minutach
+    // Sprawdź czy email nie został już wysłany w ostatnich 5 minutach (case-insensitive)
     const pendingEmails = await getPendingEmails();
-    const existing = pendingEmails.find((pe) => pe.email === email);
+    const existing = pendingEmails.find((pe) => pe.email.toLowerCase() === normalizedEmail);
     if (existing && Date.now() - existing.timestamp.getTime() < 5 * 60 * 1000) {
       return res
         .status(429)
         .json({ error: 'Please wait before requesting another code' });
     }
 
-    // Zapisz email jako oczekujący
+    // Zapisz email jako oczekujący (znormalizowany)
     const clientIp =
       req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
     const ipString =
       typeof clientIp === 'string' ? clientIp : clientIp?.[0] || 'unknown';
 
-    await addPendingEmail(email, ipString);
+    await addPendingEmail(normalizedEmail, ipString);
 
     const updatedPendingEmails = await getPendingEmails();
     logger.debug(
       'Dodano pending email:',
-      email,
+      normalizedEmail,
       'Total pending:',
       updatedPendingEmails.length
     );
 
     // Wyślij powiadomienie do admina
     try {
-      await sendAdminNotification(email, ipString);
+      await sendAdminNotification(normalizedEmail, ipString);
       logger.info('Email do admina wysłany pomyślnie');
     } catch (emailError) {
       logger.error('Błąd wysyłania emaila do admina', emailError);
@@ -113,7 +118,7 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({
       message: 'Request sent to admin for approval',
-      email,
+      email: normalizedEmail,
     });
   } catch (error) {
     logger.error('Error processing login request', error);
