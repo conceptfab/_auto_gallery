@@ -96,13 +96,13 @@ const DesignProjectPage: React.FC = () => {
   }, [project, id, trackDesignView]);
 
   const handleAddRevision = async () => {
-    if (!id || typeof id !== 'string') return;
+    if (!project) return;
     setAddingRevision(true);
     try {
       const res = await fetch('/api/admin/projects/add-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: id }),
+        body: JSON.stringify({ projectId: project.id }),
       });
       const data = await res.json();
       if (data.success) {
@@ -152,14 +152,14 @@ const DesignProjectPage: React.FC = () => {
   };
 
   const handleSaveRevision = async () => {
-    if (!id || typeof id !== 'string' || !editingRevision) return;
+    if (!project || !editingRevision) return;
     setSavingRevisionId(editingRevision.id);
     try {
       const res = await fetch('/api/admin/projects/update-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: id,
+          projectId: project.id,
           revisionId: editingRevision.id,
           label: editLabel.trim() || undefined,
           description: editDescription.trim() || undefined,
@@ -186,8 +186,8 @@ const DesignProjectPage: React.FC = () => {
     `/api/projects/gallery/${relativePath}`;
 
   const getRevisionThumbnail = (rev: Revision): string | undefined => {
-    if (id && typeof id === 'string' && rev.thumbnailPath) {
-      return `/api/projects/thumbnail/${id}/${rev.id}`;
+    if (project && rev.thumbnailPath) {
+      return `/api/projects/thumbnail/${project.id}/${rev.id}`;
     }
     if (rev.thumbnailDataUrl || rev.screenshotDataUrl) {
       return rev.thumbnailDataUrl || rev.screenshotDataUrl;
@@ -199,13 +199,13 @@ const DesignProjectPage: React.FC = () => {
   };
 
   const handleRemoveThumbnail = async () => {
-    if (!id || typeof id !== 'string' || !editingRevision) return;
+    if (!project || !editingRevision) return;
     try {
       const res = await fetch('/api/admin/projects/update-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: id,
+          projectId: project.id,
           revisionId: editingRevision.id,
           thumbnailDataUrl: '',
           screenshotDataUrl: '',
@@ -236,7 +236,7 @@ const DesignProjectPage: React.FC = () => {
 
   const handleGalleryFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files?.length || !id || typeof id !== 'string' || !editingRevision) {
+    if (!files?.length || !project || !editingRevision) {
       e.target.value = '';
       return;
     }
@@ -280,7 +280,7 @@ const DesignProjectPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: id,
+          projectId: project.id,
           revisionId: editingRevision.id,
           images: dataUrls,
         }),
@@ -305,7 +305,7 @@ const DesignProjectPage: React.FC = () => {
 
   const handleAddThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !id || typeof id !== 'string' || !editingRevision) return;
+    if (!file || !project || !editingRevision) return;
     const type = file.type.toLowerCase();
     if (
       !type.startsWith('image/') ||
@@ -334,7 +334,7 @@ const DesignProjectPage: React.FC = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            projectId: id,
+            projectId: project.id,
             revisionId: revId,
             thumbnailDataUrl: webpDataUrl,
             screenshotDataUrl: '',
@@ -410,7 +410,7 @@ const DesignProjectPage: React.FC = () => {
   }, [showGalleryForRevision]);
 
   const handleDeleteRevision = async (rev: Revision) => {
-    if (!id || typeof id !== 'string') return;
+    if (!project) return;
     if (!confirm(`Usunąć rewizję "${rev.label || rev.id.slice(0, 8)}"?`))
       return;
     setDeletingRevisionId(rev.id);
@@ -418,7 +418,7 @@ const DesignProjectPage: React.FC = () => {
       const res = await fetch('/api/admin/projects/delete-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: id, revisionId: rev.id }),
+        body: JSON.stringify({ projectId: project!.id, revisionId: rev.id }),
       });
       const data = await res.json();
       if (data.success) await refreshProject();
@@ -458,8 +458,6 @@ const DesignProjectPage: React.FC = () => {
     if (
       !draggedId ||
       draggedId === dropTargetId ||
-      !id ||
-      typeof id !== 'string' ||
       !project?.revisions
     )
       return;
@@ -476,7 +474,7 @@ const DesignProjectPage: React.FC = () => {
       const res = await fetch('/api/admin/projects/reorder-revisions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: id, revisionIds }),
+        body: JSON.stringify({ projectId: project!.id, revisionIds }),
       });
       const data = await res.json();
       if (data.success) await refreshProject();

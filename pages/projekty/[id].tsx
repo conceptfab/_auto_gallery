@@ -96,13 +96,13 @@ const ProjectsProjectPage: React.FC = () => {
   }, [project, id, trackDesignView]);
 
   const handleAddRevision = async () => {
-    if (!id || typeof id !== 'string') return;
+    if (!project) return;
     setAddingRevision(true);
     try {
       const res = await fetch('/api/admin/projects/add-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: id }),
+        body: JSON.stringify({ projectId: project.id }),
       });
       const data = await res.json();
       if (data.success) {
@@ -152,14 +152,14 @@ const ProjectsProjectPage: React.FC = () => {
   };
 
   const handleSaveRevision = async () => {
-    if (!id || typeof id !== 'string' || !editingRevision) return;
+    if (!project || !editingRevision) return;
     setSavingRevisionId(editingRevision.id);
     try {
       const res = await fetch('/api/admin/projects/update-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: id,
+          projectId: project.id,
           revisionId: editingRevision.id,
           label: editLabel.trim() || undefined,
           description: editDescription.trim() || undefined,
@@ -186,8 +186,8 @@ const ProjectsProjectPage: React.FC = () => {
     `/api/projects/gallery/${relativePath}`;
 
   const getRevisionThumbnail = (rev: Revision): string | undefined => {
-    if (id && typeof id === 'string' && rev.thumbnailPath) {
-      return `/api/projects/thumbnail/${id}/${rev.id}`;
+    if (project && rev.thumbnailPath) {
+      return `/api/projects/thumbnail/${project.id}/${rev.id}`;
     }
     if (rev.thumbnailDataUrl || rev.screenshotDataUrl) {
       return rev.thumbnailDataUrl || rev.screenshotDataUrl;
@@ -199,13 +199,13 @@ const ProjectsProjectPage: React.FC = () => {
   };
 
   const handleRemoveThumbnail = async () => {
-    if (!id || typeof id !== 'string' || !editingRevision) return;
+    if (!project || !editingRevision) return;
     try {
       const res = await fetch('/api/admin/projects/update-revision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: id,
+          projectId: project.id,
           revisionId: editingRevision.id,
           thumbnailDataUrl: '',
           screenshotDataUrl: '',
