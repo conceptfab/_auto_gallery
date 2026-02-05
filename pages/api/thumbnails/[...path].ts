@@ -46,7 +46,9 @@ export default async function handler(
     try {
       realFullPath = await fsp.realpath(fullPath);
     } catch {
-      return res.status(404).json({ error: 'Thumbnail not found' });
+      // Miniatura jeszcze nie wygenerowana – to nie błąd, frontend użyje proxy
+      logger.debug('Thumbnail not on disk (not generated yet):', relativePath);
+      return res.status(204).end();
     }
     if (!realFullPath.startsWith(realCachePath)) {
       return res.status(400).json({ error: 'Invalid path' });

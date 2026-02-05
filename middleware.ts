@@ -24,6 +24,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // GET ustawień jest publiczne (highlightKeywords, thumbnailAnimationDelay dla galerii)
+  if (pathname === '/api/admin/settings' && request.method === 'GET') {
+    return NextResponse.next();
+  }
+
   if (!isAdmin) {
     // If API request, return 401
     if (pathname.startsWith('/api/')) {

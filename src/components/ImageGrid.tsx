@@ -100,13 +100,16 @@ const ImageItem = memo(function ImageItem({
       onThumbnailError();
       target.src = proxyThumbUrl;
 
-      fetch('/api/admin/cache/generate-single', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imagePath: image.path || image.url }),
-      }).catch(() => {});
+      // Generowanie w tle tylko dla admina (endpoint wymaga autoryzacji)
+      if (isAdmin) {
+        fetch('/api/admin/cache/generate-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagePath: image.path || image.url }),
+        }).catch(() => {});
+      }
     },
-    [image, onThumbnailError, proxyThumbUrl]
+    [image, isAdmin, onThumbnailError, proxyThumbUrl]
   );
 
   return (

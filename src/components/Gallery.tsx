@@ -400,9 +400,18 @@ const Gallery: React.FC<GalleryProps> = ({
         setError(null);
         setLoadingProgress(LOADING_PROGRESS_COMPLETE);
       } else {
-        logger.error('Gallery API error or empty', {
-          error: data.error || 'Empty data',
-        });
+        const noGroupMessage =
+          'Nie masz przypisanej grupy. Skontaktuj się z administratorem.';
+        const isNoGroup = data.error === noGroupMessage;
+        if (isNoGroup) {
+          logger.info('Gallery: użytkownik bez przypisanej grupy', {
+            error: data.error,
+          });
+        } else {
+          logger.error('Gallery API error or empty', {
+            error: data.error || 'Empty data',
+          });
+        }
         setError(data.error || 'Brak danych w galerii');
       }
     } catch (err: unknown) {

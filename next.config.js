@@ -7,6 +7,7 @@ const cspHeader = `
     object-src 'none';
     base-uri 'self';
     form-action 'self';
+    frame-src 'self' https://share.plasticity.xyz https://*.plasticity.xyz;
     frame-ancestors 'none';
     connect-src 'self' https://conceptfab.com;
     upgrade-insecure-requests;
