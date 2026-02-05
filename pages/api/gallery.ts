@@ -266,9 +266,15 @@ async function galleryHandler(
       targetFolder = '';
       folders = await scanFolder(targetFolder);
     } else {
-      // Sprawdź grupę użytkownika
-      const userGroup = email ? await getUserGroup(email) : null;
+      // Niezalogowany – inny komunikat niż „brak grupy”
+      if (!email) {
+        return res.status(200).json({
+          success: false,
+          error: 'Zaloguj się, aby zobaczyć galerię.',
+        });
+      }
 
+      const userGroup = await getUserGroup(email);
       if (!userGroup) {
         return res.status(200).json({
           success: false,
