@@ -56,10 +56,7 @@ async function getDataDir(): Promise<string> {
   }
 }
 
-async function getDataFilePath(): Promise<string> {
-  const dir = await getDataDir();
-  return path.join(dir, 'storage.json');
-}
+// saveData() usunięte – dane core zapisywane do core/pending.json, core/codes.json, core/settings.json
 
 // Katalog list (Etap 1 konwersji)
 async function getListsDir(): Promise<string> {
@@ -142,9 +139,6 @@ export async function getUsersDir(): Promise<string> {
   return path.join(await getDataDir(), 'users');
 }
 
-// Cache dla ścieżki pliku (inicjalizowany przy pierwszym użyciu)
-let cachedDataFilePath: string | null = null;
-
 // Domyślne dane
 const defaultData: StorageData = {
   pendingEmails: {},
@@ -169,28 +163,7 @@ const defaultData: StorageData = {
   },
 };
 
-// Załaduj dane z pliku (async)
-async function loadData(): Promise<StorageData> {
-  try {
-    if (!cachedDataFilePath) {
-      cachedDataFilePath = await getDataFilePath();
-    }
-    const raw = await fsp.readFile(cachedDataFilePath, 'utf8');
-    const data = JSON.parse(raw);
-    return { ...defaultData, ...data };
-  } catch (err: unknown) {
-    if (
-      err &&
-      typeof err === 'object' &&
-      'code' in err &&
-      (err as NodeJS.ErrnoException).code === 'ENOENT'
-    ) {
-      return { ...defaultData };
-    }
-    console.error('❌ Błąd ładowania danych:', err);
-    return { ...defaultData };
-  }
-}
+// loadData() usunięte – nowa struktura plików jest stabilna
 
 // saveData() usunięte – dane core zapisywane do core/pending.json, core/codes.json, core/settings.json
 
@@ -209,11 +182,7 @@ async function loadWhitelist(): Promise<string[]> {
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') {
-      const data = await loadData();
-      const list = data.whitelist || [];
-      await fsp.mkdir(listsDir, { recursive: true });
-      await fsp.writeFile(filePath, JSON.stringify(list, null, 2));
-      return list;
+      return [];
     }
     console.error('❌ Błąd ładowania whitelist:', err);
     return [];
@@ -242,11 +211,7 @@ async function loadBlacklist(): Promise<string[]> {
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') {
-      const data = await loadData();
-      const list = data.blacklist || [];
-      await fsp.mkdir(listsDir, { recursive: true });
-      await fsp.writeFile(filePath, JSON.stringify(list, null, 2));
-      return list;
+      return [];
     }
     console.error('❌ Błąd ładowania blacklist:', err);
     return [];
@@ -277,11 +242,7 @@ async function loadGroups(): Promise<UserGroup[]> {
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') {
-      const data = await loadData();
-      const list = data.groups || [];
-      await fsp.mkdir(groupsDir, { recursive: true });
-      await fsp.writeFile(filePath, JSON.stringify(list, null, 2));
-      return list;
+      return [];
     }
     console.error('❌ Błąd ładowania grup:', err);
     return [];
@@ -314,11 +275,7 @@ async function loadPending(): Promise<
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') {
-      const data = await loadData();
-      const pending = data.pendingEmails || {};
-      await fsp.mkdir(coreDir, { recursive: true });
-      await fsp.writeFile(filePath, JSON.stringify(pending, null, 2));
-      return pending;
+      return {};
     }
     console.error('❌ Błąd ładowania pending:', err);
     return {};
@@ -389,30 +346,11 @@ async function loadCodes(): Promise<{
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') {
-      const data = await loadData();
-      const payload: CodesFile = {
-        activeCodes: Object.fromEntries(
-          Object.entries(data.activeCodes || {}).map(([e, lc]) => [
-            e,
-            serializeLoginCode(lc),
-          ])
-        ),
-        adminCodes: Object.fromEntries(
-          Object.entries(data.adminCodes || {}).map(([e, lc]) => [
-            e,
-            serializeLoginCode(lc),
-          ])
-        ),
-        loggedInUsers: data.loggedInUsers || [],
-        loggedInAdmins: data.loggedInAdmins || [],
-      };
-      await fsp.mkdir(coreDir, { recursive: true });
-      await fsp.writeFile(filePath, JSON.stringify(payload, null, 2));
       return {
-        activeCodes: data.activeCodes || {},
-        adminCodes: data.adminCodes || {},
-        loggedInUsers: data.loggedInUsers || [],
-        loggedInAdmins: data.loggedInAdmins || [],
+        activeCodes: {},
+        adminCodes: {},
+        loggedInUsers: [],
+        loggedInAdmins: [],
       };
     }
     console.error('❌ Błąd ładowania codes:', err);
@@ -468,11 +406,7 @@ async function loadSettings(): Promise<SettingsFile> {
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') {
-      const data = await loadData();
-      const settings = data.settings || {};
-      await fsp.mkdir(coreDir, { recursive: true });
-      await fsp.writeFile(filePath, JSON.stringify(settings, null, 2));
-      return settings;
+      return {};
     }
     console.error('❌ Błąd ładowania settings:', err);
     return {};

@@ -39,7 +39,7 @@ interface CommentItemProps {
   parentY?: number;
 }
 
-export default function CommentItem({ comment, parentX = 0, parentY = 0 }: CommentItemProps) {
+const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, parentY = 0 }: CommentItemProps) {
   const {
     updateComment,
     removeComment,
@@ -276,6 +276,8 @@ export default function CommentItem({ comment, parentX = 0, parentY = 0 }: Comme
       )}
     </div>
   );
-}
+});
+
+export default CommentItem;
 
 export { COLOR_MAP, FONT_WEIGHT_MAP, DEFAULT_COMMENT };

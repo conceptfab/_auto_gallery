@@ -10,23 +10,35 @@ interface DecorMap {
   };
 }
 
-/** Cache skompilowanych regexów per keyword (test + replace). */
-const keywordRegexCache = new Map<string, { test: RegExp; replace: RegExp }>();
+/** Cache skompilowanych regexów per keyword dla różnych trybów wyszukiwania. */
+interface CachedRegexes {
+  boundarygi: RegExp; // (?:^|_|\s|-|\b)(keyword)(?:_|\s|-|\b|$) - gi
+  simplegi: RegExp;   // (keyword) - gi
+  displayBoundaryg: RegExp; // (?:^|\s|-|\b)(KEYWORD)(?:\s|-|\b|$) - g
+  displaySimpleg: RegExp;   // (KEYWORD) - g
+}
 
-function getKeywordRegexes(escapedKeyword: string): {
-  test: RegExp;
-  replace: RegExp;
-} {
-  let cached = keywordRegexCache.get(escapedKeyword);
+const keywordRegexCache = new Map<string, CachedRegexes>();
+
+function getKeywordRegexes(keyword: string): CachedRegexes {
+  let cached = keywordRegexCache.get(keyword);
   if (!cached) {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedUpper = escaped.toUpperCase();
+
     cached = {
-      test: new RegExp(
-        `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
+      boundarygi: new RegExp(
+        `(?:^|_|\\s|-|\\b)(${escaped})(?:_|\\s|-|\\b|$)`,
         'gi'
       ),
-      replace: new RegExp(`(${escapedKeyword})`, 'gi'),
+      simplegi: new RegExp(`(${escaped})`, 'gi'),
+      displayBoundaryg: new RegExp(
+        `(?:^|\\s|-|\\b)(${escapedUpper})(?:\\s|-|\\b|$)`,
+        'g'
+      ),
+      displaySimpleg: new RegExp(`(${escapedUpper})`, 'g'),
     };
-    keywordRegexCache.set(escapedKeyword, cached);
+    keywordRegexCache.set(keyword, cached);
   }
   return cached;
 }
@@ -94,11 +106,9 @@ class DecorConverter {
 
     // Dla każdego słowa kluczowego - koloruj i dodaj ikonę (regex z cache)
     for (const keyword of allKeywords) {
-      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const { test: regex, replace: replaceRegex } =
-        getKeywordRegexes(escapedKeyword);
-      regex.lastIndex = 0;
-      if (regex.test(imageName)) {
+      const { boundarygi, simplegi } = getKeywordRegexes(keyword);
+      boundarygi.lastIndex = 0;
+      if (boundarygi.test(imageName)) {
         const color = this.getColorForKeyword(keyword);
 
         icons.push({
@@ -107,9 +117,9 @@ class DecorConverter {
           keyword: keyword,
         });
 
-        replaceRegex.lastIndex = 0;
+        simplegi.lastIndex = 0;
         highlightedName = highlightedName.replace(
-          replaceRegex,
+          simplegi,
           `<span style="color: ${color}; font-weight: 400; font-size: 0.75em;">$1</span>`
         );
       }
@@ -130,18 +140,14 @@ class DecorConverter {
     // Sprawdź wszystkie słowa kluczowe z blat
     if (table.blat) {
       for (const [key, fileName] of Object.entries(table.blat)) {
-        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-        let regex = new RegExp(
-          `(?:^|_|\\s|-|\\b)${escapedKey}(?:_|\\s|-|\\b|$)`,
-          'gi'
-        );
-        if (regex.test(imageName)) {
+        const { boundarygi, simplegi } = getKeywordRegexes(key);
+        boundarygi.lastIndex = 0;
+        if (boundarygi.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
         }
         // Fallback: spróbuj bez granic
-        regex = new RegExp(escapedKey, 'gi');
-        if (regex.test(imageName)) {
+        simplegi.lastIndex = 0;
+        if (simplegi.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
         }
       }
@@ -159,18 +165,14 @@ class DecorConverter {
     // Sprawdź wszystkie słowa kluczowe z stelaż
     if (table.stelaż) {
       for (const [key, fileName] of Object.entries(table.stelaż)) {
-        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-        let regex = new RegExp(
-          `(?:^|_|\\s|-|\\b)${escapedKey}(?:_|\\s|-|\\b|$)`,
-          'gi'
-        );
-        if (regex.test(imageName)) {
+        const { boundarygi, simplegi } = getKeywordRegexes(key);
+        boundarygi.lastIndex = 0;
+        if (boundarygi.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
         }
         // Fallback: spróbuj bez granic
-        regex = new RegExp(escapedKey, 'gi');
-        if (regex.test(imageName)) {
+        simplegi.lastIndex = 0;
+        if (simplegi.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
         }
       }
@@ -196,50 +198,6 @@ class DecorConverter {
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
 
-  async highlightKeywords(imageName: string): Promise<string> {
-    const table = await this.loadTable();
-
-    // Pobierz wszystkie słowa kluczowe dynamicznie z JSON
-    const allKeywords = new Set<string>();
-
-    // Dodaj słowa z stelaż
-    if (table.stelaż) {
-      Object.keys(table.stelaż).forEach((key) => allKeywords.add(key));
-    }
-
-    // Dodaj słowa z blat
-    if (table.blat) {
-      Object.keys(table.blat).forEach((key) => allKeywords.add(key));
-    }
-
-    let highlightedName = imageName;
-
-    // Koloruj każde znalezione słowo kluczowe unikalnym kolorem
-    for (const keyword of allKeywords) {
-      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-      const regex = new RegExp(
-        `(?:^|_|\\s|-|\\b)(${escapedKeyword})(?:_|\\s|-|\\b|$)`,
-        'gi'
-      );
-      if (regex.test(imageName)) {
-        const color = this.getColorForKeyword(keyword);
-        // Koloruj w tekście - użyj regex bez lookahead/lookbehind dla replace
-        const replaceRegex = new RegExp(`(${escapedKeyword})`, 'gi');
-        highlightedName = highlightedName.replace(
-          replaceRegex,
-          `<span style="color: ${color}; font-weight: 400; font-size: 0.75em;">$1</span>`
-        );
-      }
-    }
-
-    return highlightedName;
-  }
-
-  /**
-   * Styluje słowa kluczowe w finalnej, wyświetlanej nazwie pliku (już sformatowanej, uppercase).
-   * Zawsze stosuje styl (font-weight, font-size). Kolor tylko gdy useColors === true.
-   */
   async highlightKeywordsInDisplayName(
     displayName: string,
     useColors: boolean = true
@@ -264,19 +222,15 @@ class DecorConverter {
     // Dla każdego słowa kluczowego: zawsze inny styl (klasa + inline), kolor tylko gdy useColors
     const styleBase = 'font-weight: 500; font-size: 0.72em;';
     for (const keyword of allKeywords) {
-      const keywordUpper = keyword.toUpperCase();
-      const escapedKeywordUpper = this.escapeRegex(keywordUpper);
-      const displayRegex = new RegExp(
-        `(?:^|\\s|-|\\b)(${escapedKeywordUpper})(?:\\s|-|\\b|$)`,
-        'g'
-      );
-      if (displayRegex.test(displayName)) {
+      const { displayBoundaryg, displaySimpleg } = getKeywordRegexes(keyword);
+      displayBoundaryg.lastIndex = 0;
+      if (displayBoundaryg.test(displayName)) {
         const style = useColors
           ? `color: ${this.getColorForKeyword(keyword)}; ${styleBase}`
           : styleBase;
-        const replaceRegex = new RegExp(`(${escapedKeywordUpper})`, 'g');
+        displaySimpleg.lastIndex = 0;
         highlightedName = highlightedName.replace(
-          replaceRegex,
+          displaySimpleg,
           `<span class="keyword" style="${style}">$1</span>`
         );
       }
@@ -336,18 +290,14 @@ class DecorConverter {
 
     // Znajdź wszystkie słowa kluczowe i zapisz ich pozycje w nazwie pliku
     for (const { keyword, fileName } of allKeywords) {
-      // Escapuj specjalne znaki i użyj elastycznego wyszukiwania
-      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-      // Użyj prostszego podejścia - znajdź wszystkie wystąpienia i sprawdź granice
-      const regex = new RegExp(escapedKeyword, 'gi');
+      const { simplegi } = getKeywordRegexes(keyword);
       let match: RegExpExecArray | null;
 
       // Reset regex przed każdym użyciem
-      regex.lastIndex = 0;
+      simplegi.lastIndex = 0;
 
       // Sprawdź wszystkie wystąpienia i zweryfikuj czy są otoczone odpowiednimi znakami
-      while ((match = regex.exec(imageName)) !== null) {
+      while ((match = simplegi.exec(imageName)) !== null) {
         const position = match.index;
         const before = position > 0 ? imageName[position - 1] : '';
         const after =
@@ -422,20 +372,14 @@ class DecorConverter {
     // Sprawdź które słowa kluczowe występują w nazwie pliku
     // Używamy bardziej elastycznego regex - szukamy zarówno z word boundary jak i bez
     for (const keyword of allKeywords) {
-      // Escapuj specjalne znaki regex w keyword
-      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-      // Szukaj słowa kluczowego otoczonego przez podkreślenia, spacje, myślniki lub granice słowa
-      let regex = new RegExp(
-        `(?:^|_|\\s|-|\\b)${escapedKeyword}(?:_|\\s|-|\\b|$)`,
-        'gi'
-      );
-      let found = regex.test(imageName);
+      const { boundarygi, simplegi } = getKeywordRegexes(keyword);
+      boundarygi.lastIndex = 0;
+      let found = boundarygi.test(imageName);
 
       // Jeśli nie znaleziono z elastycznym regex, spróbuj bez granic (dla pełnego dopasowania)
       if (!found) {
-        regex = new RegExp(escapedKeyword, 'gi');
-        found = regex.test(imageName);
+        simplegi.lastIndex = 0;
+        found = simplegi.test(imageName);
       }
 
       if (found) {

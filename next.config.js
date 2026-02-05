@@ -1,3 +1,17 @@
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data: https://conceptfab.com;
+    font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    connect-src 'self' https://conceptfab.com;
+    upgrade-insecure-requests;
+`.replace(/\n/g, '').replace(/\s{2,}/g, ' ').trim();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -17,6 +31,7 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
+          { key: 'Content-Security-Policy', value: cspHeader },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },

@@ -11,7 +11,7 @@ interface GroupItemProps {
   children?: React.ReactNode;
 }
 
-export default function GroupItem({ group, children }: GroupItemProps) {
+const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemProps) {
   const {
     updateGroup,
     removeGroup,
@@ -237,4 +237,6 @@ export default function GroupItem({ group, children }: GroupItemProps) {
       )}
     </div>
   );
-}
+});
+
+export default GroupItem;

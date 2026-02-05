@@ -15,9 +15,26 @@ function getSecretKey(): string {
   return secret || '';
 }
 
+/**
+ * Pobiera wymaganą zmienną środowiskową.
+ * W środowisku produkcyjnym rzuca błędem, jeśli zmienna nie jest ustawiona.
+ */
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    // W środowisku produkcyjnym rzuć błędem
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Critical environment variable ${name} is missing!`);
+    }
+    // W deweloperskim zaloguj ostrzeżenie i zwróć pusty string (aplikacja może nie działać poprawnie, ale się uruchomi)
+    console.warn(`Warning: Environment variable ${name} is missing.`);
+    return '';
+  }
+  return value;
+}
+
 // URL do skryptu proxy na serwerze PHP
-const FILE_PROXY_URL =
-  process.env.FILE_PROXY_URL || 'https://conceptfab.com/file-proxy.php';
+const FILE_PROXY_URL = getRequiredEnv('FILE_PROXY_URL');
 
 // Czas ważności tokenu w sekundach (2 godziny)
 const TOKEN_EXPIRY_SECONDS = 7200;
@@ -75,8 +92,7 @@ export function isFileProtectionEnabled(): boolean {
  */
 export function generateListUrl(folder: string = ''): string {
   const secretKey = getSecretKey();
-  const FILE_LIST_URL =
-    process.env.FILE_LIST_URL || 'https://conceptfab.com/file-list.php';
+  const FILE_LIST_URL = getRequiredEnv('FILE_LIST_URL');
   const expires = Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS;
 
   // Token dla listowania = HMAC-SHA256("list|folder|expires", secret)
@@ -96,16 +112,11 @@ export function generateListUrl(folder: string = ''): string {
 
 // ========== FILE MANAGEMENT TOKENS ==========
 
-const FILE_UPLOAD_URL =
-  process.env.FILE_UPLOAD_URL || 'https://conceptfab.com/file-upload.php';
-const FILE_DELETE_URL =
-  process.env.FILE_DELETE_URL || 'https://conceptfab.com/file-delete.php';
-const FILE_RENAME_URL =
-  process.env.FILE_RENAME_URL || 'https://conceptfab.com/file-rename.php';
-const FILE_MKDIR_URL =
-  process.env.FILE_MKDIR_URL || 'https://conceptfab.com/file-mkdir.php';
-const FILE_MOVE_URL =
-  process.env.FILE_MOVE_URL || 'https://conceptfab.com/file-move.php';
+const FILE_UPLOAD_URL = getRequiredEnv('FILE_UPLOAD_URL');
+const FILE_DELETE_URL = getRequiredEnv('FILE_DELETE_URL');
+const FILE_RENAME_URL = getRequiredEnv('FILE_RENAME_URL');
+const FILE_MKDIR_URL = getRequiredEnv('FILE_MKDIR_URL');
+const FILE_MOVE_URL = getRequiredEnv('FILE_MOVE_URL');
 
 /**
  * Generuje token dla uploadu plików

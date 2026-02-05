@@ -550,6 +550,22 @@ export default function Canvas() {
     }
   }, [selectionBox]);
 
+  const allMemberIds = React.useMemo(() => {
+    const set = new Set<string>();
+    groups.forEach(g => g.memberIds.forEach(id => set.add(id)));
+    return set;
+  }, [groups]);
+
+  const standaloneImages = React.useMemo(() => 
+    images.filter(img => !allMemberIds.has(img.id)),
+    [images, allMemberIds]
+  );
+
+  const standaloneComments = React.useMemo(() => 
+    comments.filter(c => !allMemberIds.has(c.id)),
+    [comments, allMemberIds]
+  );
+
   return (
     <div
       ref={containerRef}
@@ -578,21 +594,19 @@ export default function Canvas() {
             {dropError}
           </div>
         )}
-        {images
-          .filter((img) => !groups.some((g) => g.memberIds.includes(img.id)))
-          .map((img) => (
-            <ImageItem key={img.id} image={img} />
-          ))}
-        {comments
-          .filter((c) => !groups.some((g) => g.memberIds.includes(c.id)))
-          .map((c) => (
-            <CommentItem key={c.id} comment={c} />
-          ))}
-        {groups.map((g) => (
-          <GroupItem key={g.id} group={g}>
-            {images
-              .filter((img) => g.memberIds.includes(img.id))
-              .map((img) => (
+        {standaloneImages.map((img) => (
+          <ImageItem key={img.id} image={img} />
+        ))}
+        {standaloneComments.map((c) => (
+          <CommentItem key={c.id} comment={c} />
+        ))}
+        {groups.map((g) => {
+          const groupImages = images.filter((img) => g.memberIds.includes(img.id));
+          const groupComments = comments.filter((c) => g.memberIds.includes(c.id));
+          
+          return (
+            <GroupItem key={g.id} group={g}>
+              {groupImages.map((img) => (
                 <ImageItem
                   key={img.id}
                   image={img}
@@ -600,9 +614,7 @@ export default function Canvas() {
                   parentY={g.y}
                 />
               ))}
-            {comments
-              .filter((c) => g.memberIds.includes(c.id))
-              .map((c) => (
+              {groupComments.map((c) => (
                 <CommentItem
                   key={c.id}
                   comment={c}
@@ -610,8 +622,9 @@ export default function Canvas() {
                   parentY={g.y}
                 />
               ))}
-          </GroupItem>
-        ))}
+            </GroupItem>
+          );
+        })}
       </div>
       <div className="moodboard-canvas-hint">Przeciągnij obrazki tutaj</div>
       <div className="moodboard-canvas-zoom-controls" onPointerDown={(e) => e.stopPropagation()}>

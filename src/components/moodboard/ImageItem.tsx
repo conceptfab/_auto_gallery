@@ -12,7 +12,7 @@ interface ImageItemProps {
   parentY?: number;
 }
 
-export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItemProps) {
+const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItemProps) {
   const {
     updateImage,
     removeImage,
@@ -215,4 +215,6 @@ export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItem
       )}
     </div>
   );
-}
+});
+
+export default ImageItem;

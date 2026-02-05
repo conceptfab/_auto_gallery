@@ -63,6 +63,14 @@ const MoodboardPage: React.FC = () => {
     trackDesignView('moodboard', 'moodboard', 'Moodboard');
   }, [authStatus?.isLoggedIn, authLoading, trackDesignView]);
 
+  // Dodaj klasę do body, aby ukryć scrollbar na moodboardzie
+  useEffect(() => {
+    document.body.classList.add('moodboard-active');
+    return () => {
+      document.body.classList.remove('moodboard-active');
+    };
+  }, []);
+
   if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
   }

@@ -13,6 +13,7 @@ import type {
 
 // Etap 3: jeden plik na dzień – users/stats-YYYY-MM-DD.json
 const STATS_TIMEZONE = 'Europe/Warsaw';
+const MAX_STATS_DAYS = 30; // Domyślny limit dni dla widoku zbiorczego (PERF-010)
 
 interface DailyStatsFile {
   date: string;
@@ -498,7 +499,14 @@ export async function getOverviewStats(dateRange?: {
   };
   const dateRangeStart = dateRange ? getDateString(dateRange.start) : null;
   const dateRangeEnd = dateRange ? getDateString(dateRange.end) : null;
-  for (const dateStr of dates) {
+
+  // PERF-010: Skalowalność - nie ładuj wszystkich plików jeśli nie ma zakresu
+  let processingDates = dates;
+  if (!dateRange) {
+    processingDates = dates.slice(0, MAX_STATS_DAYS);
+  }
+
+  for (const dateStr of processingDates) {
     if (dateRangeStart && dateStr < dateRangeStart) continue;
     if (dateRangeEnd && dateStr > dateRangeEnd) continue;
     const day = await loadStatsFile(dateStr);
@@ -652,7 +660,14 @@ export async function getDesignOverviewStats(dateRange?: {
   const viewEvents: ViewEvent[] = [];
   const dateRangeStart = dateRange ? getDateString(dateRange.start) : null;
   const dateRangeEnd = dateRange ? getDateString(dateRange.end) : null;
-  for (const dateStr of dates) {
+
+  // PERF-010: Skalowalność - nie ładuj wszystkich plików jeśli nie ma zakresu
+  let processingDates = dates;
+  if (!dateRange) {
+    processingDates = dates.slice(0, MAX_STATS_DAYS);
+  }
+
+  for (const dateStr of processingDates) {
     if (dateRangeStart && dateStr < dateRangeStart) continue;
     if (dateRangeEnd && dateStr > dateRangeEnd) continue;
     const day = await loadStatsFile(dateStr);
