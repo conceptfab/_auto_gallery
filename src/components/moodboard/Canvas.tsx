@@ -5,6 +5,10 @@ import { useMoodboard } from '@/src/contexts/MoodboardContext';
 import { MOODBOARD_MAX_IMAGE_BYTES } from '@/src/types/moodboard';
 import ImageItem from './ImageItem';
 import CommentItem from './CommentItem';
+import ContextMenu from './ContextMenu';
+import GroupItem from './GroupItem';
+import CommentEditPanel from './CommentEditPanel';
+import GroupEditPanel from './GroupEditPanel';
 
 const DEFAULT_IMAGE_WIDTH = 200;
 const DEFAULT_IMAGE_HEIGHT = 150;
@@ -57,7 +61,19 @@ interface PanStart {
 }
 
 export default function Canvas() {
-  const { images, comments, addImage, setSelected, activeId } = useMoodboard();
+  const { 
+    images, 
+    comments, 
+    groups = [], 
+    addImage, 
+    addComment, 
+    updateComment,
+    addGroup, 
+    updateGroup,
+    removeGroup,
+    setSelected, 
+    activeId 
+  } = useMoodboard();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropError, setDropError] = useState<string | null>(null);
@@ -67,6 +83,24 @@ export default function Canvas() {
   const [spacePressed, setSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef<PanStart | null>(null);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; contentX: number; contentY: number } | null>(null);
+  const [editingComment, setEditingComment] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [editingGroup, setEditingGroup] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Shift selection state
+  const [shiftPressed, setShiftPressed] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
+  const selectionStartRef = useRef<{ clientX: number; clientY: number; contentX: number; contentY: number } | null>(null);
 
   useEffect(() => {
     const isEditable = (el: EventTarget | null) => {
@@ -80,6 +114,9 @@ export default function Canvas() {
         e.preventDefault();
         setSpacePressed(true);
       }
+      if (e.key === 'Shift') {
+        setShiftPressed(true);
+      }
     };
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !isEditable(e.target)) {
@@ -89,6 +126,9 @@ export default function Canvas() {
           setIsPanning(false);
           panStartRef.current = null;
         }
+      }
+      if (e.key === 'Shift') {
+        setShiftPressed(false);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -199,18 +239,105 @@ export default function Canvas() {
     [addImage, clientToContent, activeId]
   );
 
+  const handleFitToView = useCallback(() => {
+    if (!containerRef.current || (images.length === 0 && comments.length === 0 && groups.length === 0)) {
+      setScale(1);
+      setTranslateX(0);
+      setTranslateY(0);
+      return;
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    images.forEach((img) => {
+      minX = Math.min(minX, img.x);
+      minY = Math.min(minY, img.y);
+      maxX = Math.max(maxX, img.x + img.width);
+      maxY = Math.max(maxY, img.y + img.height);
+    });
+
+    comments.forEach((c) => {
+      minX = Math.min(minX, c.x);
+      minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x + c.width);
+      maxY = Math.max(maxY, c.y + c.height);
+    });
+
+    groups.forEach((g) => {
+      minX = Math.min(minX, g.x);
+      minY = Math.min(minY, g.y - (g.labelSize || 14) - 10);
+      maxX = Math.max(maxX, g.x + g.width);
+      maxY = Math.max(maxY, g.y + g.height);
+    });
+
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    if (contentWidth <= 0 || contentHeight <= 0 || minX === Infinity) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const padding = 60;
+    const availableWidth = containerRect.width - padding * 2;
+    const availableHeight = containerRect.height - padding * 2;
+
+    let newScale = Math.min(
+      availableWidth / contentWidth,
+      availableHeight / contentHeight
+    );
+    newScale = Math.min(1.5, Math.max(MIN_SCALE, newScale));
+
+    const offsetX = (containerRect.width - contentWidth * newScale) / 2;
+    const offsetY = (containerRect.height - contentHeight * newScale) / 2;
+
+    setTranslateX(offsetX - minX * newScale);
+    setTranslateY(offsetY - minY * newScale);
+    setScale(newScale);
+  }, [images, comments, groups]);
+
   const isEmptyArea = useCallback((el: EventTarget | null) => {
     const node = el as HTMLElement;
     if (!node?.closest) return true;
     return (
       !node.closest('.moodboard-image-item') &&
-      !node.closest('.moodboard-comment-item')
+      !node.closest('.moodboard-comment-item') &&
+      !node.closest('.moodboard-group-item') &&
+      !node.closest('.moodboard-comment-edit-panel') &&
+      !node.closest('.moodboard-group-edit-panel') &&
+      !node.closest('.moodboard-canvas-zoom-controls')
     );
   }, []);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // Lewy przycisk na pustym obszarze = pan
+      // Close menus on any click
+      setContextMenu(null);
+      setEditingComment(null);
+      setEditingGroup(null);
+
+      // Shift + left click on empty area = selection box
+      if (e.button === 0 && e.shiftKey && isEmptyArea(e.target)) {
+        e.preventDefault();
+        setSelected(null, null);
+        const content = clientToContent(e.clientX, e.clientY);
+        selectionStartRef.current = {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          contentX: content.x,
+          contentY: content.y,
+        };
+        setSelectionBox({
+          startX: content.x,
+          startY: content.y,
+          endX: content.x,
+          endY: content.y,
+        });
+        containerRef.current?.setPointerCapture(e.pointerId);
+        return;
+      }
+
+      // Left click on empty area = pan
       if (e.button === 0 && isEmptyArea(e.target)) {
         e.preventDefault();
         setSelected(null, null);
@@ -229,8 +356,79 @@ export default function Canvas() {
         return;
       }
     },
-    [translateX, translateY, setSelected, isEmptyArea]
+    [translateX, translateY, setSelected, isEmptyArea, clientToContent]
   );
+
+  // Handle context menu (right-click)
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const target = e.target as HTMLElement;
+      const commentItem = target.closest('.moodboard-comment-item');
+      const groupItem = target.closest('.moodboard-group-item');
+      
+      const content = clientToContent(e.clientX, e.clientY);
+
+      if (commentItem) {
+        const id = (commentItem as HTMLElement).getAttribute('data-id');
+        if (id) {
+          setSelected(id, 'comment');
+          setEditingComment({
+            id,
+            x: e.clientX,
+            y: e.clientY,
+          });
+          setEditingGroup(null);
+          setContextMenu(null);
+          return;
+        }
+      }
+
+      if (groupItem) {
+        // Find group ID. GroupItem doesn't have data-id yet, but let's assume we'll add it or find it.
+        // Actually, let's check GroupItem.tsx, it might need data-id.
+        // For now, let's use the first group that contains the target (hacky but works if nested)
+        // Better: let's add data-id to GroupItem.tsx as well.
+        const id = (groupItem as HTMLElement).getAttribute('data-id');
+        if (id) {
+          setSelected(id, 'group');
+          setEditingGroup({
+            id,
+            x: e.clientX,
+            y: e.clientY,
+          });
+          setEditingComment(null);
+          setContextMenu(null);
+          return;
+        }
+      }
+
+      setEditingComment(null);
+      setEditingGroup(null);
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        contentX: content.x,
+        contentY: content.y,
+      });
+    },
+    [clientToContent, setSelected]
+  );
+
+  // Handle adding comment from context menu
+  const handleAddCommentFromMenu = useCallback(() => {
+    if (!contextMenu) return;
+    addComment({
+      text: '',
+      color: 'yellow',
+      font: 'sans',
+      fontWeight: 'normal',
+      x: contextMenu.contentX,
+      y: contextMenu.contentY,
+      width: 200,
+      height: 120,
+    });
+  }, [contextMenu, addComment]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -266,7 +464,81 @@ export default function Canvas() {
     };
   }, [isPanning]);
 
+  // Track selection box while shift-dragging
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !selectionBox || !selectionStartRef.current) return;
+
+    const onMove = (e: PointerEvent) => {
+      const content = clientToContent(e.clientX, e.clientY);
+      setSelectionBox((prev) =>
+        prev ? { ...prev, endX: content.x, endY: content.y } : null
+      );
+    };
+
+    const onUp = () => {
+      if (selectionBox && selectionStartRef.current) {
+        const x1 = Math.min(selectionBox.startX, selectionBox.endX);
+        const y1 = Math.min(selectionBox.startY, selectionBox.endY);
+        const x2 = Math.max(selectionBox.startX, selectionBox.endX);
+        const y2 = Math.max(selectionBox.startY, selectionBox.endY);
+        
+        const width = x2 - x1;
+        const height = y2 - y1;
+
+        // Only create group if selection box is large enough
+        if (width > 10 && height > 10) {
+          const selectedMemberIds: string[] = [];
+
+          // Find images inside selection
+          images.forEach(img => {
+            if (img.x >= x1 && img.x + img.width <= x2 && 
+                img.y >= y1 && img.y + img.height <= y2) {
+              selectedMemberIds.push(img.id);
+            }
+          });
+
+          // Find comments inside selection
+          comments.forEach(c => {
+            if (c.x >= x1 && c.x + c.width <= x2 && 
+                c.y >= y1 && c.y + c.height <= y2) {
+              selectedMemberIds.push(c.id);
+            }
+          });
+
+          if (selectedMemberIds.length > 0) {
+            addGroup({
+              name: `Grupa ${groups.length + 1}`,
+              x: x1,
+              y: y1,
+              width,
+              height,
+              memberIds: selectedMemberIds,
+            });
+          }
+        }
+      }
+      
+      setSelectionBox(null);
+      selectionStartRef.current = null;
+    };
+
+    el.addEventListener('pointermove', onMove, { capture: true });
+    el.addEventListener('pointerup', onUp, { capture: true });
+    el.addEventListener('pointercancel', onUp, { capture: true });
+    return () => {
+      el.removeEventListener('pointermove', onMove, { capture: true });
+      el.removeEventListener('pointerup', onUp, { capture: true });
+      el.removeEventListener('pointercancel', onUp, { capture: true });
+    };
+  }, [selectionBox, clientToContent, images, comments, addGroup, groups.length]);
+
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    // Clear selection box
+    if (selectionBox) {
+      setSelectionBox(null);
+      selectionStartRef.current = null;
+    }
     if (e.button === 0 && panStartRef.current?.pointerId === e.pointerId) {
       try {
         containerRef.current?.releasePointerCapture(e.pointerId);
@@ -276,7 +548,7 @@ export default function Canvas() {
       setIsPanning(false);
       panStartRef.current = null;
     }
-  }, []);
+  }, [selectionBox]);
 
   return (
     <div
@@ -285,13 +557,14 @@ export default function Canvas() {
         isDragOver ? 'moodboard-canvas--drag-over' : ''
       } ${spacePressed ? 'moodboard-canvas--space' : ''} ${
         isPanning ? 'moodboard-canvas--panning' : ''
-      }`}
+      } ${shiftPressed ? 'moodboard-canvas--shift' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onContextMenu={handleContextMenu}
     >
       <div
         className="moodboard-canvas-inner"
@@ -305,15 +578,43 @@ export default function Canvas() {
             {dropError}
           </div>
         )}
-        {images.map((img) => (
-          <ImageItem key={img.id} image={img} />
-        ))}
-        {comments.map((c) => (
-          <CommentItem key={c.id} comment={c} />
+        {images
+          .filter((img) => !groups.some((g) => g.memberIds.includes(img.id)))
+          .map((img) => (
+            <ImageItem key={img.id} image={img} />
+          ))}
+        {comments
+          .filter((c) => !groups.some((g) => g.memberIds.includes(c.id)))
+          .map((c) => (
+            <CommentItem key={c.id} comment={c} />
+          ))}
+        {groups.map((g) => (
+          <GroupItem key={g.id} group={g}>
+            {images
+              .filter((img) => g.memberIds.includes(img.id))
+              .map((img) => (
+                <ImageItem
+                  key={img.id}
+                  image={img}
+                  parentX={g.x}
+                  parentY={g.y}
+                />
+              ))}
+            {comments
+              .filter((c) => g.memberIds.includes(c.id))
+              .map((c) => (
+                <CommentItem
+                  key={c.id}
+                  comment={c}
+                  parentX={g.x}
+                  parentY={g.y}
+                />
+              ))}
+          </GroupItem>
         ))}
       </div>
       <div className="moodboard-canvas-hint">Przeciągnij obrazki tutaj</div>
-      <div className="moodboard-canvas-zoom-controls">
+      <div className="moodboard-canvas-zoom-controls" onPointerDown={(e) => e.stopPropagation()}>
         <button
           type="button"
           className="moodboard-zoom-btn"
@@ -343,7 +644,110 @@ export default function Canvas() {
         >
           ⌂
         </button>
+        <button
+          type="button"
+          className="moodboard-zoom-btn moodboard-zoom-btn--fit"
+          onClick={handleFitToView}
+          title="Pokaż wszystko"
+        >
+          ⛶
+        </button>
       </div>
+      {/* Selection box for Shift+drag */}
+      {selectionBox && (
+        <div
+          className="moodboard-selection-box"
+          style={{
+            left: Math.min(selectionBox.startX, selectionBox.endX) * scale + translateX,
+            top: Math.min(selectionBox.startY, selectionBox.endY) * scale + translateY,
+            width: Math.abs(selectionBox.endX - selectionBox.startX) * scale,
+            height: Math.abs(selectionBox.endY - selectionBox.startY) * scale,
+          }}
+        />
+      )}
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onAddComment={handleAddCommentFromMenu}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Inline Edit Panel for Comments (Triggered by right-click) */}
+      {editingComment && (
+        (() => {
+          const comment = comments.find(c => c.id === editingComment.id);
+          if (!comment) return null;
+          
+          return (
+            <CommentEditPanel
+              color={comment.color}
+              bgColor={comment.bgColor || '#fef08a'}
+              fontColor={comment.fontColor || '#000000'}
+              fontSize={comment.fontSize || 16}
+              fontWeight={comment.fontWeight || 'normal'}
+              onColorChange={(c) => updateComment(comment.id, { color: c })}
+              onBgColorChange={(c) => updateComment(comment.id, { bgColor: c })}
+              onFontColorChange={(c) => updateComment(comment.id, { fontColor: c })}
+              onFontSizeChange={(s) => updateComment(comment.id, { fontSize: s })}
+              onFontWeightChange={(w) => updateComment(comment.id, { fontWeight: w })}
+              position={{ x: editingComment.x, y: editingComment.y }}
+            />
+          );
+        })()
+      )}
+
+      {/* Inline Edit Panel for Groups (Triggered by right-click) */}
+      {editingGroup && (
+        (() => {
+          const group = groups.find(g => g.id === editingGroup.id);
+          if (!group) return null;
+          
+          const handleUngroup = () => {
+            removeGroup(group.id);
+            setEditingGroup(null);
+          };
+
+          const handleAddCommentToGroup = () => {
+            const commentId = generateId();
+            addComment({
+              id: commentId,
+              text: '',
+              color: 'yellow',
+              font: 'sans',
+              fontWeight: 'normal',
+              x: group.x + 20,
+              y: group.y + 40,
+              width: 150,
+              height: 100,
+            });
+            
+            updateGroup(group.id, {
+              memberIds: [...group.memberIds, commentId]
+            });
+            setEditingGroup(null);
+          };
+
+          return (
+            <GroupEditPanel
+              name={group.name}
+              color={group.color}
+              labelSize={group.labelSize}
+              labelColor={group.labelColor}
+              onNameChange={(name) => updateGroup(group.id, { name })}
+              onColorChange={(color) => updateGroup(group.id, { color })}
+              onLabelSizeChange={(size) => updateGroup(group.id, { labelSize: size })}
+              onLabelColorChange={(color) => updateGroup(group.id, { labelColor: color })}
+              onUngroup={handleUngroup}
+              onAddComment={handleAddCommentToGroup}
+              position={{ x: editingGroup.x, y: editingGroup.y }}
+            />
+          );
+        })()
+      )}
     </div>
   );
 }
+

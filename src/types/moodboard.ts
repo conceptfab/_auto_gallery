@@ -35,11 +35,28 @@ export interface MoodboardComment {
   color: CommentColorKey;
   font: CommentFontKey;
   fontWeight?: CommentFontWeightKey;
+  fontColor?: string;    // kolor tekstu (domyślnie #000)
+  fontSize?: number;     // rozmiar fontu w px (domyślnie 16)
+  bgColor?: string;      // kolor tła (hex, domyślnie z puli color)
   x: number;
   y: number;
   width: number;
   height: number;
   rotation?: number;
+}
+
+/** Grupa elementów na moodboardzie */
+export interface MoodboardGroup {
+  id: string;
+  name: string;
+  color?: string;        // kolor tła grupy (opcjonalny)
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  memberIds: string[];   // ID obrazków i komentarzy w grupie
+  labelSize?: number;    // rozmiar etykiety grupy
+  labelColor?: string;   // kolor tekstu etykiety
 }
 
 /** Pojedyncza tablica moodboard (jedna zakładka) */
@@ -48,6 +65,7 @@ export interface MoodboardBoard {
   name?: string;
   images: MoodboardImage[];
   comments: MoodboardComment[];
+  groups?: MoodboardGroup[];
 }
 
 /** Stan pojedynczego moodboarda (legacy / wewnętrzny) */

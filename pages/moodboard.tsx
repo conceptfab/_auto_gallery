@@ -9,10 +9,6 @@ import {
   useMoodboard,
 } from '@/src/contexts/MoodboardContext';
 
-const MoodboardToolbar = dynamic(
-  () => import('@/src/components/moodboard/Toolbar'),
-  { ssr: false }
-);
 const MoodboardCanvas = dynamic(
   () => import('@/src/components/moodboard/Canvas'),
   { ssr: false }
@@ -52,7 +48,6 @@ function MoodboardContent({ isAdmin = false }: { isAdmin?: boolean }) {
             {saveError}
           </div>
         )}
-        {!loading && <MoodboardToolbar />}
         {!loading && <MoodboardCanvas />}
       </div>
     </>

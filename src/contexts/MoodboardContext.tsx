@@ -13,6 +13,7 @@ import {
   MoodboardBoard,
   MoodboardComment,
   MoodboardImage,
+  MoodboardGroup,
   MoodboardAppState,
 } from '@/src/types/moodboard';
 
@@ -21,10 +22,13 @@ interface MoodboardContextValue extends MoodboardBoard {
   loadError: string | null;
   saveError: string | null;
   selectedId: string | null;
-  selectedType: 'image' | 'comment' | null;
+  selectedType: 'image' | 'comment' | 'group' | null;
   boards: MoodboardBoard[];
   activeId: string;
-  setSelected: (id: string | null, type: 'image' | 'comment' | null) => void;
+  hoveredGroupId: string | null;
+  lastAddedGroupId: string | null;
+  setSelected: (id: string | null, type: 'image' | 'comment' | 'group' | null) => void;
+  setHoveredGroup: (x: number | null, y: number | null) => void;
   setActiveBoard: (id: string) => void;
   setMoodboardName: (name: string) => void;
   deleteBoard: (boardId: string) => void;
@@ -32,9 +36,13 @@ interface MoodboardContextValue extends MoodboardBoard {
   addImage: (image: Omit<MoodboardImage, 'id'>) => void;
   updateImage: (id: string, patch: Partial<MoodboardImage>) => void;
   removeImage: (id: string) => void;
-  addComment: (comment: Omit<MoodboardComment, 'id'>) => void;
+  addComment: (comment: Omit<MoodboardComment, 'id'> & { id?: string }) => void;
   updateComment: (id: string, patch: Partial<MoodboardComment>) => void;
   removeComment: (id: string) => void;
+  addGroup: (group: Omit<MoodboardGroup, 'id'>) => void;
+  updateGroup: (id: string, patch: Partial<MoodboardGroup>) => void;
+  removeGroup: (id: string) => void;
+  autoGroupItem: (itemId: string, x: number, y: number, width: number, height: number) => void;
 }
 
 const MoodboardContext = createContext<MoodboardContextValue | null>(null);
@@ -67,6 +75,7 @@ const emptyBoard = (): MoodboardBoard => ({
   name: undefined,
   images: [],
   comments: [],
+  groups: [],
 });
 
 export function MoodboardProvider({ children }: { children: React.ReactNode }) {
@@ -77,8 +86,10 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [hoveredGroupId, setHoveredGroupId] = useState<string | null>(null);
+  const [lastAddedGroupId, setLastAddedGroupId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<'image' | 'comment' | null>(
+  const [selectedType, setSelectedType] = useState<'image' | 'comment' | 'group' | null>(
     null
   );
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,7 +146,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setSelected = useCallback(
-    (id: string | null, type: 'image' | 'comment' | null) => {
+    (id: string | null, type: 'image' | 'comment' | 'group' | null) => {
       setSelectedId(id);
       setSelectedType(type);
     },
@@ -229,8 +240,11 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addImage = useCallback(
-    (image: Omit<MoodboardImage, 'id'>) => {
-      const newImage: MoodboardImage = { ...image, id: generateId() };
+    (image: Omit<MoodboardImage, 'id'> & { id?: string }) => {
+      const newImage: MoodboardImage = {
+        ...image,
+        id: image.id || generateId(),
+      };
       setAppState((prev) => {
         const boards = prev.boards.map((b) =>
           b.id === prev.activeId ? { ...b, images: [...b.images, newImage] } : b
@@ -300,10 +314,10 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addComment = useCallback(
-    (comment: Omit<MoodboardComment, 'id'>) => {
+    (comment: Omit<MoodboardComment, 'id'> & { id?: string }) => {
       const newComment: MoodboardComment = {
         ...comment,
-        id: generateId(),
+        id: comment.id || generateId(),
       };
       setAppState((prev) => {
         const boards = prev.boards.map((b) =>
@@ -360,6 +374,171 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     [scheduleSave, selectedId, selectedType]
   );
 
+  const addGroup = useCallback(
+    (group: Omit<MoodboardGroup, 'id'>) => {
+      const newGroup: MoodboardGroup = {
+        ...group,
+        id: generateId(),
+      };
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, groups: [...(b.groups || []), newGroup] }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const updateGroup = useCallback(
+    (id: string, patch: Partial<MoodboardGroup>) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) => {
+          if (b.id !== prev.activeId) return b;
+
+          const group = (b.groups || []).find((g) => g.id === id);
+          if (!group) return b;
+
+          const groups = (b.groups || []).map((g) => {
+            if (g.id !== id) return g;
+            return { ...g, ...patch };
+          });
+
+          // Handle member movement only if it's a pure translation (dragging)
+          // If patch contains width/height, it's a resize, and content shouldn't move
+          const isResize = patch.width !== undefined || patch.height !== undefined;
+          let images = b.images;
+          let comments = b.comments;
+
+          if (!isResize && (patch.x !== undefined || patch.y !== undefined)) {
+            const dx = (patch.x ?? group.x) - group.x;
+            const dy = (patch.y ?? group.y) - group.y;
+
+            if (dx !== 0 || dy !== 0) {
+              images = b.images.map((img) =>
+                group.memberIds.includes(img.id)
+                  ? { ...img, x: img.x + dx, y: img.y + dy }
+                  : img
+              );
+              comments = b.comments.map((c) =>
+                group.memberIds.includes(c.id)
+                  ? { ...c, x: c.x + dx, y: c.y + dy }
+                  : c
+              );
+            }
+          }
+
+          return { ...b, groups, images, comments };
+        });
+
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const removeGroup = useCallback(
+    (id: string) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, groups: (b.groups || []).filter((g) => g.id !== id) }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+      if (selectedId === id && selectedType === 'group') {
+        setSelectedId(null);
+        setSelectedType(null);
+      }
+    },
+    [scheduleSave, selectedId, selectedType]
+  );
+
+  const autoGroupItem = useCallback(
+    (itemId: string, x: number, y: number, width: number, height: number) => {
+      const centerX = x + width / 2;
+      const centerY = y + height / 2;
+
+      setAppState((prev) => {
+        const board = prev.boards.find((b) => b.id === prev.activeId);
+        if (!board) return prev;
+
+        const groups = board.groups || [];
+        // Find the topmost group containing the center point
+        const containingGroup = [...groups]
+          .reverse()
+          .find(
+            (g) =>
+              centerX >= g.x &&
+              centerX <= g.x + g.width &&
+              centerY >= g.y &&
+              centerY <= g.y + g.height
+          );
+
+        const boards = prev.boards.map((b) => {
+          if (b.id !== prev.activeId) return b;
+
+          const nextGroups = (b.groups || []).map((g) => {
+            const isMember = g.memberIds.includes(itemId);
+            const shouldBeMember = containingGroup?.id === g.id;
+
+            if (isMember && !shouldBeMember) {
+              return {
+                ...g,
+                memberIds: g.memberIds.filter((id) => id !== itemId),
+              };
+            }
+            if (!isMember && shouldBeMember) {
+              setLastAddedGroupId(g.id);
+              setTimeout(() => setLastAddedGroupId(null), 1000);
+              return {
+                ...g,
+                memberIds: [...g.memberIds, itemId],
+              };
+            }
+            return g;
+          });
+
+          return { ...b, groups: nextGroups };
+        });
+
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const setHoveredGroup = useCallback((x: number | null, y: number | null) => {
+    if (x === null || y === null) {
+      setHoveredGroupId(null);
+      return;
+    }
+
+    setAppState((prev) => {
+      const board = prev.boards.find((b) => b.id === prev.activeId);
+      if (!board) return prev;
+
+      const groups = board.groups || [];
+      const containingGroup = [...groups]
+        .reverse()
+        .find((g) => x >= g.x && x <= g.x + g.width && y >= g.y && y <= g.y + g.height);
+
+      setHoveredGroupId(containingGroup?.id || null);
+      return prev;
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -387,6 +566,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       addComment,
       updateComment,
       removeComment,
+      addGroup,
+      updateGroup,
+      removeGroup,
+      autoGroupItem,
+      setHoveredGroup,
+      hoveredGroupId,
+      lastAddedGroupId,
     }),
     [
       activeBoard,
@@ -408,6 +594,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       addComment,
       updateComment,
       removeComment,
+      addGroup,
+      updateGroup,
+      removeGroup,
+      autoGroupItem,
+      setHoveredGroup,
+      hoveredGroupId,
+      lastAddedGroupId,
     ]
   );
 

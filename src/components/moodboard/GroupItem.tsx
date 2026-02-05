@@ -1,32 +1,30 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
-import { MoodboardImage } from '@/src/types/moodboard';
+import { MoodboardGroup } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 
 const MIN_SIZE = 40;
 
-interface ImageItemProps {
-  image: MoodboardImage;
-  parentX?: number;
-  parentY?: number;
+interface GroupItemProps {
+  group: MoodboardGroup;
+  children?: React.ReactNode;
 }
 
-export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItemProps) {
+export default function GroupItem({ group, children }: GroupItemProps) {
   const {
-    updateImage,
-    removeImage,
-    setSelected,
+    updateGroup,
+    removeGroup,
     selectedId,
     selectedType,
-    autoGroupItem,
-    setHoveredGroup,
+    setSelected,
+    hoveredGroupId,
+    lastAddedGroupId,
   } = useMoodboard();
-  const isSelected = selectedId === image.id && selectedType === 'image';
+
+  const isSelected = selectedId === group.id && selectedType === 'group';
   const [isDragging, setIsDragging] = useState(false);
-  const [resizing, setResizing] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(
-    null
-  );
+  const [resizing, setResizing] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(null);
   const dragStartRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const resizeStartRef = useRef({
     x: 0,
@@ -40,20 +38,23 @@ export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItem
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (resizing) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('.moodboard-item-delete')) return;
+      if (target.closest('.moodboard-resize-handle')) return;
+      
       e.stopPropagation();
-      setSelected(image.id, 'image');
-      if ((e.target as HTMLElement).closest('.moodboard-item-delete')) return;
-      if ((e.target as HTMLElement).closest('.moodboard-resize-handle')) return;
+      setSelected(group.id, 'group');
+      
       setIsDragging(true);
       dragStartRef.current = {
         x: e.clientX,
         y: e.clientY,
-        left: image.x,
-        top: image.y,
+        left: group.x,
+        top: group.y,
       };
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+      target.setPointerCapture?.(e.pointerId);
     },
-    [image.id, image.x, image.y, resizing, setSelected]
+    [group.id, group.x, group.y, resizing, setSelected]
   );
 
   const handlePointerMove = useCallback(
@@ -61,15 +62,12 @@ export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItem
       if (isDragging) {
         const dx = e.clientX - dragStartRef.current.x;
         const dy = e.clientY - dragStartRef.current.y;
-        updateImage(image.id, {
+        
+        updateGroup(group.id, {
           x: dragStartRef.current.left + dx,
           y: dragStartRef.current.top + dy,
         });
-        // Check for group hover during drag
-        setHoveredGroup(
-          dragStartRef.current.left + dx + image.width / 2,
-          dragStartRef.current.top + dy + image.height / 2
-        );
+        
         dragStartRef.current = {
           x: e.clientX,
           y: e.clientY,
@@ -87,32 +85,32 @@ export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItem
         } = resizeStartRef.current;
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
+        
         let newWidth = width;
         let newHeight = height;
         let newLeft = left;
         let newTop = top;
-        if (resizing.includes('e')) {
-          newWidth = Math.max(MIN_SIZE, width + dx);
-        }
+        
+        if (resizing.includes('e')) newWidth = Math.max(MIN_SIZE, width + dx);
         if (resizing.includes('w')) {
           const w = Math.max(MIN_SIZE, width - dx);
           newLeft = left + (width - w);
           newWidth = w;
         }
-        if (resizing.includes('s')) {
-          newHeight = Math.max(MIN_SIZE, height + dy);
-        }
+        if (resizing.includes('s')) newHeight = Math.max(MIN_SIZE, height + dy);
         if (resizing.includes('n')) {
           const h = Math.max(MIN_SIZE, height - dy);
           newTop = top + (height - h);
           newHeight = h;
         }
-        updateImage(image.id, {
+        
+        updateGroup(group.id, {
           x: newLeft,
           y: newTop,
           width: newWidth,
           height: newHeight,
         });
+        
         resizeStartRef.current = {
           ...resizeStartRef.current,
           width: newWidth,
@@ -124,18 +122,14 @@ export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItem
         };
       }
     },
-    [image.id, image.width, image.height, isDragging, resizing, updateImage, setHoveredGroup]
+    [group.id, isDragging, resizing, updateGroup]
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDragging) {
-      autoGroupItem(image.id, image.x, image.y, image.width, image.height);
-      setHoveredGroup(null, null); // Clear hover on drop
-    }
     (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
     setIsDragging(false);
     setResizing(null);
-  }, [isDragging, autoGroupItem, setHoveredGroup, image.id, image.x, image.y, image.width, image.height]);
+  }, []);
 
   const onResizeHandlePointerDown = useCallback(
     (e: React.PointerEvent, corner: 'se' | 'sw' | 'ne' | 'nw') => {
@@ -144,54 +138,82 @@ export default function ImageItem({ image, parentX = 0, parentY = 0 }: ImageItem
       resizeStartRef.current = {
         x: e.clientX,
         y: e.clientY,
-        width: image.width,
-        height: image.height,
-        left: image.x,
-        top: image.y,
+        width: group.width,
+        height: group.height,
+        left: group.x,
+        top: group.y,
       };
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     },
-    [image.width, image.height, image.x, image.y]
+    [group.width, group.height, group.x, group.y]
   );
 
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      removeImage(image.id);
+      removeGroup(group.id);
     },
-    [image.id, removeImage]
+    [group.id, removeGroup]
   );
 
   return (
     <div
-      className={`moodboard-item moodboard-image-item${
+      data-id={group.id}
+      className={`moodboard-item moodboard-group-item${
         isSelected ? ' moodboard-item--selected' : ''
+      }${hoveredGroupId === group.id ? ' moodboard-group--hovered' : ''}${
+        lastAddedGroupId === group.id ? ' moodboard-group--success' : ''
       }${isDragging ? ' moodboard-item--dragging' : ''}`}
       style={{
-        left: image.x - parentX,
-        top: image.y - parentY,
-        width: image.width,
-        height: image.height,
-        transform: image.rotation ? `rotate(${image.rotation}deg)` : undefined,
+        left: group.x,
+        top: group.y,
+        width: group.width,
+        height: group.height,
+        backgroundColor: group.color 
+          ? (group.color.startsWith('#') ? `${group.color}1a` : group.color) // ~10% opacity if hex
+          : 'rgba(99, 102, 241, 0.05)',
+        border: '1px dashed #6366f1',
+        overflow: 'visible', // Ensure handles and label are visible
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
-      <img
-        src={image.imagePath ? `/api/moodboard/images/${image.imagePath}` : image.url}
-        alt=""
-        className="moodboard-image-img"
-        draggable={false}
-      />
+      <div className="moodboard-group-name" style={{ 
+        position: 'absolute', 
+        top: 0,
+        bottom: 'auto',
+        left: 0,
+        transform: 'translateY(-100%)',
+        whiteSpace: 'nowrap',
+        fontSize: `${group.labelSize ?? 14}px`,
+        fontWeight: 'bold',
+        color: group.labelColor || '#ffffff',
+        backgroundColor: group.color || '#6366f1',
+        padding: '2px 10px',
+        borderRadius: '6px 6px 0 0',
+        lineHeight: 1.2,
+        zIndex: 20,
+        display: 'block',
+      }}>
+        {group.name}
+      </div>
+      
+      {/* Clipping container for members only */}
+      <div className="moodboard-group-clipping" style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        {children}
+      </div>
+      
       {isSelected && (
         <>
           <button
             type="button"
             className="moodboard-item-delete"
+            style={{ zIndex: 10 }}
             onClick={onDelete}
-            aria-label="Usuń"
+            aria-label="Usuń grupę"
           >
             ×
           </button>

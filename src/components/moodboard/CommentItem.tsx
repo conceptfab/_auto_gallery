@@ -35,21 +35,26 @@ const DEFAULT_COMMENT = {
 
 interface CommentItemProps {
   comment: MoodboardComment;
+  parentX?: number;
+  parentY?: number;
 }
 
-export default function CommentItem({ comment }: CommentItemProps) {
+export default function CommentItem({ comment, parentX = 0, parentY = 0 }: CommentItemProps) {
   const {
     updateComment,
     removeComment,
     setSelected,
     selectedId,
     selectedType,
+    autoGroupItem,
+    setHoveredGroup,
   } = useMoodboard();
   const isSelected = selectedId === comment.id && selectedType === 'comment';
   const [isDragging, setIsDragging] = useState(false);
   const [resizing, setResizing] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(
     null
   );
+  const itemRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const resizeStartRef = useRef({
     x: 0,
@@ -90,9 +95,11 @@ export default function CommentItem({ comment }: CommentItemProps) {
       if (isDragging) {
         const dx = e.clientX - dragStartRef.current.x;
         const dy = e.clientY - dragStartRef.current.y;
+        const newX = dragStartRef.current.left + dx;
+        const newY = dragStartRef.current.top + dy;
         updateComment(comment.id, {
-          x: dragStartRef.current.left + dx,
-          y: dragStartRef.current.top + dy,
+          x: newX,
+          y: newY,
         });
         dragStartRef.current = {
           x: e.clientX,
@@ -100,6 +107,11 @@ export default function CommentItem({ comment }: CommentItemProps) {
           left: dragStartRef.current.left + dx,
           top: dragStartRef.current.top + dy,
         };
+        // Check for group hover during drag
+        setHoveredGroup(
+          dragStartRef.current.left + dx + comment.width / 2,
+          dragStartRef.current.top + dy + comment.height / 2
+        );
       } else if (resizing) {
         const {
           width,
@@ -144,14 +156,18 @@ export default function CommentItem({ comment }: CommentItemProps) {
         };
       }
     },
-    [comment.id, isDragging, resizing, updateComment]
+    [comment.id, comment.width, comment.height, isDragging, resizing, updateComment, setHoveredGroup]
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (isDragging) {
+      autoGroupItem(comment.id, comment.x, comment.y, comment.width, comment.height);
+      setHoveredGroup(null, null); // Clear hover on drop
+    }
     (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
     setIsDragging(false);
     setResizing(null);
-  }, []);
+  }, [isDragging, autoGroupItem, setHoveredGroup, comment.id, comment.x, comment.y, comment.width, comment.height]);
 
   const onResizeHandlePointerDown = useCallback(
     (e: React.PointerEvent, corner: 'se' | 'sw' | 'ne' | 'nw') => {
@@ -186,26 +202,32 @@ export default function CommentItem({ comment }: CommentItemProps) {
     [comment.id, updateComment]
   );
 
-  const bgColor = COLOR_MAP[comment.color] ?? COLOR_MAP.yellow;
+  const bgColor = comment.bgColor || (COLOR_MAP[comment.color] ?? COLOR_MAP.yellow);
   const isNoBg = comment.color === 'none';
   const weight = comment.fontWeight ?? 'normal';
   const fontWeight = FONT_WEIGHT_MAP[weight] ?? 400;
+  const fontColor = comment.fontColor ?? '#000000';
+  const fontSize = comment.fontSize ?? 16;
 
   return (
     <div
+      ref={itemRef}
+      data-id={comment.id}
       className={`moodboard-item moodboard-comment-item${
         isSelected ? ' moodboard-item--selected' : ''
       }${isDragging ? ' moodboard-item--dragging' : ''}${
         isNoBg ? ' moodboard-comment-item--no-bg' : ''
       }`}
       style={{
-        left: comment.x,
-        top: comment.y,
+        left: comment.x - parentX,
+        top: comment.y - parentY,
         width: comment.width,
         height: comment.height,
         backgroundColor: bgColor,
         fontFamily: INTER_FONT,
         fontWeight,
+        color: fontColor,
+        fontSize: `${fontSize}px`,
         transform: comment.rotation
           ? `rotate(${comment.rotation}deg)`
           : undefined,
