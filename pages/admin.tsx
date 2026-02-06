@@ -10,6 +10,7 @@ import { UserLists } from '../src/components/admin/UserLists';
 import { GroupsManager } from '../src/components/admin/GroupsManager';
 import { CacheMonitorSection } from '../src/components/admin/CacheMonitorSection';
 import { VolumeBrowserSection } from '../src/components/admin/VolumeBrowserSection';
+import { DataStorageSection } from '../src/components/admin/DataStorageSection';
 import { ProjectsSection } from '../src/components/admin/ProjectsSection';
 import { useAdminData } from '../src/hooks/useAdminData';
 import { useAdminGroups } from '../src/hooks/useAdminGroups';
@@ -17,13 +18,14 @@ import { useAdminSettings } from '../src/hooks/useAdminSettings';
 import type { AdminAuthStatus } from '../src/types/admin';
 import { logger } from '../src/utils/logger';
 
-type AdminTab = 'overview' | 'users' | 'settings' | 'files';
+type AdminTab = 'overview' | 'users' | 'settings' | 'files' | 'data';
 
 const ADMIN_TABS: { id: AdminTab; label: string; icon: string }[] = [
   { id: 'overview', label: 'Przegląd', icon: 'la-chart-bar' },
   { id: 'users', label: 'Użytkownicy', icon: 'la-users' },
   { id: 'settings', label: 'Ustawienia', icon: 'la-cog' },
   { id: 'files', label: 'Pliki', icon: 'la-folder-open' },
+  { id: 'data', label: 'Dane', icon: 'la-database' },
 ];
 
 const AdminPanel: React.FC = () => {
@@ -74,6 +76,7 @@ const AdminPanel: React.FC = () => {
       'cache',
       'files',
       'volume',
+      'data-storage',
     ])
   );
 
@@ -975,6 +978,24 @@ const AdminPanel: React.FC = () => {
               {expandedSections.has('volume') && <VolumeBrowserSection />}
             </section>
           </>
+        )}
+
+        {/* Tab: Dane (hierarchia projektów i moodboardów, backup) */}
+        {activeTab === 'data' && (
+          <section className="admin-section">
+            <h2
+              className="admin-section-title admin-section-title-clickable"
+              onClick={() => toggleSection('data-storage')}
+            >
+              <span>Projekty i moodboardy (/data-storage)</span>
+              <i
+                className={`las la-angle-up admin-section-toggle ${
+                  expandedSections.has('data-storage') ? '' : 'collapsed'
+                }`}
+              />
+            </h2>
+            {expandedSections.has('data-storage') && <DataStorageSection />}
+          </section>
         )}
       </div>
     </>

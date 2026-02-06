@@ -3,10 +3,6 @@ import path from 'path';
 import fsp from 'fs/promises';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getProjects } from '@/src/utils/projectsStorage';
-import {
-  getDesignRevisionThumbnailsDir,
-  getDesignGalleryDir,
-} from '@/src/utils/thumbnailStoragePath';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
 import { getDataDir } from '@/src/utils/dataDir';
 
@@ -26,16 +22,19 @@ interface ScanResult {
 
 const GRACE_PERIOD_MINUTES = 60;
 
-async function scanDirectory(dir: string): Promise<{ relativePath: string; size: number }[]> {
+async function scanDirectory(
+  dir: string,
+  prefix: string = ''
+): Promise<{ relativePath: string; size: number }[]> {
   const results: { relativePath: string; size: number }[] = [];
   const now = Date.now();
 
-  async function walk(currentDir: string, prefix: string = '') {
+  async function walk(currentDir: string, relPrefix: string) {
     try {
       const entries = await fsp.readdir(currentDir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
-        const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+        const relativePath = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
 
         if (entry.isDirectory()) {
           await walk(fullPath, relativePath);
@@ -51,7 +50,7 @@ async function scanDirectory(dir: string): Promise<{ relativePath: string; size:
     }
   }
 
-  await walk(dir);
+  await walk(dir, prefix);
   return results;
 }
 
@@ -60,7 +59,6 @@ async function getMoodboardImagePaths(): Promise<Set<string>> {
 
   try {
     const dataDir = await getDataDir();
-
     const moodboardDir = path.join(dataDir, 'moodboard');
     const indexPath = path.join(moodboardDir, 'index.json');
 
@@ -90,68 +88,96 @@ async function getMoodboardImagePaths(): Promise<Set<string>> {
 
 async function scanOrphanedFiles(): Promise<ScanResult> {
   const projects = await getProjects();
+  const dataDir = await getDataDir();
   const orphanedFiles: OrphanedFile[] = [];
 
-  // Zbierz wszystkie używane ścieżki z projects
-  const usedThumbnailPaths = new Set<string>();
-  const usedGalleryPaths = new Set<string>();
+  const usedRevisions = new Set<string>();
+  const usedGalleryFiles = new Set<string>();
 
   for (const project of projects) {
     for (const rev of project.revisions || []) {
-      if (rev.thumbnailPath) {
-        usedThumbnailPaths.add(rev.thumbnailPath);
-      }
-      for (const gp of rev.galleryPaths || []) {
-        usedGalleryPaths.add(gp);
+      usedRevisions.add(`${project.id}/${rev.id}`);
+      for (const fn of rev.galleryPaths || []) {
+        usedGalleryFiles.add(`${project.id}/${rev.id}/${fn}`);
       }
     }
   }
 
-  // Zbierz używane ścieżki moodboardu
-  const usedMoodboardPaths = await getMoodboardImagePaths();
-
-  // Skanuj design-revision
-  const revisionDir = await getDesignRevisionThumbnailsDir();
-  const revisionFiles = await scanDirectory(revisionDir);
   let scannedRevisionThumbnails = 0;
-
-  for (const file of revisionFiles) {
-    scannedRevisionThumbnails++;
-    if (!usedThumbnailPaths.has(file.relativePath)) {
-      orphanedFiles.push({
-        path: file.relativePath,
-        type: 'revision-thumbnail',
-        size: file.size,
-      });
-    }
-  }
-
-  // Skanuj design-gallery
-  const galleryDir = await getDesignGalleryDir();
-  const galleryFiles = await scanDirectory(galleryDir);
   let scannedGalleryFiles = 0;
 
-  for (const file of galleryFiles) {
-    scannedGalleryFiles++;
-    if (!usedGalleryPaths.has(file.relativePath)) {
-      orphanedFiles.push({
-        path: file.relativePath,
-        type: 'gallery',
-        size: file.size,
-      });
+  const projectsDir = path.join(dataDir, 'projects');
+  try {
+    const projectIds = await fsp.readdir(projectsDir);
+    for (const projectId of projectIds) {
+      const projectPath = path.join(projectsDir, projectId);
+      const stat = await fsp.stat(projectPath).catch(() => null);
+      if (!stat?.isDirectory()) continue;
+
+      const rewizjeDir = path.join(projectPath, 'rewizje');
+      let revisionIds: string[] = [];
+      try {
+        revisionIds = await fsp.readdir(rewizjeDir);
+      } catch {
+        continue;
+      }
+
+      for (const revisionId of revisionIds) {
+        const revDir = path.join(rewizjeDir, revisionId);
+        const revStat = await fsp.stat(revDir).catch(() => null);
+        if (!revStat?.isDirectory()) continue;
+
+        const revKey = `${projectId}/${revisionId}`;
+        const thumbPath = path.join(revDir, 'thumbnail.webp');
+        try {
+          const thumbStat = await fsp.stat(thumbPath);
+          scannedRevisionThumbnails++;
+          if (!usedRevisions.has(revKey)) {
+            orphanedFiles.push({
+              path: `projects/${projectId}/rewizje/${revisionId}/thumbnail.webp`,
+              type: 'revision-thumbnail',
+              size: thumbStat.size,
+            });
+          }
+        } catch {
+          // brak pliku
+        }
+
+        const galleryDir = path.join(revDir, 'gallery');
+        try {
+          const files = await fsp.readdir(galleryDir);
+          for (const fn of files) {
+            const fullPath = path.join(galleryDir, fn);
+            const fileStat = await fsp.stat(fullPath).catch(() => null);
+            if (!fileStat?.isFile()) continue;
+            scannedGalleryFiles++;
+            if (!usedGalleryFiles.has(`${projectId}/${revisionId}/${fn}`)) {
+              orphanedFiles.push({
+                path: `projects/${projectId}/rewizje/${revisionId}/gallery/${fn}`,
+                type: 'gallery',
+                size: fileStat.size,
+              });
+            }
+          }
+        } catch {
+          // brak gallery
+        }
+      }
     }
+  } catch {
+    // brak katalogu projects
   }
 
-  // Skanuj moodboard images
   const moodboardDir = await getMoodboardImagesDir();
   const moodboardFiles = await scanDirectory(moodboardDir);
+  const usedMoodboardPaths = await getMoodboardImagePaths();
   let scannedMoodboardFiles = 0;
 
   for (const file of moodboardFiles) {
     scannedMoodboardFiles++;
     if (!usedMoodboardPaths.has(file.relativePath)) {
       orphanedFiles.push({
-        path: file.relativePath,
+        path: `moodboard/images/${file.relativePath}`,
         type: 'moodboard',
         size: file.size,
       });
@@ -203,33 +229,25 @@ async function saveCleanupLog(entries: CleanupLogEntry[]): Promise<void> {
 }
 
 async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
-  const revisionDir = await getDesignRevisionThumbnailsDir();
-  const galleryDir = await getDesignGalleryDir();
-  const moodboardDir = await getMoodboardImagesDir();
-
+  const dataDir = await getDataDir();
+  const moodboardImagesDir = await getMoodboardImagesDir();
   let deleted = 0;
   const logEntries: CleanupLogEntry[] = [];
 
   for (const file of files) {
-    let baseDir: string;
-    switch (file.type) {
-      case 'revision-thumbnail':
-        baseDir = revisionDir;
-        break;
-      case 'gallery':
-        baseDir = galleryDir;
-        break;
-      case 'moodboard':
-        baseDir = moodboardDir;
-        break;
+    let fullPath: string;
+    if (file.type === 'moodboard') {
+      fullPath = path.join(moodboardImagesDir, file.path.replace(/^moodboard\/images\//, ''));
+    } else {
+      fullPath = path.join(dataDir, file.path);
     }
 
-    const fullPath = path.join(baseDir, file.path);
-
-    // Sprawdź path traversal
-    const normalizedBase = path.normalize(baseDir);
+    const normalizedBase = path.normalize(dataDir);
     const normalizedFull = path.normalize(fullPath);
-    if (!normalizedFull.startsWith(normalizedBase)) {
+    if (file.type === 'moodboard') {
+      const moodBase = path.normalize(moodboardImagesDir);
+      if (!normalizedFull.startsWith(moodBase)) continue;
+    } else if (!normalizedFull.startsWith(normalizedBase)) {
       continue;
     }
 
@@ -239,18 +257,16 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
       console.log(`[CLEANUP] Usunięto ${file.type}: ${file.path} (${file.size} B)`);
       logEntries.push({ path: file.path, type: file.type, size: file.size, action: 'deleted' });
 
-      // Usuń pusty folder rodzica
       const parentDir = path.dirname(fullPath);
       try {
         const entries = await fsp.readdir(parentDir);
         if (entries.length === 0) {
           await fsp.rmdir(parentDir);
-          const relParent = path.relative(baseDir, parentDir);
-          console.log(`[CLEANUP] Usunięto pusty katalog: ${relParent}`);
-          logEntries.push({ path: relParent, type: 'directory', size: 0, action: 'dir_removed' });
+          console.log(`[CLEANUP] Usunięto pusty katalog: ${parentDir}`);
+          logEntries.push({ path: parentDir, type: 'directory', size: 0, action: 'dir_removed' });
         }
       } catch {
-        // Ignoruj błędy rmdir
+        // ignoruj
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -265,7 +281,6 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    // Skanuj osierocone pliki
     try {
       const result = await scanOrphanedFiles();
       return res.status(200).json(result);

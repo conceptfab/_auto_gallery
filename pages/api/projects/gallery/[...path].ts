@@ -47,8 +47,7 @@ export default async function handler(
   const project = projects.find((p) => p.id === projectId);
   const revision = project?.revisions?.find((r) => r.id === revisionId);
   const galleryPaths = revision?.galleryPaths ?? [];
-  const relativePath = `${projectId}/${revisionId}/${filename}`;
-  if (!galleryPaths.some((p) => p === relativePath)) {
+  if (!galleryPaths.includes(filename)) {
     return res.status(404).json({ error: 'Obraz nie znaleziony' });
   }
 

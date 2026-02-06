@@ -131,8 +131,8 @@ const ProjectsProjectPage: React.FC = () => {
     }
   };
 
-  const getGalleryImageUrl = (relativePath: string) =>
-    `/api/projects/gallery/${relativePath}`;
+  const getGalleryImageUrl = (projectId: string, revisionId: string, filename: string) =>
+    `/api/projects/gallery/${projectId}/${revisionId}/${filename}`;
 
   const getRevisionThumbnail = useCallback((rev: Revision): string | undefined => {
     if (project && rev.thumbnailPath) {
@@ -141,8 +141,8 @@ const ProjectsProjectPage: React.FC = () => {
     if (rev.thumbnailDataUrl || rev.screenshotDataUrl) {
       return rev.thumbnailDataUrl || rev.screenshotDataUrl;
     }
-    if (rev.galleryPaths?.length) {
-      return getGalleryImageUrl(rev.galleryPaths[0]);
+    if (project && rev.galleryPaths?.length) {
+      return getGalleryImageUrl(project.id, rev.id, rev.galleryPaths[0]);
     }
     return undefined;
   }, [project]);
@@ -936,6 +936,8 @@ const ProjectsProjectPage: React.FC = () => {
                   <div className="modal-image-wrapper">
                     <img
                       src={getGalleryImageUrl(
+                        id as string,
+                        showGalleryForRevision.id,
                         showGalleryForRevision.galleryPaths[
                           selectedGalleryImageIndex
                         ]
@@ -952,6 +954,8 @@ const ProjectsProjectPage: React.FC = () => {
                   </div>
                   <a
                     href={getGalleryImageUrl(
+                      id as string,
+                      showGalleryForRevision.id,
                       showGalleryForRevision.galleryPaths[
                         selectedGalleryImageIndex
                       ]
@@ -967,15 +971,19 @@ const ProjectsProjectPage: React.FC = () => {
               ) : (
                 <div className="design-gallery-grid">
                   {showGalleryForRevision.galleryPaths?.map(
-                    (relativePath, idx) => (
+                    (filename, idx) => (
                       <button
-                        key={relativePath}
+                        key={filename}
                         type="button"
                         className="design-gallery-grid-item"
                         onClick={() => setSelectedGalleryImageIndex(idx)}
                       >
                         <img
-                          src={getGalleryImageUrl(relativePath)}
+                          src={getGalleryImageUrl(
+                            id as string,
+                            showGalleryForRevision.id,
+                            filename
+                          )}
                           alt=""
                           className="design-gallery-img"
                         />
