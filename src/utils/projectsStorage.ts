@@ -229,13 +229,13 @@ export async function getProjects(): Promise<Project[]> {
       try {
         const revRaw = await fsp.readFile(revPath, 'utf8');
         const revMeta = JSON.parse(revRaw) as RevisionMeta;
-        revisions.push(revisionMetaToRevision(revMeta, meta.id));
+        revisions.push(revisionMetaToRevision(revMeta, name));
       } catch {
         // pomiń uszkodzoną/brakującą rewizję
       }
     }
     projects.push({
-      id: meta.id,
+      id: name,
       name: meta.name,
       slug: meta.slug,
       description: meta.description,
@@ -417,7 +417,7 @@ export async function updateProject(
   }
   await fsp.writeFile(projectPath, JSON.stringify(meta, null, 2), 'utf8');
   return {
-    id: meta.id,
+    id,
     name: meta.name,
     slug: meta.slug,
     description: meta.description,
