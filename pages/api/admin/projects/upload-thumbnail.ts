@@ -83,8 +83,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   let buffer: Buffer;
   try {
     const raw = await fsp.readFile(file.filepath);
+    // Wymuś docelowy rozmiar miniatury na maks 800x450 (bez cropa).
+    // Zakładamy, że wejściowe pliki mają już 800x450, więc to tylko ewentualne skalowanie w dół.
     buffer = await sharp(raw)
-      .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+      .resize(800, 450, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 85 })
       .toBuffer();
   } catch (e) {
