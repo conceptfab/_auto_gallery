@@ -45,8 +45,13 @@ export default async function handler(
   }
 
   const projects = await getProjects();
-  const project = projects.find((p) => p.id === projectId);
-  const revision = project?.revisions?.find((r) => r.id === revisionId);
+  const project =
+    projects.find((p) => p.id === projectId) ??
+    projects.find((p) => p.slug === projectId);
+  if (!project) {
+    return res.status(404).json({ error: 'Projekt nie znaleziony' });
+  }
+  const revision = project.revisions?.find((r) => r.id === revisionId);
   const galleryPaths = revision?.galleryPaths ?? [];
   const imageAllowed =
     galleryPaths.includes(filename) ||
@@ -56,7 +61,7 @@ export default async function handler(
     return res.status(404).json({ error: 'Obraz nie znaleziony' });
   }
 
-  const filePath = await getGalleryFilePath(projectId, revisionId, filename);
+  const filePath = await getGalleryFilePath(project.id, revisionId, filename);
   if (!filePath) {
     logger.warn('[gallery API] getGalleryFilePath zwrócił null', { projectId, revisionId, filename });
     // Plik nie na dysku (np. po migracji danych) – zwróć 1×1 transparent, żeby <img> nie psuło layoutu
