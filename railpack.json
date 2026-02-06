@@ -3,10 +3,11 @@
   "provider": "node",
   "steps": {
     "install": {
+      "inputs": [{ "local": true, "include": ["."] }],
       "commands": ["npm ci"]
     },
     "build": {
-      "inputs": [{"step": "install"}],
+      "inputs": [{ "step": "install" }],
       "commands": ["npm run build"]
     }
   },
