@@ -70,12 +70,8 @@ function revisionMetaToRevision(meta: RevisionMeta, _projectId: string): Revisio
     embedUrl: meta.embedUrl,
     createdAt: meta.createdAt,
     galleryPaths: meta.galleryPaths ? [...meta.galleryPaths] : undefined,
+    thumbnailPath: meta.thumbnailPath || undefined,
   };
-  if (meta.thumbnailPath) {
-    rev.thumbnailPath = meta.thumbnailPath;
-  } else {
-    rev.thumbnailPath = REVISION_THUMBNAIL_FILENAME;
-  }
   return rev;
 }
 
@@ -134,10 +130,12 @@ async function migrateLegacyToFolderStructure(
 
       const oldThumbFile = path.join(oldThumbBase, projectId, `${revId}.webp`);
       const newThumbFile = path.join(revDir, REVISION_THUMBNAIL_FILENAME);
+      let thumbnailCopied = false;
       try {
         await fsp.copyFile(oldThumbFile, newThumbFile);
+        thumbnailCopied = true;
       } catch {
-        // brak starej miniaturki
+        // brak starej miniaturki w thumbnails/design-revision
       }
 
       const galleryDir = path.join(revDir, 'gallery');
@@ -164,7 +162,7 @@ async function migrateLegacyToFolderStructure(
         description: rev.description,
         embedUrl: rev.embedUrl,
         createdAt: rev.createdAt || new Date().toISOString(),
-        thumbnailPath: REVISION_THUMBNAIL_FILENAME,
+        thumbnailPath: thumbnailCopied ? REVISION_THUMBNAIL_FILENAME : undefined,
         galleryPaths: galleryPaths.length ? galleryPaths : undefined,
       };
       await fsp.writeFile(

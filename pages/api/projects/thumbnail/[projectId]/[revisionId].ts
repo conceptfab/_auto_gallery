@@ -40,8 +40,8 @@ export default async function handler(
   const projects = await getProjects();
   const project = projects.find((p) => p.id === projectId);
   const revision = project?.revisions?.find((r) => r.id === revisionId);
-  if (!revision?.thumbnailPath) {
-    return res.status(404).json({ error: 'Miniaturka nie znaleziona' });
+  if (!project || !revision) {
+    return res.status(404).json({ error: 'Projekt lub rewizja nie znaleziona' });
   }
 
   const filePath = await getThumbnailFilePath(projectId, revisionId);

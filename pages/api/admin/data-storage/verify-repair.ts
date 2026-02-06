@@ -124,8 +124,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           revMeta = {
             id: revisionId,
             createdAt: new Date().toISOString(),
-            thumbnailPath: REVISION_THUMBNAIL_FILENAME,
           };
+          await fsp.writeFile(revJsonPath, JSON.stringify(revMeta, null, 2), 'utf8');
+          report.repaired.revisions++;
+        }
+
+        const thumbPath = path.join(revDir, REVISION_THUMBNAIL_FILENAME);
+        const thumbExists = await fsp.access(thumbPath).then(() => true).catch(() => false);
+        if (thumbExists && !revMeta.thumbnailPath) {
+          revMeta.thumbnailPath = REVISION_THUMBNAIL_FILENAME;
+          await fsp.writeFile(revJsonPath, JSON.stringify(revMeta, null, 2), 'utf8');
+          report.repaired.revisions++;
+        } else if (!thumbExists && revMeta.thumbnailPath) {
+          revMeta.thumbnailPath = undefined;
           await fsp.writeFile(revJsonPath, JSON.stringify(revMeta, null, 2), 'utf8');
           report.repaired.revisions++;
         }

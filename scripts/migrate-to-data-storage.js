@@ -79,8 +79,10 @@ async function main() {
 
       const oldThumbFile = path.join(oldThumbBase, projectId, `${revId}.webp`);
       const newThumbFile = path.join(revDir, 'thumbnail.webp');
+      let thumbnailCopied = false;
       try {
         await fs.copyFile(oldThumbFile, newThumbFile);
+        thumbnailCopied = true;
       } catch {
         // brak starej miniaturki – zostaw puste
       }
@@ -111,7 +113,7 @@ async function main() {
         description: rev.description || null,
         embedUrl: rev.embedUrl || null,
         createdAt: rev.createdAt || new Date().toISOString(),
-        thumbnailPath: 'thumbnail.webp',
+        thumbnailPath: thumbnailCopied ? 'thumbnail.webp' : null,
         galleryPaths: galleryPaths.length ? galleryPaths : null,
       };
       await fs.writeFile(
