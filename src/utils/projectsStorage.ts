@@ -6,6 +6,7 @@ import {
   getDesignGalleryDir,
 } from './thumbnailStoragePath';
 import { getDataDir } from './dataDir';
+import { decodeDataUrlToBuffer } from './moodboardStorage';
 import type { Revision, Project } from '@/src/types/projects';
 
 export type { Revision, Project };
@@ -150,16 +151,6 @@ export async function appendRevisionGalleryPaths(
   return revisions[rIdx];
 }
 
-function decodeDataUrlToBuffer(dataUrl: string): Buffer | null {
-  const match = /^data:image\/\w+;base64,(.+)$/.exec(dataUrl.trim());
-  if (!match) return null;
-  try {
-    return Buffer.from(match[1], 'base64');
-  } catch {
-    return null;
-  }
-}
-
 async function ensureProjectsFile(filePath: string): Promise<Project[]> {
   try {
     const raw = await fsp.readFile(filePath, 'utf8');
@@ -217,15 +208,20 @@ function migrateSlugs(projects: Project[]): boolean {
   return dirty;
 }
 
+let migrationDone = false;
+
 export async function getProjects(): Promise<Project[]> {
   const filePath = await getProjectsFilePath();
   const projects = await ensureProjectsFile(filePath);
-  const dirtyThumbs = await migrateThumbnailsToFiles(projects);
-  const dirtySlugs = migrateSlugs(projects);
-  if (dirtyThumbs || dirtySlugs) {
-    const tmpPath = filePath + '.tmp';
-    await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
-    await fsp.rename(tmpPath, filePath);
+  if (!migrationDone) {
+    const dirtyThumbs = await migrateThumbnailsToFiles(projects);
+    const dirtySlugs = migrateSlugs(projects);
+    if (dirtyThumbs || dirtySlugs) {
+      const tmpPath = filePath + '.tmp';
+      await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
+      await fsp.rename(tmpPath, filePath);
+    }
+    migrationDone = true;
   }
   return projects;
 }

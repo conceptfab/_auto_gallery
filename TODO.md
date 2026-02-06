@@ -11,3 +11,44 @@ sprawdz cały kod pod kątem:
 - zrób audyt bezpieczeństwa, pliki php nie są widoczne w repozytorium, plik .env jest lokalny-do testów
 - zweryfikuj proces autryzacji, ma być skuteczny, ale niewidoczny dla użytkownika
  Przygotuj szczegółowy raport poprawki.md
+
+
+
+  Propozycje nazw
+
+  Kierunek 1: Prezentacja + portal kliencki
+
+  - DesignPortal - jasne, opisowe, profesjonalne
+  - StudioShare - dzielenie się pracą studia
+  - DesignShowroom - showroom na projekty
+
+  Kierunek 2: Krótkie, brandowalne
+
+  - Folio - od "portfolio", krótkie, eleganckie
+  - Prezent - gra słów: PL "prezent" (gift) + EN "present" (prezentować)
+  - Vitrine - witryna/gablota, kojarzy się z eksponowaniem
+
+  Kierunek 3: Nawiązanie do ConceptFab
+
+  - ConceptView - oglądanie konceptów, spójne z marką
+
+  
+  - FabView / FabPortal - bezpośrednie nawiązanie
+
+  Kierunek 4: Funkcjonalne, opisowe
+
+  - DesignDeck - jak talia kart/prezentacja z projektami
+  - ClientCanvas - przestrzeń klienta (nawiązanie do moodboardu)
+  - DesignStage - scena, na której prezentujesz pracę
+
+  ---
+  Moja rekomendacja
+
+  DesignDeck albo Folio - bo:
+  - DesignDeck: oddaje ideę prezentacji (deck), zawiera "design", jest krótkie i łatwe do zapamiętania. Pasuje do tego, że klient
+  "przegląda talię" projektów, rewizji, moodboardów.
+  - Folio: minimalistyczne, eleganckie, kojarzy się z portfolio i profesjonalną prezentacją prac. Jedno słowo, łatwe w każdym języku.     
+
+  Jeśli zależy Ci na spójności z marką ConceptFab - ConceptView jest naturalnym wyborem.
+
+  Co najbardziej rezonuje z Twoją wizją produktu?

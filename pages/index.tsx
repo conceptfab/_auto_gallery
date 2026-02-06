@@ -39,8 +39,3 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
 
 export default HomePage;
 
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}

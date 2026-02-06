@@ -1,5 +1,6 @@
 import path from 'path';
 import fsp from 'fs/promises';
+import crypto from 'crypto';
 import type { StatsData } from '../types/stats';
 import { getDataDir } from './dataDir';
 
@@ -86,12 +87,6 @@ function getCodesPath(coreDir: string): string {
 
 function getSettingsPath(coreDir: string): string {
   return path.join(coreDir, 'settings.json');
-}
-
-// Typy dla plików core (serializacja – daty jako string w JSON)
-/** Kształt pliku core/pending.json (dokumentacja) */
-interface _PendingFile {
-  [email: string]: { timestamp: string; ip: string };
 }
 
 type SerializedLoginCode = Omit<LoginCode, 'expiresAt' | 'createdAt'> & {
@@ -711,7 +706,7 @@ export async function cleanupExpiredAdminCodes(): Promise<number> {
 // ==================== GRUPY UŻYTKOWNIKÓW (Etap 2 – groups/groups.json) ====================
 
 function generateGroupId(): string {
-  return 'grp_' + Math.random().toString(36).substring(2, 11);
+  return 'grp_' + crypto.randomUUID().replace(/-/g, '').substring(0, 9);
 }
 
 export async function getGroups(): Promise<UserGroup[]> {

@@ -102,8 +102,3 @@ const MoodboardPage: React.FC = () => {
 
 export default MoodboardPage;
 
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}

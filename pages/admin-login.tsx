@@ -196,9 +196,3 @@ const AdminLoginPage: React.FC = () => {
 
 export default AdminLoginPage;
 
-// Disable static generation to avoid router issues
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}

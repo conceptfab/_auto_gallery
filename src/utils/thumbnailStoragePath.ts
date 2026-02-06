@@ -19,25 +19,14 @@ export async function getThumbnailsBasePath(): Promise<string> {
 export async function getDesignRevisionThumbnailsDir(): Promise<string> {
   const base = await getThumbnailsBasePath();
   const designDir = path.join(base, 'design-revision');
-  try {
-    // Jeśli istnieje specjalny katalog na miniatury Design – użyj go
-    await fsp.access(designDir);
-    return designDir;
-  } catch {
-    // Fallback: użyj starego układu /thumbnails/<projectId>/<revisionId>.webp
-    return base;
-  }
+  await fsp.mkdir(designDir, { recursive: true });
+  return designDir;
 }
 
 /** Ścieżka do katalogu galerii Design (projectId/revisionId/uuid.webp). */
 export async function getDesignGalleryDir(): Promise<string> {
   const base = await getThumbnailsBasePath();
   const galleryDir = path.join(base, 'design-gallery');
-  try {
-    await fsp.access(galleryDir);
-    return galleryDir;
-  } catch {
-    // Fallback: starsze instalacje mogą trzymać wszystko bez podkatalogu
-    return base;
-  }
+  await fsp.mkdir(galleryDir, { recursive: true });
+  return galleryDir;
 }

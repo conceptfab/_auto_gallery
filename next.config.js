@@ -48,14 +48,6 @@ const nextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/gallery/:path*',
-        destination: '/api/gallery/:path*',
-      },
-    ];
-  },
 };
 
 module.exports = nextConfig;

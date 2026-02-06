@@ -5,16 +5,7 @@ import {
   saveGalleryFile,
   appendRevisionGalleryPaths,
 } from '@/src/utils/projectsStorage';
-
-function decodeDataUrlToBuffer(dataUrl: string): Buffer | null {
-  const match = /^data:image\/\w+;base64,(.+)$/.exec((dataUrl || '').trim());
-  if (!match) return null;
-  try {
-    return Buffer.from(match[1], 'base64');
-  } catch {
-    return null;
-  }
-}
+import { decodeDataUrlToBuffer } from '@/src/utils/moodboardStorage';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

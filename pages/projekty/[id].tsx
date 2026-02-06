@@ -1083,8 +1083,3 @@ const ProjectsProjectPage: React.FC = () => {
 
 export default ProjectsProjectPage;
 
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}

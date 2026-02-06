@@ -99,8 +99,3 @@ const ProjectsPage: React.FC = () => {
 
 export default ProjectsPage;
 
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
