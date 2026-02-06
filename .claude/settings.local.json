@@ -27,7 +27,13 @@
       "Bash(tree:*)",
       "Bash(Get-ChildItem -Path \"C:\\\\_cloud\\\\__Content_Browser\\\\src\" -Recurse -Filter \"*.ts\" -o -Filter \"*.tsx\")",
       "Bash(Measure-Object)",
-      "Bash(npx next build)"
+      "Bash(npx next build)",
+      "WebFetch(domain:bundlephobia.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm view:*)",
+      "Bash(npm ls:*)",
+      "WebFetch(domain:bestofjs.org)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

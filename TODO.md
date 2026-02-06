@@ -8,6 +8,6 @@ sprawdz cały kod pod kątem:
 - zastanów się nad optymalziacją
 - poszukaj martwego kodu
 - zbadaj kod pod kątem over-engineeringu
-- zrób audyt bezpieczeństwa
+- zrób audyt bezpieczeństwa, pliki php nie są widoczne w repozytorium, plik .env jest lokalny-do testów
 - zweryfikuj proces autryzacji, ma być skuteczny, ale niewidoczny dla użytkownika
  Przygotuj szczegółowy raport poprawki.md
