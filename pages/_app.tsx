@@ -16,7 +16,7 @@ const TopMenuBarPlaceholder = () => (
       <div className="menu-left">
         <div className="logo">
           <h1>
-            Content Browser
+            ConceptView
             <span className="version"></span>
           </h1>
         </div>

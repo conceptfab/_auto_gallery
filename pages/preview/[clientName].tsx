@@ -25,7 +25,7 @@ const PreviewPage: React.FC<PreviewPageProps> = ({ groupId, clientName }) => {
   return (
     <>
       <Head>
-        <title>{clientName} – Content Browser</title>
+        <title>{clientName} – ConceptView</title>
         <meta name="description" content={`Podgląd: ${clientName}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

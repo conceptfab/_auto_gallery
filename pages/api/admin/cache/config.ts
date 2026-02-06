@@ -1,21 +1,15 @@
 // pages/api/admin/cache/config.ts
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { isAdminLoggedIn } from '@/src/utils/storage';
-import { getAdminEmailFromCookie } from '@/src/utils/auth';
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getCacheData, updateCacheData } from '@/src/utils/cacheStorage';
 import { SchedulerConfig, ThumbnailConfig, EmailNotificationConfig } from '@/src/types/cache';
 import { DEFAULT_EMAIL_NOTIFICATION_CONFIG } from '@/src/utils/cacheStorage';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const adminEmail = getAdminEmailFromCookie(req);
-  if (!adminEmail || !(await isAdminLoggedIn(adminEmail))) {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
-
   if (req.method === 'GET') {
     try {
       const data = await getCacheData();
@@ -93,3 +87,5 @@ export default async function handler(
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
+
+export default withAdminAuth(handler);

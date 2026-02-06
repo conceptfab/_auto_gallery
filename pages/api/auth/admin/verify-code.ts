@@ -10,6 +10,7 @@ import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { logger } from '../../../../src/utils/logger';
 import { setAdminCookie } from '../../../../src/utils/auth';
 import { withRateLimit } from '../../../../src/utils/rateLimiter';
+import { sendEmergencyCodeAlert } from '../../../../src/utils/email';
 
 // Globalny rate limit na próby emergency code: max 3/godz
 const emergencyAttempts: { count: number; resetAt: number } = { count: 0, resetAt: 0 };
@@ -65,8 +66,12 @@ async function handler(
         return res.status(500).json({ error: 'Emergency code configuration error' });
       }
 
-      logger.warn('Admin login via emergency code', { email, ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress });
+      const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown');
+      logger.warn('Admin login via emergency code', { email, ip });
       await loginAdmin(email);
+
+      // Fire-and-forget email alert
+      sendEmergencyCodeAlert(ip).catch(() => {});
     } else {
       // Standardowa weryfikacja kodu
       const adminCode = await getAdminCode(email);

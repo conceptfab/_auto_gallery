@@ -118,7 +118,6 @@ function normalizeLoginCode(raw: SerializedLoginCode): LoginCode {
   };
 }
 
-// Katalog plików dziennych użytkowników (Etap 3 konwersji)
 export async function getUsersDir(): Promise<string> {
   return path.join(await getDataDir(), 'users');
 }
@@ -589,7 +588,7 @@ export async function cleanupExpiredAdminCodes(): Promise<number> {
   return expiredCount;
 }
 
-// ==================== GRUPY UŻYTKOWNIKÓW (Etap 2 – groups/groups.json) ====================
+// ==================== GRUPY UŻYTKOWNIKÓW ====================
 
 function generateGroupId(): string {
   return 'grp_' + crypto.randomUUID().replace(/-/g, '').substring(0, 9);

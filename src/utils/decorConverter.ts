@@ -10,37 +10,22 @@ interface DecorMap {
   };
 }
 
-/** Cache skompilowanych regexów per keyword dla różnych trybów wyszukiwania. */
-interface CachedRegexes {
-  boundarygi: RegExp; // (?:^|_|\s|-|\b)(keyword)(?:_|\s|-|\b|$) - gi
-  simplegi: RegExp;   // (keyword) - gi
-  displayBoundaryg: RegExp; // (?:^|\s|-|\b)(KEYWORD)(?:\s|-|\b|$) - g
-  displaySimpleg: RegExp;   // (KEYWORD) - g
+interface KeywordRegexes {
+  boundarygi: RegExp;
+  simplegi: RegExp;
+  displayBoundaryg: RegExp;
+  displaySimpleg: RegExp;
 }
 
-const keywordRegexCache = new Map<string, CachedRegexes>();
-
-function getKeywordRegexes(keyword: string): CachedRegexes {
-  let cached = keywordRegexCache.get(keyword);
-  if (!cached) {
-    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const escapedUpper = escaped.toUpperCase();
-
-    cached = {
-      boundarygi: new RegExp(
-        `(?:^|_|\\s|-|\\b)(${escaped})(?:_|\\s|-|\\b|$)`,
-        'gi'
-      ),
-      simplegi: new RegExp(`(${escaped})`, 'gi'),
-      displayBoundaryg: new RegExp(
-        `(?:^|\\s|-|\\b)(${escapedUpper})(?:\\s|-|\\b|$)`,
-        'g'
-      ),
-      displaySimpleg: new RegExp(`(${escapedUpper})`, 'g'),
-    };
-    keywordRegexCache.set(keyword, cached);
-  }
-  return cached;
+function buildKeywordRegexes(keyword: string): KeywordRegexes {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedUpper = escaped.toUpperCase();
+  return {
+    boundarygi: new RegExp(`(?:^|_|\\s|-|\\b)(${escaped})(?:_|\\s|-|\\b|$)`, 'gi'),
+    simplegi: new RegExp(`(${escaped})`, 'gi'),
+    displayBoundaryg: new RegExp(`(?:^|\\s|-|\\b)(${escapedUpper})(?:\\s|-|\\b|$)`, 'g'),
+    displaySimpleg: new RegExp(`(${escapedUpper})`, 'g'),
+  };
 }
 
 class DecorConverter {
@@ -106,7 +91,7 @@ class DecorConverter {
 
     // Dla każdego słowa kluczowego - koloruj i dodaj ikonę (regex z cache)
     for (const keyword of allKeywords) {
-      const { boundarygi, simplegi } = getKeywordRegexes(keyword);
+      const { boundarygi, simplegi } = buildKeywordRegexes(keyword);
       boundarygi.lastIndex = 0;
       if (boundarygi.test(imageName)) {
         const color = this.getColorForKeyword(keyword);
@@ -140,7 +125,7 @@ class DecorConverter {
     // Sprawdź wszystkie słowa kluczowe z blat
     if (table.blat) {
       for (const [key, fileName] of Object.entries(table.blat)) {
-        const { boundarygi, simplegi } = getKeywordRegexes(key);
+        const { boundarygi, simplegi } = buildKeywordRegexes(key);
         boundarygi.lastIndex = 0;
         if (boundarygi.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
@@ -165,7 +150,7 @@ class DecorConverter {
     // Sprawdź wszystkie słowa kluczowe z stelaż
     if (table.stelaż) {
       for (const [key, fileName] of Object.entries(table.stelaż)) {
-        const { boundarygi, simplegi } = getKeywordRegexes(key);
+        const { boundarygi, simplegi } = buildKeywordRegexes(key);
         boundarygi.lastIndex = 0;
         if (boundarygi.test(imageName)) {
           return kolorystykaImages.find((img) => img.name === fileName) || null;
@@ -222,7 +207,7 @@ class DecorConverter {
     // Dla każdego słowa kluczowego: zawsze inny styl (klasa + inline), kolor tylko gdy useColors
     const styleBase = 'font-weight: 500; font-size: 0.72em;';
     for (const keyword of allKeywords) {
-      const { displayBoundaryg, displaySimpleg } = getKeywordRegexes(keyword);
+      const { displayBoundaryg, displaySimpleg } = buildKeywordRegexes(keyword);
       displayBoundaryg.lastIndex = 0;
       if (displayBoundaryg.test(displayName)) {
         const style = useColors
@@ -237,13 +222,6 @@ class DecorConverter {
     }
 
     return highlightedName;
-  }
-
-  /**
-   * Escapuje specjalne znaki regex w stringu
-   */
-  private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**
@@ -290,7 +268,7 @@ class DecorConverter {
 
     // Znajdź wszystkie słowa kluczowe i zapisz ich pozycje w nazwie pliku
     for (const { keyword, fileName } of allKeywords) {
-      const { simplegi } = getKeywordRegexes(keyword);
+      const { simplegi } = buildKeywordRegexes(keyword);
       let match: RegExpExecArray | null;
 
       // Reset regex przed każdym użyciem
@@ -372,7 +350,7 @@ class DecorConverter {
     // Sprawdź które słowa kluczowe występują w nazwie pliku
     // Używamy bardziej elastycznego regex - szukamy zarówno z word boundary jak i bez
     for (const keyword of allKeywords) {
-      const { boundarygi, simplegi } = getKeywordRegexes(keyword);
+      const { boundarygi, simplegi } = buildKeywordRegexes(keyword);
       boundarygi.lastIndex = 0;
       let found = boundarygi.test(imageName);
 

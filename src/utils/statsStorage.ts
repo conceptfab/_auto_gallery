@@ -459,6 +459,13 @@ export async function getUserStats(email: string): Promise<UserStats> {
     totalTimeSpent,
     totalImagesViewed: userViews.filter((v) => v.type === 'image').length,
     totalFoldersViewed: userViews.filter((v) => v.type === 'folder').length,
+    totalDesignViews: userViews.filter(
+      (v) =>
+        v.type === 'design_list' ||
+        v.type === 'design_project' ||
+        v.type === 'design_revision'
+    ).length,
+    totalMoodboardViews: userViews.filter((v) => v.type === 'moodboard').length,
     totalDownloads: userDownloads.length,
     lastLogin,
     lastActivity,
@@ -582,6 +589,8 @@ export async function getOverviewStats(dateRange?: {
         ? 'otworzył projekt Design'
         : v.type === 'design_revision'
         ? 'obejrzał rewizję Design'
+        : v.type === 'moodboard'
+        ? 'otworzył Moodboard'
         : 'wyświetlił';
     const target =
       v.folderName ||

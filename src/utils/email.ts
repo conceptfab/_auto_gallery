@@ -49,9 +49,9 @@ export async function sendAdminNotification(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: ADMIN_EMAIL,
-      subject: '[ADMIN] Nowy wniosek o dostęp - Content Browser',
+      subject: '[ADMIN] Nowy wniosek o dostęp - ConceptView',
       html: `
-        <h2>Nowy wniosek o dostęp do Content Browser</h2>
+        <h2>Nowy wniosek o dostęp do ConceptView</h2>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>IP:</strong> ${ip}</p>
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
@@ -85,7 +85,7 @@ export async function sendLoginCode(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: email,
-      subject: 'Kod dostępu do Content Browser',
+      subject: 'Kod dostępu do ConceptView',
       html: `
         <h2>Twój kod dostępu</h2>
 
@@ -118,9 +118,9 @@ export async function sendAdminLoginCode(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: email,
-      subject: '[ADMIN] Kod dostępu do Content Browser',
+      subject: '[ADMIN] Kod dostępu do ConceptView',
       html: `
-        <h2>Twój kod dostępu administratora do Content Browser</h2>
+        <h2>Twój kod dostępu administratora do ConceptView</h2>
         <p>Witaj Administratorze!</p>
         <p>Oto Twój kod dostępu:</p>
 
@@ -144,6 +144,44 @@ export async function sendAdminLoginCode(
   } catch (error) {
     logger.error('Failed to send admin login code to', email, error);
     throw error;
+  }
+}
+
+export async function sendEmergencyCodeAlert(ip: string): Promise<void> {
+  logger.emailEvent('sending emergency code alert', ADMIN_EMAIL);
+
+  try {
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: ADMIN_EMAIL,
+      subject: '[SECURITY] Emergency code used - ConceptView',
+      html: `
+        <h2 style="color: #f44336;">Użyto kodu awaryjnego</h2>
+        <p>Ktoś zalogował się do panelu administracyjnego przy użyciu kodu awaryjnego.</p>
+        <table style="border-collapse: collapse; margin: 20px 0; width: 100%; max-width: 400px;">
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>IP:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${ip}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Data:</strong></td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${new Date().toLocaleString('pl-PL')}</td>
+          </tr>
+        </table>
+        <p style="color: #f44336;"><strong>Jeśli to nie Ty — natychmiast zmień ADMIN_EMERGENCY_CODE w zmiennych środowiskowych.</strong></p>
+        <p>
+          <a href="${ADMIN_PANEL_URL}"
+             style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+            Panel Administracyjny
+          </a>
+        </p>
+      `,
+    });
+
+    logger.emailEvent('emergency code alert sent', ADMIN_EMAIL);
+  } catch (error) {
+    logger.error('Failed to send emergency code alert', error);
+    // Non-blocking — don't throw
   }
 }
 
@@ -185,7 +223,7 @@ export async function sendRebuildNotification(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: targetEmail,
-      subject: `[CACHE] Rebuild ${statusText} - Content Browser`,
+      subject: `[CACHE] Rebuild ${statusText} - ConceptView`,
       html: `
         <h2 style="color: ${statusColor}">Rebuild cache zakończony: ${statusText}</h2>
         <table style="border-collapse: collapse; margin: 20px 0; width: 100%; max-width: 400px;">

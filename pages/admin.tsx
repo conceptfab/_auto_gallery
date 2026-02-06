@@ -342,7 +342,7 @@ const AdminPanel: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Panel Administracyjny - Content Browser</title>
+        <title>Panel Administracyjny - ConceptView</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 

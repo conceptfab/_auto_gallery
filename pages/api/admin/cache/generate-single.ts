@@ -2,11 +2,12 @@
 // Generuje miniaturkę dla pojedynczego obrazu w tle
 
 import { NextApiRequest, NextApiResponse } from 'next';
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { generateThumbnails } from '@/src/services/thumbnailService';
 import { getCacheData } from '@/src/utils/cacheStorage';
 import { logger } from '@/src/utils/logger';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
@@ -62,3 +63,5 @@ export default async function handler(
     }
   });
 }
+
+export default withAdminAuth(handler);

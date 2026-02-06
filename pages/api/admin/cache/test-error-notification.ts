@@ -2,25 +2,19 @@
 // Wysyła testowe powiadomienie email o błędzie (do weryfikacji, że maile przy awarii działają).
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { isAdminLoggedIn } from '@/src/utils/storage';
-import { getAdminEmailFromCookie } from '@/src/utils/auth';
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import {
   getCacheData,
   DEFAULT_EMAIL_NOTIFICATION_CONFIG,
 } from '@/src/utils/cacheStorage';
 import { sendRebuildNotification } from '@/src/utils/email';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const adminEmail = getAdminEmailFromCookie(req);
-  if (!adminEmail || !(await isAdminLoggedIn(adminEmail))) {
-    return res.status(403).json({ error: 'Unauthorized' });
   }
 
   try {
@@ -52,3 +46,5 @@ export default async function handler(
     });
   }
 }
+
+export default withAdminAuth(handler);

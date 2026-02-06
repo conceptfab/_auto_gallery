@@ -943,7 +943,7 @@ a {
 
 /* Ta sekcja została przeniesiona do media query (min-width: 481px) and (max-width: 1024px) */
 
-/* Pionowy smartfon: 3 rzędy – 1) logo+Content Browser ver, 2) ikony+cache,bug,mail+logout, 3) Content|Projekty|Moodboard */
+/* Pionowy smartfon: 3 rzędy – 1) logo+ConceptView ver, 2) ikony+cache,bug,mail+logout, 3) Content|Projekty|Moodboard */
 @media (max-width: 480px) {
   body {
     padding-top: 135px;
@@ -967,7 +967,7 @@ a {
     gap: 0 !important;
   }
 
-  /* Rząd 1: ikona + Content Browser ver: b 0.3 */
+  /* Rząd 1: ikona + ConceptView ver: b 0.3 */
   .menu-left {
     order: 1;
     width: 100% !important;

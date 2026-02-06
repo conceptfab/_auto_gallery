@@ -81,6 +81,8 @@ export interface UserStats {
   totalTimeSpent: number; // w sekundach
   totalImagesViewed: number;
   totalFoldersViewed: number;
+  totalDesignViews: number;
+  totalMoodboardViews: number;
   totalDownloads: number;
   lastLogin?: string;
   lastActivity?: string;

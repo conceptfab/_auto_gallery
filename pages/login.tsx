@@ -110,13 +110,13 @@ const LoginPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Logowanie - Content Browser</title>
+        <title>Logowanie - ConceptView</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="login-container">
         <div className="login-box">
-          <h1 className="login-title">Content Browser</h1>
+          <h1 className="login-title">ConceptView</h1>
           {versionInfo && (
             <div className="login-version">
               <span className="version">

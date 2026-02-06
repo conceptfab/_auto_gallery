@@ -289,6 +289,14 @@ export const StatsOverview: React.FC = () => {
                     {userDetails.summary.totalFoldersViewed}
                   </div>
                   <div>
+                    <strong>Projekty (Design):</strong>{' '}
+                    {userDetails.summary.totalDesignViews ?? 0}
+                  </div>
+                  <div>
+                    <strong>Moodboard:</strong>{' '}
+                    {userDetails.summary.totalMoodboardViews ?? 0}
+                  </div>
+                  <div>
                     <strong>Pobrania:</strong>{' '}
                     {userDetails.summary.totalDownloads}
                   </div>
@@ -357,9 +365,31 @@ export const StatsOverview: React.FC = () => {
                             <td>
                               {new Date(view.timestamp).toLocaleString('pl-PL')}
                             </td>
-                            <td>{view.type === 'folder' ? '📁' : '🖼️'}</td>
                             <td>
-                              {view.folderName || view.imageName || view.path}
+                              {view.type === 'folder'
+                                ? '📁'
+                                : view.type === 'image'
+                                ? '🖼️'
+                                : view.type === 'moodboard'
+                                ? '🎨'
+                                : view.type === 'design_project'
+                                ? '📐'
+                                : view.type === 'design_revision'
+                                ? '📝'
+                                : view.type === 'design_list'
+                                ? '📋'
+                                : '👁️'}
+                            </td>
+                            <td>
+                              {view.type === 'design_project'
+                                ? view.projectName || view.path
+                                : view.type === 'design_revision'
+                                ? `${view.projectName || ''} / ${view.revisionLabel || view.path}`
+                                : view.type === 'moodboard'
+                                ? 'Moodboard'
+                                : view.type === 'design_list'
+                                ? 'Lista projektów'
+                                : view.folderName || view.imageName || view.path}
                             </td>
                             <td>{view.ip || '-'}</td>
                             <td>

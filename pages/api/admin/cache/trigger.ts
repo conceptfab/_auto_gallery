@@ -1,8 +1,7 @@
 // pages/api/admin/cache/trigger.ts
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { isAdminLoggedIn } from '@/src/utils/storage';
-import { getAdminEmailFromCookie } from '@/src/utils/auth';
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import {
   forceScan,
   isScanRunning,
@@ -10,17 +9,12 @@ import {
 } from '@/src/services/schedulerService';
 import { clearAllThumbnails } from '@/src/services/thumbnailService';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const adminEmail = getAdminEmailFromCookie(req);
-  if (!adminEmail || !(await isAdminLoggedIn(adminEmail))) {
-    return res.status(403).json({ error: 'Unauthorized' });
   }
 
   const { action } = req.body as {
@@ -105,3 +99,5 @@ export default async function handler(
     return res.status(500).json({ error: 'Błąd wykonywania operacji' });
   }
 }
+
+export default withAdminAuth(handler);

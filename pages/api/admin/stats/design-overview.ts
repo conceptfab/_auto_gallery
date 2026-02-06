@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDesignOverviewStats } from '../../../../src/utils/statsStorage';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -37,3 +38,5 @@ export default async function handler(
     data: stats,
   });
 }
+
+export default withAdminAuth(handler);
