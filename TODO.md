@@ -1,7 +1,3 @@
 <!-- ### Przeanalizuj dokładnie kod pod kątem optymalizacji, martwego kodu, over-engineeringu, bezpieczeństwa. Przygotuj szczegółowy raport poprawki.md -->
 
-=> ConceptView
-=> statystyki
-=> Moodboard
-
-=> Projekty ma Concepts? Design? -> do zmiany
+=> Moodboard => moodboard_TODO.md

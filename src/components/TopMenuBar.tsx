@@ -251,7 +251,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
           <button
             type="button"
             onClick={() => router.push('/')}
-            title="Content"
+            title="Gallery"
             aria-current={
               router.pathname === '/' || router.pathname.startsWith('/folders')
                 ? 'page'
@@ -263,12 +263,12 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
                 : ''
             }`}
           >
-            Content
+            Gallery
           </button>
           <button
             type="button"
             onClick={() => router.push('/projekty')}
-            title="Projekty"
+            title="Projects"
             aria-current={
               router.pathname.startsWith('/projekty') ? 'page' : undefined
             }
@@ -276,7 +276,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
               router.pathname.startsWith('/projekty') ? 'active' : ''
             }`}
           >
-            Projekty
+            Projects
           </button>
           <button
             type="button"
