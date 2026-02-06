@@ -13,9 +13,21 @@ import { logger } from '../../../src/utils/logger';
 import { generateCode } from '../../../src/utils/auth';
 import { withRateLimit } from '../../../src/utils/rateLimiter';
 
+const MIN_RESPONSE_MS = 800;
+
 async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const startTime = Date.now();
+
+  /** Wyślij odpowiedź z normalizowanym opóźnieniem (anti-timing attack). */
+  async function sendNormalized(statusCode: number, body: object) {
+    const elapsed = Date.now() - startTime;
+    const delay = Math.max(0, MIN_RESPONSE_MS - elapsed);
+    if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+    return res.status(statusCode).json(body);
   }
 
   try {
@@ -27,12 +39,12 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     if (!email || !EMAIL_REGEX.test(email)) {
-      return res.status(400).json({ error: 'Invalid email address' });
+      return sendNormalized(400, { error: 'Invalid email address' });
     }
 
     // Dodatkowa walidacja długości
     if (email.length > 254) {
-      return res.status(400).json({ error: 'Email too long' });
+      return sendNormalized(400, { error: 'Email too long' });
     }
 
     // Normalizuj email do lowercase dla spójnych porównań
@@ -42,7 +54,8 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     const blacklist = await getBlacklist();
     const blacklistLower = blacklist.map((e) => e.toLowerCase());
     if (blacklistLower.includes(normalizedEmail)) {
-      return res.status(403).json({ error: 'Access denied' });
+      // Zwracamy generyczny komunikat — nie zdradzamy statusu emaila
+      return sendNormalized(200, { message: 'Request processed', email: normalizedEmail });
     }
 
     // Sprawdź czy email jest na białej liście (case-insensitive)
@@ -70,14 +83,13 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
           normalizedEmail
         );
 
-        res.status(200).json({
-          message: 'Code sent to your email',
+        return sendNormalized(200, {
+          message: 'Request processed',
           email: normalizedEmail,
         });
-        return;
       } catch (emailError) {
         logger.error('Błąd wysyłania kodu do użytkownika', emailError);
-        return res.status(500).json({ error: 'Failed to send code' });
+        return sendNormalized(500, { error: 'Failed to send code' });
       }
     }
 
@@ -86,9 +98,7 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     const pendingEmails = await getPendingEmails();
     const existing = pendingEmails.find((pe) => pe.email.toLowerCase() === normalizedEmail);
     if (existing && Date.now() - existing.timestamp.getTime() < 5 * 60 * 1000) {
-      return res
-        .status(429)
-        .json({ error: 'Please wait before requesting another code' });
+      return sendNormalized(200, { message: 'Request processed', email: normalizedEmail });
     }
 
     // Zapisz email jako oczekujący (znormalizowany)
@@ -116,8 +126,8 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
       // Nie przerywaj procesu - pending email został już dodany
     }
 
-    res.status(200).json({
-      message: 'Request sent to admin for approval',
+    return sendNormalized(200, {
+      message: 'Request processed',
       email: normalizedEmail,
     });
   } catch (error) {

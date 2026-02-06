@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
-
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 import { VOLUME_ROOT } from '../../../../src/config/constants';
 
@@ -75,4 +75,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default handler;
+export default withAdminAuth(handler);

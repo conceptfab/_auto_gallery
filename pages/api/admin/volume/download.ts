@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import archiver from 'archiver';
-
+import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 import { VOLUME_ROOT } from '../../../../src/config/constants';
 
@@ -93,4 +93,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   return res.status(400).json({ error: 'Unsupported entry type' });
 }
 
-export default handler;
+export default withAdminAuth(handler);

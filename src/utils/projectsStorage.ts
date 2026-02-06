@@ -5,6 +5,7 @@ import {
   getDesignRevisionThumbnailsDir,
   getDesignGalleryDir,
 } from './thumbnailStoragePath';
+import { getDataDir } from './dataDir';
 import type { Revision, Project } from '@/src/types/projects';
 
 export type { Revision, Project };
@@ -34,15 +35,6 @@ function generateSlug(name: string, existingSlugs: string[] = []): string {
     i++;
   }
   return final;
-}
-
-async function getDataDir(): Promise<string> {
-  try {
-    await fsp.access('/data-storage');
-    return '/data-storage';
-  } catch {
-    return path.join(process.cwd(), 'data');
-  }
 }
 
 async function getProjectsFilePath(): Promise<string> {

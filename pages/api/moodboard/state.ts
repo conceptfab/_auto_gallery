@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
 import { getEmailFromCookie } from '@/src/utils/auth';
+import { getDataDir } from '@/src/utils/dataDir';
 import type { MoodboardAppState, MoodboardBoard, MoodboardViewport } from '@/src/types/moodboard';
 import {
   decodeDataUrlToBuffer,
@@ -28,13 +29,7 @@ interface MoodboardIndex {
 }
 
 async function getMoodboardDir(): Promise<string> {
-  let dataDir: string;
-  try {
-    await fsp.access('/data-storage');
-    dataDir = '/data-storage';
-  } catch {
-    dataDir = path.join(process.cwd(), 'data');
-  }
+  const dataDir = await getDataDir();
   return path.join(dataDir, 'moodboard');
 }
 

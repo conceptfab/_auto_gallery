@@ -40,6 +40,12 @@ export default async function handler(
     return res.status(400).json({ error: 'Brak imageId' });
   }
 
+  // Walidacja path traversal
+  const SAFE_ID = /^[a-zA-Z0-9_-]+$/;
+  if (!SAFE_ID.test(boardId) || !SAFE_ID.test(imageId)) {
+    return res.status(400).json({ error: 'Nieprawidłowy boardId lub imageId' });
+  }
+
   if (!dataUrl || typeof dataUrl !== 'string') {
     return res.status(400).json({ error: 'Brak dataUrl' });
   }

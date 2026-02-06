@@ -8,8 +8,15 @@ import {
 } from '../../../../src/utils/storage';
 import { ADMIN_EMAIL } from '../../../../src/config/constants';
 import { logger } from '../../../../src/utils/logger';
+import { setAdminCookie } from '../../../../src/utils/auth';
+import { withRateLimit } from '../../../../src/utils/rateLimiter';
 
-export default async function handler(
+// Globalny rate limit na próby emergency code: max 3/godz
+const emergencyAttempts: { count: number; resetAt: number } = { count: 0, resetAt: 0 };
+const EMERGENCY_MAX_ATTEMPTS = 3;
+const EMERGENCY_WINDOW_MS = 60 * 60 * 1000; // 1 godzina
+
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -34,13 +41,31 @@ export default async function handler(
       return res.status(500).json({ error: 'Admin email not configured' });
     }
 
-    // Sprawdź czy używa kodu awaryjnego (SEC-019: logowanie prób)
+    // Sprawdź czy używa kodu awaryjnego
     const emergencyCode = process.env.ADMIN_EMERGENCY_CODE;
     const isEmergencyCode =
       emergencyCode && code.toUpperCase() === emergencyCode.toUpperCase();
 
     if (isEmergencyCode) {
-      logger.info('Admin login via emergency code', { email });
+      // Rate limit na emergency code: max 3 próby/godz globalnie
+      const now = Date.now();
+      if (now > emergencyAttempts.resetAt) {
+        emergencyAttempts.count = 0;
+        emergencyAttempts.resetAt = now + EMERGENCY_WINDOW_MS;
+      }
+      emergencyAttempts.count++;
+      if (emergencyAttempts.count > EMERGENCY_MAX_ATTEMPTS) {
+        logger.warn('Emergency code rate limit exceeded');
+        return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      }
+
+      // Walidacja siły kodu
+      if (emergencyCode.length < 12) {
+        logger.warn('ADMIN_EMERGENCY_CODE is too short (min 12 chars). Login blocked.');
+        return res.status(500).json({ error: 'Emergency code configuration error' });
+      }
+
+      logger.warn('Admin login via emergency code', { email, ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress });
       await loginAdmin(email);
     } else {
       // Standardowa weryfikacja kodu
@@ -71,12 +96,8 @@ export default async function handler(
     // Pobierz czas trwania sesji z ustawień
     const maxAge = await getSessionDurationSeconds();
 
-    // Ustaw admin cookie
-    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-    res.setHeader('Set-Cookie', [
-      `admin_email=${email}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Strict${secure}`,
-      `admin_logged=true; Path=/; Max-Age=${maxAge}; SameSite=Strict; HttpOnly${secure}`,
-    ]);
+    // Ustaw podpisane admin cookie
+    setAdminCookie(res, email, maxAge);
 
     res.status(200).json({
       message: 'Admin login successful',
@@ -88,3 +109,6 @@ export default async function handler(
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// 5 prób weryfikacji na minutę na IP
+export default withRateLimit(5, 60 * 1000)(handler);

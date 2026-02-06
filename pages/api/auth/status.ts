@@ -3,8 +3,9 @@ import { getEmailFromCookie } from '../../../src/utils/auth';
 import { getUserGroup } from '../../../src/utils/storage';
 import { ADMIN_EMAIL } from '../../../src/config/constants';
 import { getSchedulerStatus } from '../../../src/services/schedulerService';
+import { withRateLimit } from '../../../src/utils/rateLimiter';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -43,3 +44,6 @@ export default async function handler(
       : null,
   });
 }
+
+// 60 żądań na minutę na IP
+export default withRateLimit(60, 60 * 1000)(handler);

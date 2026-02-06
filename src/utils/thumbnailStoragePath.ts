@@ -4,17 +4,14 @@
  */
 import path from 'path';
 import fsp from 'fs/promises';
+import { getDataDir } from './dataDir';
 
 let cachedBase: string | null = null;
 
 export async function getThumbnailsBasePath(): Promise<string> {
   if (cachedBase !== null) return cachedBase;
-  try {
-    await fsp.access('/data-storage');
-    cachedBase = '/data-storage/thumbnails';
-  } catch {
-    cachedBase = path.join(process.cwd(), 'data', 'thumbnails');
-  }
+  const dataDir = await getDataDir();
+  cachedBase = path.join(dataDir, 'thumbnails');
   return cachedBase;
 }
 

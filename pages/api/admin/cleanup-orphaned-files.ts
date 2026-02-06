@@ -8,6 +8,7 @@ import {
   getDesignGalleryDir,
 } from '@/src/utils/thumbnailStoragePath';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
+import { getDataDir } from '@/src/utils/dataDir';
 
 interface OrphanedFile {
   path: string;
@@ -58,13 +59,7 @@ async function getMoodboardImagePaths(): Promise<Set<string>> {
   const paths = new Set<string>();
 
   try {
-    let dataDir: string;
-    try {
-      await fsp.access('/data-storage');
-      dataDir = '/data-storage';
-    } catch {
-      dataDir = path.join(process.cwd(), 'data');
-    }
+    const dataDir = await getDataDir();
 
     const moodboardDir = path.join(dataDir, 'moodboard');
     const indexPath = path.join(moodboardDir, 'index.json');
@@ -184,13 +179,7 @@ interface CleanupLogEntry {
 
 async function saveCleanupLog(entries: CleanupLogEntry[]): Promise<void> {
   try {
-    let dataDir: string;
-    try {
-      await fsp.access('/data-storage');
-      dataDir = '/data-storage';
-    } catch {
-      dataDir = path.join(process.cwd(), 'data');
-    }
+    const dataDir = await getDataDir();
     const logDir = path.join(dataDir, 'cleanup-logs');
     await fsp.mkdir(logDir, { recursive: true });
     const date = new Date().toISOString().slice(0, 10);

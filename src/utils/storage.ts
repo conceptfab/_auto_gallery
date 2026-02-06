@@ -1,6 +1,7 @@
 import path from 'path';
 import fsp from 'fs/promises';
 import type { StatsData } from '../types/stats';
+import { getDataDir } from './dataDir';
 
 // Trwałe przechowywanie danych w plikach JSON
 
@@ -44,16 +45,6 @@ interface StorageData {
   };
   // Statystyki użytkowników
   stats?: StatsData;
-}
-
-// Katalog danych: /data-storage (volume) lub data/ (lokalnie)
-async function getDataDir(): Promise<string> {
-  try {
-    await fsp.access('/data-storage');
-    return '/data-storage';
-  } catch {
-    return path.join(process.cwd(), 'data');
-  }
 }
 
 // saveData() usunięte – dane core zapisywane do core/pending.json, core/codes.json, core/settings.json
@@ -677,24 +668,27 @@ export async function removeAdminCode(email: string): Promise<void> {
 }
 
 export async function loginAdmin(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const codes = await loadCodes();
-  if (!codes.loggedInAdmins.includes(email)) {
-    codes.loggedInAdmins.push(email);
+  if (!codes.loggedInAdmins.some((u) => u.toLowerCase() === normalizedEmail)) {
+    codes.loggedInAdmins.push(normalizedEmail);
     await saveCodes(codes);
     if (cachedData) cachedData.loggedInAdmins = codes.loggedInAdmins;
   }
 }
 
 export async function logoutAdmin(email: string): Promise<void> {
+  const normalizedEmail = email.trim().toLowerCase();
   const codes = await loadCodes();
-  codes.loggedInAdmins = codes.loggedInAdmins.filter((u) => u !== email);
+  codes.loggedInAdmins = codes.loggedInAdmins.filter((u) => u.toLowerCase() !== normalizedEmail);
   await saveCodes(codes);
   if (cachedData) cachedData.loggedInAdmins = codes.loggedInAdmins;
 }
 
 export async function isAdminLoggedIn(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
   const data = await getData();
-  return data.loggedInAdmins.includes(email);
+  return data.loggedInAdmins.some((u) => u.toLowerCase() === normalizedEmail);
 }
 
 export async function cleanupExpiredAdminCodes(): Promise<number> {

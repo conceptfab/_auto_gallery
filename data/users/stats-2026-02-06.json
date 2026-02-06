@@ -1,0 +1,212 @@
+{
+  "date": "2026-02-06",
+  "logins": [
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-06T15:32:53.378Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sess_1770391973388_b5ucku",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-06T15:32:53.388Z",
+      "lastActivity": "2026-02-06T15:34:20.504Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    }
+  ],
+  "viewEvents": [
+    {
+      "id": "view_1770391981315_7b5auk",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:01.315Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Meble konferencyjne"
+    },
+    {
+      "id": "view_1770391982547_imsb6l",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:02.547Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Fota"
+    },
+    {
+      "id": "view_1770391984183_1cg71e",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:04.183Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota/U100 white",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U100 white"
+    },
+    {
+      "id": "view_1770391986574_gnqw9b",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:06.574Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770391988232_ni60c7",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:08.232Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "01.QX"
+    },
+    {
+      "id": "view_1770391990157_7ily6l",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:10.157Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U120 White"
+    },
+    {
+      "id": "view_1770391993676_hnmhg6",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:13.676Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770391997491_9eu1yd",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:17.491Z",
+      "type": "design_project",
+      "path": "projekty/mcr1000",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "projectId": "mcr1000",
+      "projectName": "MCR1000"
+    },
+    {
+      "id": "view_1770392000666_1wyw7s",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770391973388_b5ucku",
+      "timestamp": "2026-02-06T15:33:20.666Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    }
+  ],
+  "downloadEvents": []
+}

@@ -1,14 +1,6 @@
 import path from 'path';
 import fsp from 'fs/promises';
-
-async function getDataDir(): Promise<string> {
-  try {
-    await fsp.access('/data-storage');
-    return '/data-storage';
-  } catch {
-    return path.join(process.cwd(), 'data');
-  }
-}
+import { getDataDir } from './dataDir';
 
 /** Zwraca katalog na obrazy moodboardu: /data-storage/moodboard/images */
 export async function getMoodboardImagesDir(): Promise<string> {
