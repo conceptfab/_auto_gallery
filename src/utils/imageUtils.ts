@@ -91,7 +91,7 @@ export function getOptimizedImageUrl(
 ): string {
   // Jeśli chcemy pełny rozmiar, zawsze użyj proxy
   if (size === 'full') {
-    return `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=full`;
+    return `/api/image-redirect?url=${encodeURIComponent(image.url)}&size=full`;
   }
 
   // Jeśli cache jest włączony i mamy konfigurację
@@ -115,7 +115,7 @@ export function getOptimizedImageUrl(
   }
 
   // Fallback do proxy
-  return `/api/image-proxy?url=${encodeURIComponent(image.url)}&size=${size}`;
+  return `/api/image-redirect?url=${encodeURIComponent(image.url)}&size=${size}`;
 }
 
 /**

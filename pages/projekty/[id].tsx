@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
@@ -134,7 +134,7 @@ const ProjectsProjectPage: React.FC = () => {
   const getGalleryImageUrl = (relativePath: string) =>
     `/api/projects/gallery/${relativePath}`;
 
-  const getRevisionThumbnail = (rev: Revision): string | undefined => {
+  const getRevisionThumbnail = useCallback((rev: Revision): string | undefined => {
     if (project && rev.thumbnailPath) {
       return `/api/projects/thumbnail/${project.id}/${rev.id}`;
     }
@@ -145,7 +145,7 @@ const ProjectsProjectPage: React.FC = () => {
       return getGalleryImageUrl(rev.galleryPaths[0]);
     }
     return undefined;
-  };
+  }, [project]);
 
   const handleRemoveThumbnail = async () => {
     if (!project || !editingRevision) return;
@@ -199,40 +199,15 @@ const ProjectsProjectPage: React.FC = () => {
     }
     setUploadingGallery(true);
     try {
-      const dataUrls: string[] = [];
+      const form = new FormData();
+      form.append('projectId', project.id);
+      form.append('revisionId', editingRevision.id);
       for (const file of imageFiles) {
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-          const el = new Image();
-          el.onload = () => resolve(el);
-          el.onerror = reject;
-          el.src = dataUrl;
-        });
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
-        ctx.drawImage(img, 0, 0);
-        dataUrls.push(canvas.toDataURL('image/webp', 0.85));
-      }
-      if (dataUrls.length === 0) {
-        alert('Nie udało się przetworzyć obrazów.');
-        return;
+        form.append('files', file);
       }
       const res = await fetch('/api/admin/projects/upload-gallery', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: project.id,
-          revisionId: editingRevision.id,
-          images: dataUrls,
-        }),
+        body: form,
       });
       const data = await res.json();
       if (data.success && data.revision) {
@@ -430,7 +405,7 @@ const ProjectsProjectPage: React.FC = () => {
     setDragOverRevisionId(null);
   };
 
-  const isEmbedUrlAllowed = (url: string) => {
+  const isEmbedUrlAllowed = useCallback((url: string) => {
     try {
       const u = new URL(url);
       return (
@@ -441,7 +416,7 @@ const ProjectsProjectPage: React.FC = () => {
     } catch {
       return false;
     }
-  };
+  }, []);
 
   if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;

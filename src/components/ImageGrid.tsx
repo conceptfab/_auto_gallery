@@ -82,7 +82,7 @@ const ImageItem = memo(function ImageItem({
   isCached,
   cacheStatusLoaded = false,
 }: ImageItemProps) {
-  const proxyThumbUrl = `/api/image-proxy?url=${encodeURIComponent(
+  const proxyThumbUrl = `/api/image-redirect?url=${encodeURIComponent(
     image.url
   )}&size=thumb`;
 
@@ -90,7 +90,7 @@ const ImageItem = memo(function ImageItem({
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const target = e.target as HTMLImageElement;
 
-      if (target.src.includes('/api/image-proxy')) {
+      if (target.src.includes('/api/image-redirect')) {
         logger.warn('Image load error (proxy failed):', image.name);
         target.style.display = 'none';
         return;
@@ -473,7 +473,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
           thumbSrc={
             failedThumbnails[image.name] ||
             (isAdmin && cacheStatusLoaded && cacheStatus[image.name] === false)
-              ? `/api/image-proxy?url=${encodeURIComponent(
+              ? `/api/image-redirect?url=${encodeURIComponent(
                   image.url
                 )}&size=thumb`
               : getOptimizedImageUrl(image, 'thumb')
@@ -526,12 +526,12 @@ const ImageGrid: React.FC<ImageGridProps> = ({
               const originalSrc = target.src;
 
               // Fallback do proxy gdy miniaturka nie istnieje
-              if (!originalSrc.includes('/api/image-proxy')) {
+              if (!originalSrc.includes('/api/image-redirect')) {
                 logger.info(
                   'Preview thumbnail missing, falling back to proxy:',
                   hoveredPreview.image.name
                 );
-                target.src = `/api/image-proxy?url=${encodeURIComponent(
+                target.src = `/api/image-redirect?url=${encodeURIComponent(
                   hoveredPreview.image.url
                 )}&size=thumb`;
               } else {

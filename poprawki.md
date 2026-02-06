@@ -23,40 +23,6 @@
 ---
 
 
-## 7. Duplikacja kodu
-
-### DUP-01: KRYTYCZNA - design/[id].tsx vs projekty/[id].tsx (~1050 linii)
-
-- **Pliki:** `pages/design/[id].tsx` (1102) vs `pages/projekty/[id].tsx` (1090)
-- ~99% identyczny kod. Roznica: breadcrumbs.
-- **Poprawka:** Wspolny `ProjectDetailPage` z parametrem `basePath`.
-
-### DUP-02: design.tsx vs projekty.tsx (~100 linii)
-
-- Identyczny kod poza URL nawigacji.
-- **Poprawka:** Wspolny `ProjectsListPage`.
-
-### DUP-03: getDataDir() - 4 kopie
-
-- Patrz STORAGE-01.
-
-### DUP-04: decodeDataUrlToBuffer - 3 kopie
-
-- Patrz DEAD-03.
-
-### DUP-05: Wzorzec load/save w storage.ts (~200 linii)
-
-- **Plik:** `src/utils/storage.ts`
-- Identyczny wzorzec `loadX()`/`saveX()` powtorzony 6x (whitelist, blacklist, groups, pending, codes, settings).
-- **Poprawka:** Generyczna `loadJsonFile<T>()`/`saveJsonFile<T>()`.
-
-### DUP-06: Zduplikowany wzorzec fetch projectow na 4 stronach
-
-- **Pliki:** `projekty.tsx`, `projekty/[id].tsx`, `design.tsx`, `design/[id].tsx`
-- Identyczny pattern: fetch `/api/projects`, filtruj, ustaw state.
-- **Poprawka:** Hook `useProjects()` / `useProject(id)`.
-
----
 
 ## 8. Optymalizacja
 
