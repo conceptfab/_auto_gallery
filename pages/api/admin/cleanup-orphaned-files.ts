@@ -23,8 +23,11 @@ interface ScanResult {
   scannedMoodboardFiles: number;
 }
 
+const GRACE_PERIOD_MINUTES = 60;
+
 async function scanDirectory(dir: string): Promise<{ relativePath: string; size: number }[]> {
   const results: { relativePath: string; size: number }[] = [];
+  const now = Date.now();
 
   async function walk(currentDir: string, prefix: string = '') {
     try {
@@ -37,6 +40,8 @@ async function scanDirectory(dir: string): Promise<{ relativePath: string; size:
           await walk(fullPath, relativePath);
         } else if (entry.isFile()) {
           const stat = await fsp.stat(fullPath);
+          const ageMinutes = (now - stat.mtimeMs) / 1000 / 60;
+          if (ageMinutes < GRACE_PERIOD_MINUTES) continue;
           results.push({ relativePath, size: stat.size });
         }
       }
@@ -169,12 +174,52 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
   };
 }
 
+interface CleanupLogEntry {
+  path: string;
+  type: string;
+  size: number;
+  action: 'deleted' | 'dir_removed' | 'error';
+  error?: string;
+}
+
+async function saveCleanupLog(entries: CleanupLogEntry[]): Promise<void> {
+  try {
+    let dataDir: string;
+    try {
+      await fsp.access('/data-storage');
+      dataDir = '/data-storage';
+    } catch {
+      dataDir = path.join(process.cwd(), 'data');
+    }
+    const logDir = path.join(dataDir, 'cleanup-logs');
+    await fsp.mkdir(logDir, { recursive: true });
+    const date = new Date().toISOString().slice(0, 10);
+    const logPath = path.join(logDir, `cleanup-${date}.json`);
+
+    let existing: CleanupLogEntry[] = [];
+    try {
+      const raw = await fsp.readFile(logPath, 'utf8');
+      existing = JSON.parse(raw);
+    } catch {
+      // nowy plik
+    }
+
+    const all = [...existing, ...entries];
+    const tmpPath = logPath + '.tmp';
+    await fsp.writeFile(tmpPath, JSON.stringify(all, null, 2));
+    await fsp.rename(tmpPath, logPath);
+  } catch (err) {
+    console.error('[CLEANUP] Błąd zapisu logu:', err);
+  }
+}
+
 async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
   const revisionDir = await getDesignRevisionThumbnailsDir();
   const galleryDir = await getDesignGalleryDir();
   const moodboardDir = await getMoodboardImagesDir();
 
   let deleted = 0;
+  const logEntries: CleanupLogEntry[] = [];
 
   for (const file of files) {
     let baseDir: string;
@@ -202,6 +247,8 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
     try {
       await fsp.unlink(fullPath);
       deleted++;
+      console.log(`[CLEANUP] Usunięto ${file.type}: ${file.path} (${file.size} B)`);
+      logEntries.push({ path: file.path, type: file.type, size: file.size, action: 'deleted' });
 
       // Usuń pusty folder rodzica
       const parentDir = path.dirname(fullPath);
@@ -209,15 +256,21 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
         const entries = await fsp.readdir(parentDir);
         if (entries.length === 0) {
           await fsp.rmdir(parentDir);
+          const relParent = path.relative(baseDir, parentDir);
+          console.log(`[CLEANUP] Usunięto pusty katalog: ${relParent}`);
+          logEntries.push({ path: relParent, type: 'directory', size: 0, action: 'dir_removed' });
         }
       } catch {
-        // Ignoruj
+        // Ignoruj błędy rmdir
       }
-    } catch {
-      // Ignoruj błędy usuwania
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[CLEANUP] Błąd usuwania ${file.path}: ${msg}`);
+      logEntries.push({ path: file.path, type: file.type, size: file.size, action: 'error', error: msg });
     }
   }
 
+  await saveCleanupLog(logEntries);
   return deleted;
 }
 
@@ -234,9 +287,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.method === 'DELETE') {
-    // Usuń osierocone pliki
+    const dryRun = req.query.dryRun === 'true';
+
     try {
       const scanResult = await scanOrphanedFiles();
+
+      if (dryRun) {
+        return res.status(200).json({
+          success: true,
+          dryRun: true,
+          wouldDelete: scanResult.orphanedFiles.length,
+          wouldFreeBytes: scanResult.totalSize,
+          files: scanResult.orphanedFiles,
+        });
+      }
+
       const deleted = await deleteOrphanedFiles(scanResult.orphanedFiles);
       return res.status(200).json({
         success: true,

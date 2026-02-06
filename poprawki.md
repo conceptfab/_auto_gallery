@@ -226,6 +226,7 @@ Logika porownania jest prawidlowa (linie 91-159):
 - **Poprawka:** Wybrac jeden jezyk konsekwentnie.
 
 ### URL-02: Duplikacja stron /design i /projekty
+- strona pages/design.tsx` do usunięcia!!!
 - `pages/design.tsx` vs `pages/projekty.tsx` - identyczna funkcjonalnosc
 - `pages/design/[id].tsx` vs `pages/projekty/[id].tsx` - ~1100 linii zduplikowanych
 - **Poprawka:** Jedna sciezka + redirect z drugiej.

@@ -408,6 +408,16 @@ export async function deleteProjectRevision(
   revisionId: string
 ): Promise<boolean> {
   await deleteThumbnailFile(projectId, revisionId);
+
+  // Usuń pliki galerii rewizji
+  const galleryBase = await getGalleryDir();
+  const galleryRevDir = path.join(galleryBase, projectId, revisionId);
+  try {
+    await fsp.rm(galleryRevDir, { recursive: true, force: true });
+  } catch {
+    // ignoruj jeśli nie istnieje
+  }
+
   const filePath = await getProjectsFilePath();
   const projects = await ensureProjectsFile(filePath);
   const pIdx = projects.findIndex((p) => p.id === projectId);
@@ -429,6 +439,39 @@ export async function deleteProject(id: string): Promise<boolean> {
   const projects = await ensureProjectsFile(filePath);
   const idx = projects.findIndex((p) => p.id === id);
   if (idx === -1) return false;
+
+  const project = projects[idx];
+
+  // Kaskadowe usuwanie plików fizycznych
+  for (const rev of project.revisions || []) {
+    await deleteThumbnailFile(id, rev.id);
+    const galleryBase = await getGalleryDir();
+    const galleryRevDir = path.join(galleryBase, id, rev.id);
+    try {
+      await fsp.rm(galleryRevDir, { recursive: true, force: true });
+    } catch {
+      // ignoruj jeśli nie istnieje
+    }
+  }
+
+  // Usuń katalog projektu w galerii (jeśli pusty po usunięciu rewizji)
+  const galleryBase = await getGalleryDir();
+  const galleryProjectDir = path.join(galleryBase, id);
+  try {
+    await fsp.rm(galleryProjectDir, { recursive: true, force: true });
+  } catch {
+    // ignoruj
+  }
+
+  // Usuń katalog projektu w miniaturkach
+  const thumbBase = await getThumbnailsDir();
+  const thumbProjectDir = path.join(thumbBase, id);
+  try {
+    await fsp.rm(thumbProjectDir, { recursive: true, force: true });
+  } catch {
+    // ignoruj
+  }
+
   projects.splice(idx, 1);
   const tmpPath = filePath + '.tmp';
   await fsp.writeFile(tmpPath, JSON.stringify(projects, null, 2));
