@@ -1,6 +1,6 @@
 {
   "name": "ConceptView",
-  "version": "b 0.35f",
+  "version": "b 0.35g",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -47,5 +47,6 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "packageManager": "npm@10.9.2"
 }

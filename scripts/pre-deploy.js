@@ -49,6 +49,7 @@ function main() {
   });
 
   run('Build (next build)', () => {
+    console.log('\n  (build trwa zwykle 1–3 min – poczekaj)\n');
     execSync('npm run build', { cwd: ROOT, stdio: 'inherit' });
   });
 
