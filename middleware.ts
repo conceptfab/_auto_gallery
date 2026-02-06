@@ -10,9 +10,21 @@ export function middleware(request: NextRequest) {
   const adminEmailCookie = request.cookies.get('admin_email');
   const adminLoggedCookie = request.cookies.get('admin_logged');
 
+  // Cookie może być podpisane (email.hmac) — wyciągnij email sprzed ostatniej kropki
+  let adminEmailValue = adminEmailCookie?.value ?? '';
+  if (adminEmailValue.includes('@')) {
+    // Podpisane cookie: email@domain.com.hexsignature — odetnij podpis
+    const lastDot = adminEmailValue.lastIndexOf('.');
+    const possibleEmail = adminEmailValue.slice(0, lastDot);
+    // Jeśli część przed ostatnią kropką zawiera @, to jest to podpisane cookie
+    if (possibleEmail.includes('@')) {
+      adminEmailValue = possibleEmail;
+    }
+  }
+
   const isAdmin =
     adminLoggedCookie?.value === 'true' &&
-    adminEmailCookie?.value.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
+    adminEmailValue.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
 
   // Allow public access to login endpoints
   if (

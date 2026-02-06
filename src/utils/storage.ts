@@ -723,11 +723,25 @@ export async function getGroupById(id: string): Promise<UserGroup | undefined> {
   return groups.find((g) => g.id === id);
 }
 
+export async function getGroupByClientName(clientName: string): Promise<UserGroup | undefined> {
+  const groups = await loadGroups();
+  const normalized = clientName.trim().toLowerCase();
+  return groups.find((g) => g.clientName.trim().toLowerCase() === normalized);
+}
+
 export async function createGroup(
   name: string,
   clientName: string,
   galleryFolder: string
 ): Promise<UserGroup> {
+  const groups = await loadGroups();
+
+  const normalizedClientName = clientName.trim().toLowerCase();
+  const duplicate = groups.find((g) => g.clientName.trim().toLowerCase() === normalizedClientName);
+  if (duplicate) {
+    throw new Error(`Nazwa klienta "${clientName}" jest już używana przez grupę "${duplicate.name}"`);
+  }
+
   const newGroup: UserGroup = {
     id: generateGroupId(),
     name,
@@ -735,7 +749,6 @@ export async function createGroup(
     galleryFolder,
     users: [],
   };
-  const groups = await loadGroups();
   groups.push(newGroup);
   await saveGroups(groups);
   if (cachedData) cachedData.groups = groups;
@@ -749,8 +762,19 @@ export async function updateGroup(
   const groups = await loadGroups();
   const group = groups.find((g) => g.id === id);
   if (!group) return null;
+
+  if (updates.clientName !== undefined) {
+    const normalizedNew = updates.clientName.trim().toLowerCase();
+    const duplicate = groups.find(
+      (g) => g.id !== id && g.clientName.trim().toLowerCase() === normalizedNew
+    );
+    if (duplicate) {
+      throw new Error(`Nazwa klienta "${updates.clientName}" jest już używana przez grupę "${duplicate.name}"`);
+    }
+    group.clientName = updates.clientName;
+  }
+
   if (updates.name !== undefined) group.name = updates.name;
-  if (updates.clientName !== undefined) group.clientName = updates.clientName;
   if (updates.galleryFolder !== undefined)
     group.galleryFolder = updates.galleryFolder;
   await saveGroups(groups);

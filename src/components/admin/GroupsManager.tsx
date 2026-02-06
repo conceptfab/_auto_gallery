@@ -386,7 +386,7 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
                         </div>
                         <div style={{ display: 'flex', gap: '5px' }}>
                           <a
-                            href={`/?groupId=${group.id}`}
+                            href={`/preview/${encodeURIComponent(group.clientName)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{

@@ -21,6 +21,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ success: true, group });
   } catch (error) {
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('jest już używana')) {
+      return res.status(409).json({ error: msg });
+    }
     console.error('Error updating group:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

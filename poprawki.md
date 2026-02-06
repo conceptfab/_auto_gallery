@@ -23,35 +23,6 @@
 ---
 
 
-
-
-## 4. Czytelnosc linkow w pasku adresu
-
-### URL-01: Mieszanka jezykow w URL-ach
-- `/projekty` i `/projekty/[slug]` - po polsku
-- `/design`, `/moodboard`, `/folders`, `/admin-login` - po angielsku
-- **Poprawka:** Wybrac jeden jezyk konsekwentnie.
-
-### URL-02: Duplikacja stron /design i /projekty
-- strona pages/design.tsx` do usunięcia!!!
-- `pages/design.tsx` vs `pages/projekty.tsx` - identyczna funkcjonalnosc
-- `pages/design/[id].tsx` vs `pages/projekty/[id].tsx` - ~1100 linii zduplikowanych
-- **Poprawka:** Jedna sciezka + redirect z drugiej.
-
-### URL-03: Strona /folders pusta/niedokonczona
-- **Plik:** `pages/folders.tsx`
-- Renderuje puste divy, cala logika danych martwa.
-- **Poprawka:** Usunac lub dokonczyc.
-
-### URL-04: groupId w query params
-- `/?groupId=grp_abc123` - eksponuje wewnetrzne ID.
-- **Poprawka:** Uzyc czytelnych segmentow URL: `/preview/[clientName]`.
-
-### URL-05: Slug w projektach (OK)
-- `/projekty/moj-projekt` - poprawnie zaimplementowany slug z obsluga polskich znakow.
-
----
-
 ## 5. Logika i poprawnosc
 
 ### LOGIC-01: deleteProject() brak kaskadowego usuwania plikow

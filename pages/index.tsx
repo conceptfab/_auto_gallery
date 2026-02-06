@@ -1,6 +1,5 @@
 import React from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import Gallery from '@/src/components/Gallery';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useProtectedAuth } from '@/src/contexts/AuthContext';
@@ -10,11 +9,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
-  const router = useRouter();
   const { authStatus, authLoading } = useProtectedAuth();
-
-  // Parametr groupId dla podglądu admina
-  const groupId = router.query.groupId as string | undefined;
 
   if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
@@ -35,7 +30,6 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
       <main>
         <Gallery
           refreshKey={refreshKey}
-          groupId={groupId}
           isAdmin={authStatus?.isAdmin ?? false}
         />
       </main>
@@ -45,7 +39,6 @@ const HomePage: React.FC<HomePageProps> = ({ refreshKey }) => {
 
 export default HomePage;
 
-// Disable static generation to avoid router issues
 export async function getServerSideProps() {
   return {
     props: {},

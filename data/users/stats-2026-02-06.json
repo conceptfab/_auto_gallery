@@ -6,6 +6,12 @@
       "timestamp": "2026-02-06T15:32:53.378Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    },
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-06T15:57:04.015Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
     }
   ],
   "sessions": [
@@ -14,6 +20,14 @@
       "email": "micz@kleniewski.com",
       "startedAt": "2026-02-06T15:32:53.388Z",
       "lastActivity": "2026-02-06T15:34:20.504Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    },
+    {
+      "id": "sess_1770393424031_d50kyh",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-06T15:57:04.031Z",
+      "lastActivity": "2026-02-06T16:01:21.455Z",
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
     }
@@ -206,6 +220,190 @@
         "screenHeight": 1200,
         "language": "pl"
       }
+    },
+    {
+      "id": "view_1770393458079_3c8jqz",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:57:38.079Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770393461040_6ww8tr",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:57:41.040Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770393496085_rhs71t",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:58:16.085Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770393519178_xg7pug",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:58:39.178Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770393528042_9j75fr",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:58:48.042Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770393535599_h78yqi",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:58:55.599Z",
+      "type": "folder",
+      "path": "metro/Lady recepcyjne",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Lady recepcyjne"
+    },
+    {
+      "id": "view_1770393537165_jupcdm",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:58:57.165Z",
+      "type": "folder",
+      "path": "metro/Lady recepcyjne/MCR800",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "MCR800"
+    },
+    {
+      "id": "view_1770393539082_ob6erg",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:58:59.082Z",
+      "type": "folder",
+      "path": "metro/Lady recepcyjne/MCR800/Black",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Black"
+    },
+    {
+      "id": "view_1770393541217_murthb",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-06T15:59:01.217Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
     }
   ],
   "downloadEvents": []

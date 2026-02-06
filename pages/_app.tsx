@@ -93,24 +93,16 @@ export default function App({ Component, pageProps }: AppProps) {
     };
   }, [lockPortrait]);
 
-  // Pobierz nazwę klienta gdy admin podgląda grupę lub na stronie folders
+  // Pobierz nazwę klienta z trasy /preview/[clientName] lub strony folders
   useEffect(() => {
-    const groupId = router.query.groupId as string | undefined;
+    const isPreviewPage = router.pathname === '/preview/[clientName]';
     const isFoldersPage = router.pathname === '/folders';
 
-    if (groupId) {
-      // Pobierz informacje o grupie
-      fetch('/api/auth/admin/groups/list')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.groups) {
-            const group = data.groups.find((g: GroupInfo) => g.id === groupId);
-            if (group) {
-              setClientName(group.clientName);
-            }
-          }
-        })
-        .catch((err) => console.error('Error fetching group info:', err));
+    if (isPreviewPage) {
+      const name = router.query.clientName as string | undefined;
+      if (name) {
+        setClientName(decodeURIComponent(name));
+      }
     } else if (isFoldersPage) {
       // Na stronie folders pobierz nazwę klienta z API
       fetch('/api/folders')
@@ -126,7 +118,7 @@ export default function App({ Component, pageProps }: AppProps) {
     } else {
       setClientName(undefined);
     }
-  }, [router.query.groupId, router.pathname]);
+  }, [router.query.clientName, router.pathname]);
 
   return (
     <NotificationProvider>
