@@ -3,37 +3,17 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
-import { useProtectedAuth, useAuth } from '@/src/contexts/AuthContext';
-
-interface Revision {
-  id: string;
-  label?: string;
-  description?: string;
-  embedUrl?: string;
-  thumbnailPath?: string;
-  thumbnailDataUrl?: string;
-  screenshotDataUrl?: string;
-  galleryPaths?: string[];
-  createdAt: string;
-}
-
-interface Project {
-  id: string;
-  slug?: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  revisions?: Revision[];
-}
+import { useProtectedAuth } from '@/src/contexts/AuthContext';
+import { useProject } from '@/src/hooks/useProjects';
+import type { Revision, Project } from '@/src/types/projects';
 
 const ProjectsProjectPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   const { authStatus, authLoading } = useProtectedAuth();
-  const { refetchAuth } = useAuth();
   const { trackDesignView } = useStatsTracker();
-  const [project, setProject] = useState<Project | null>(null);
-  const [projectLoading, setProjectLoading] = useState(true);
+  const idStr = typeof id === 'string' ? id : undefined;
+  const { project, loading: projectLoading, refresh: refreshProject } = useProject(idStr, !!authStatus?.isLoggedIn);
   const [addingRevision, setAddingRevision] = useState(false);
   const [editingRevision, setEditingRevision] = useState<Revision | null>(null);
   const [editLabel, setEditLabel] = useState('');
@@ -63,31 +43,6 @@ const ProjectsProjectPage: React.FC = () => {
   >(null);
 
   useEffect(() => {
-    if (!authStatus?.isLoggedIn || !id || typeof id !== 'string') return;
-    const fetchProject = async () => {
-      try {
-        const res = await fetch('/api/projects');
-        if (res.status === 401) {
-          await refetchAuth();
-          router.replace('/login');
-          return;
-        }
-        const data = await res.json();
-        if (data.success && Array.isArray(data.projects)) {
-          const found = data.projects.find((p: Project) => p.slug === id || p.id === id);
-          setProject(found ?? null);
-        }
-      } catch (error) {
-        console.error('Error fetching project:', error);
-      } finally {
-        setProjectLoading(false);
-      }
-    };
-    setProjectLoading(true);
-    fetchProject();
-  }, [authStatus?.isLoggedIn, id, refetchAuth, router]);
-
-  useEffect(() => {
     if (!project || !id || typeof id !== 'string') return;
     trackDesignView('design_project', `projekty/${id}`, project.name, {
       projectId: id,
@@ -115,25 +70,6 @@ const ProjectsProjectPage: React.FC = () => {
       alert('Błąd dodawania rewizji');
     } finally {
       setAddingRevision(false);
-    }
-  };
-
-  const refreshProject = async () => {
-    if (!id || typeof id !== 'string') return;
-    try {
-      const res = await fetch('/api/projects');
-      if (res.status === 401) {
-        await refetchAuth();
-        router.replace('/login');
-        return;
-      }
-      const data = await res.json();
-      if (data.success && Array.isArray(data.projects)) {
-        const found = data.projects.find((p: Project) => p.slug === id || p.id === id);
-        setProject(found ?? null);
-      }
-    } catch (error) {
-      console.error('Error fetching project:', error);
     }
   };
 

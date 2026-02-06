@@ -48,9 +48,7 @@ interface StorageData {
   stats?: StatsData;
 }
 
-// saveData() usunięte – dane core zapisywane do core/pending.json, core/codes.json, core/settings.json
 
-// Katalog list (Etap 1 konwersji)
 async function getListsDir(): Promise<string> {
   return path.join(await getDataDir(), 'lists');
 }
@@ -63,7 +61,7 @@ function getBlacklistPath(listsDir: string): string {
   return path.join(listsDir, 'blacklist.json');
 }
 
-// Katalog grup (Etap 2 konwersji)
+
 async function getGroupsDir(): Promise<string> {
   return path.join(await getDataDir(), 'groups');
 }
@@ -72,7 +70,7 @@ function getGroupsPath(groupsDir: string): string {
   return path.join(groupsDir, 'groups.json');
 }
 
-// Katalog core (Etap 5 konwersji): pending, codes, settings
+
 async function getCoreDir(): Promise<string> {
   return path.join(await getDataDir(), 'core');
 }
@@ -149,134 +147,83 @@ const defaultData: StorageData = {
   },
 };
 
-// loadData() usunięte – nowa struktura plików jest stabilna
+// ==================== GENERYCZNE HELPERY JSON ====================
 
-// saveData() usunięte – dane core zapisywane do core/pending.json, core/codes.json, core/settings.json
-
-// ==================== ETAP 1: LISTY (osobne pliki) ====================
-
-async function loadWhitelist(): Promise<string[]> {
-  const listsDir = await getListsDir();
-  const filePath = getWhitelistPath(listsDir);
+async function loadJsonFile(filePath: string, label: string): Promise<unknown> {
   try {
     const raw = await fsp.readFile(filePath, 'utf8');
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
+    return JSON.parse(raw);
   } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') {
-      return [];
-    }
-    console.error('❌ Błąd ładowania whitelist:', err);
-    return [];
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    console.error(`❌ Błąd ładowania ${label}:`, err);
+    return undefined;
   }
+}
+
+async function saveJsonFile(dir: string, filePath: string, data: unknown): Promise<void> {
+  await fsp.mkdir(dir, { recursive: true });
+  const tmpPath = filePath + '.tmp';
+  await fsp.writeFile(tmpPath, JSON.stringify(data, null, 2));
+  await fsp.rename(tmpPath, filePath);
+}
+
+function asArray<T>(data: unknown): T[] {
+  return Array.isArray(data) ? data : [];
+}
+
+function asRecord(data: unknown): Record<string, unknown> {
+  return data && typeof data === 'object' && !Array.isArray(data)
+    ? (data as Record<string, unknown>)
+    : {};
+}
+
+// ==================== LISTY (osobne pliki) ====================
+
+async function loadWhitelist(): Promise<string[]> {
+  return asArray(await loadJsonFile(getWhitelistPath(await getListsDir()), 'whitelist'));
 }
 
 async function saveWhitelist(list: string[]): Promise<void> {
-  const listsDir = await getListsDir();
-  await fsp.mkdir(listsDir, { recursive: true });
-  const filePath = getWhitelistPath(listsDir);
-  const tmpPath = filePath + '.tmp';
-  await fsp.writeFile(tmpPath, JSON.stringify(list, null, 2));
-  await fsp.rename(tmpPath, filePath);
+  const dir = await getListsDir();
+  await saveJsonFile(dir, getWhitelistPath(dir), list);
 }
 
 async function loadBlacklist(): Promise<string[]> {
-  const listsDir = await getListsDir();
-  const filePath = getBlacklistPath(listsDir);
-  try {
-    const raw = await fsp.readFile(filePath, 'utf8');
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') {
-      return [];
-    }
-    console.error('❌ Błąd ładowania blacklist:', err);
-    return [];
-  }
+  return asArray(await loadJsonFile(getBlacklistPath(await getListsDir()), 'blacklist'));
 }
 
 async function saveBlacklist(list: string[]): Promise<void> {
-  const listsDir = await getListsDir();
-  await fsp.mkdir(listsDir, { recursive: true });
-  const filePath = getBlacklistPath(listsDir);
-  const tmpPath = filePath + '.tmp';
-  await fsp.writeFile(tmpPath, JSON.stringify(list, null, 2));
-  await fsp.rename(tmpPath, filePath);
+  const dir = await getListsDir();
+  await saveJsonFile(dir, getBlacklistPath(dir), list);
 }
 
-// ==================== ETAP 2: GRUPY (osobny plik) ====================
+// ==================== GRUPY (osobny plik) ====================
 
 async function loadGroups(): Promise<UserGroup[]> {
-  const groupsDir = await getGroupsDir();
-  const filePath = getGroupsPath(groupsDir);
-  try {
-    const raw = await fsp.readFile(filePath, 'utf8');
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') {
-      return [];
-    }
-    console.error('❌ Błąd ładowania grup:', err);
-    return [];
-  }
+  return asArray(await loadJsonFile(getGroupsPath(await getGroupsDir()), 'groups'));
 }
 
 async function saveGroups(groups: UserGroup[]): Promise<void> {
-  const groupsDir = await getGroupsDir();
-  await fsp.mkdir(groupsDir, { recursive: true });
-  const filePath = getGroupsPath(groupsDir);
-  const tmpPath = filePath + '.tmp';
-  await fsp.writeFile(tmpPath, JSON.stringify(groups, null, 2));
-  await fsp.rename(tmpPath, filePath);
+  const dir = await getGroupsDir();
+  await saveJsonFile(dir, getGroupsPath(dir), groups);
 }
 
-// ==================== ETAP 5: CORE (pending, codes, settings) ====================
+// ==================== CORE (pending, codes, settings) ====================
 
 async function loadPending(): Promise<
   Record<string, { timestamp: string; ip: string }>
 > {
-  const coreDir = await getCoreDir();
-  const filePath = getPendingPath(coreDir);
-  try {
-    const raw = await fsp.readFile(filePath, 'utf8');
-    const obj = JSON.parse(raw);
-    return obj && typeof obj === 'object' ? obj : {};
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') {
-      return {};
-    }
-    console.error('❌ Błąd ładowania pending:', err);
-    return {};
-  }
+  return asRecord(await loadJsonFile(getPendingPath(await getCoreDir()), 'pending')) as Record<
+    string,
+    { timestamp: string; ip: string }
+  >;
 }
 
 async function savePending(
   pending: Record<string, { timestamp: string; ip: string }>
 ): Promise<void> {
-  const coreDir = await getCoreDir();
-  await fsp.mkdir(coreDir, { recursive: true });
-  const filePath = getPendingPath(coreDir);
-  const tmpPath = filePath + '.tmp';
-  await fsp.writeFile(tmpPath, JSON.stringify(pending, null, 2));
-  await fsp.rename(tmpPath, filePath);
+  const dir = await getCoreDir();
+  await saveJsonFile(dir, getPendingPath(dir), pending);
 }
 
 function serializeLoginCode(lc: LoginCode): SerializedLoginCode {
@@ -293,119 +240,58 @@ function serializeLoginCode(lc: LoginCode): SerializedLoginCode {
   };
 }
 
-async function loadCodes(): Promise<{
-  activeCodes: Record<string, LoginCode>;
-  adminCodes: Record<string, LoginCode>;
-  loggedInUsers: string[];
-  loggedInAdmins: string[];
-}> {
-  const coreDir = await getCoreDir();
-  const filePath = getCodesPath(coreDir);
-  try {
-    const raw = await fsp.readFile(filePath, 'utf8');
-    const file: CodesFile = JSON.parse(raw);
-    const activeCodes: Record<string, LoginCode> = {};
-    const adminCodes: Record<string, LoginCode> = {};
-    if (file.activeCodes && typeof file.activeCodes === 'object') {
-      for (const [email, lc] of Object.entries(file.activeCodes)) {
-        activeCodes[email] = normalizeLoginCode(lc);
-      }
+const defaultCodes = {
+  activeCodes: {} as Record<string, LoginCode>,
+  adminCodes: {} as Record<string, LoginCode>,
+  loggedInUsers: [] as string[],
+  loggedInAdmins: [] as string[],
+};
+
+async function loadCodes(): Promise<typeof defaultCodes> {
+  const file = await loadJsonFile(getCodesPath(await getCoreDir()), 'codes') as CodesFile | undefined;
+  if (!file) return { ...defaultCodes };
+  const activeCodes: Record<string, LoginCode> = {};
+  const adminCodes: Record<string, LoginCode> = {};
+  if (file.activeCodes && typeof file.activeCodes === 'object') {
+    for (const [email, lc] of Object.entries(file.activeCodes)) {
+      activeCodes[email] = normalizeLoginCode(lc);
     }
-    if (file.adminCodes && typeof file.adminCodes === 'object') {
-      for (const [email, lc] of Object.entries(file.adminCodes)) {
-        adminCodes[email] = normalizeLoginCode(lc);
-      }
-    }
-    return {
-      activeCodes,
-      adminCodes,
-      loggedInUsers: Array.isArray(file.loggedInUsers)
-        ? file.loggedInUsers
-        : [],
-      loggedInAdmins: Array.isArray(file.loggedInAdmins)
-        ? file.loggedInAdmins
-        : [],
-    };
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') {
-      return {
-        activeCodes: {},
-        adminCodes: {},
-        loggedInUsers: [],
-        loggedInAdmins: [],
-      };
-    }
-    console.error('❌ Błąd ładowania codes:', err);
-    return {
-      activeCodes: {},
-      adminCodes: {},
-      loggedInUsers: [],
-      loggedInAdmins: [],
-    };
   }
+  if (file.adminCodes && typeof file.adminCodes === 'object') {
+    for (const [email, lc] of Object.entries(file.adminCodes)) {
+      adminCodes[email] = normalizeLoginCode(lc);
+    }
+  }
+  return {
+    activeCodes,
+    adminCodes,
+    loggedInUsers: Array.isArray(file.loggedInUsers) ? file.loggedInUsers : [],
+    loggedInAdmins: Array.isArray(file.loggedInAdmins) ? file.loggedInAdmins : [],
+  };
 }
 
-async function saveCodes(codes: {
-  activeCodes: Record<string, LoginCode>;
-  adminCodes: Record<string, LoginCode>;
-  loggedInUsers: string[];
-  loggedInAdmins: string[];
-}): Promise<void> {
-  const coreDir = await getCoreDir();
-  await fsp.mkdir(coreDir, { recursive: true });
-  const filePath = getCodesPath(coreDir);
+async function saveCodes(codes: typeof defaultCodes): Promise<void> {
+  const dir = await getCoreDir();
   const payload: CodesFile = {
     activeCodes: Object.fromEntries(
-      Object.entries(codes.activeCodes).map(([e, lc]) => [
-        e,
-        serializeLoginCode(lc),
-      ])
+      Object.entries(codes.activeCodes).map(([e, lc]) => [e, serializeLoginCode(lc)])
     ),
     adminCodes: Object.fromEntries(
-      Object.entries(codes.adminCodes).map(([e, lc]) => [
-        e,
-        serializeLoginCode(lc),
-      ])
+      Object.entries(codes.adminCodes).map(([e, lc]) => [e, serializeLoginCode(lc)])
     ),
     loggedInUsers: codes.loggedInUsers,
     loggedInAdmins: codes.loggedInAdmins,
   };
-  const tmpPath = filePath + '.tmp';
-  await fsp.writeFile(tmpPath, JSON.stringify(payload, null, 2));
-  await fsp.rename(tmpPath, filePath);
+  await saveJsonFile(dir, getCodesPath(dir), payload);
 }
 
 async function loadSettings(): Promise<SettingsFile> {
-  const coreDir = await getCoreDir();
-  const filePath = getSettingsPath(coreDir);
-  try {
-    const raw = await fsp.readFile(filePath, 'utf8');
-    const obj = JSON.parse(raw);
-    return obj && typeof obj === 'object' ? obj : {};
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') {
-      return {};
-    }
-    console.error('❌ Błąd ładowania settings:', err);
-    return {};
-  }
+  return asRecord(await loadJsonFile(getSettingsPath(await getCoreDir()), 'settings')) as SettingsFile;
 }
 
 async function saveSettings(settings: SettingsFile): Promise<void> {
-  const coreDir = await getCoreDir();
-  await fsp.mkdir(coreDir, { recursive: true });
-  const filePath = getSettingsPath(coreDir);
-  const tmpPath = filePath + '.tmp';
-  await fsp.writeFile(tmpPath, JSON.stringify(settings, null, 2));
-  await fsp.rename(tmpPath, filePath);
+  const dir = await getCoreDir();
+  await saveJsonFile(dir, getSettingsPath(dir), settings);
 }
 
 // Cache danych w pamięci (składany z list, groups, core – bez odczytu storage.json w głównej ścieżce)

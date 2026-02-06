@@ -23,56 +23,6 @@
 ---
 
 
-
-## 6. Martwy kod
-
-### DEAD-01: useDebounce.ts - 0 importow w calym kodzie
-
-- **Plik:** `src/hooks/useDebounce.ts` (37 linii)
-- Grep potwierdza: nigdzie nie importowany.
-- **Akcja:** Usunac.
-
-### DEAD-02: Strona /folders - caly plik martwy
-
-- **Plik:** `pages/folders.tsx` (125 linii)
-- Zmienne `_data`, `_loading`, `_error`, `_getThumbnailUrl` zdefiniowane ale nieuzywane.
-- **Akcja:** Usunac.
-
-### DEAD-03: decodeDataUrlToBuffer zduplikowana 3x
-
-- **Pliki:** `moodboardStorage.ts:20`, `projectsStorage.ts:161`, `upload-gallery.ts:9`
-- **Poprawka:** Zostawic jedna (eksportowana z moodboardStorage), importowac w reszcie.
-
-### DEAD-04: Interfejs \_PendingFile nieuzywany
-
-- **Plik:** `src/utils/storage.ts:102`
-- **Akcja:** Usunac.
-
-### DEAD-05: Pole screenshotDataUrl - legacy po migracji
-
-- **Pliki:** `projectsStorage.ts:319,369`, `design/[id].tsx:15`, `projekty/[id].tsx:15`
-- **Akcja:** Usunac po pelnej migracji.
-
-### DEAD-06: Zbedny rewrite w next.config.js
-
-- **Plik:** `next.config.js:50-53`
-- Mapuje `/api/gallery/:path*` na siebie - no-op.
-- **Akcja:** Usunac.
-
-### DEAD-07: Puste getServerSideProps na 6 stronach
-
-- **Pliki:** `index.tsx`, `login.tsx`, `admin.tsx`, `projekty.tsx`, `design.tsx`, `moodboard.tsx`
-- **Problem:** `getServerSideProps() { return { props: {} } }` wymusza SSR bez powodu.
-- **Poprawka:** Usunac (auth sprawdzany client-side).
-
-### DEAD-08: Komentarze o usunietych funkcjach
-
-- **Plik:** `src/utils/storage.ts:59,168`
-- Komentarze `// saveData() usuniete`, `// loadData() usuniete`.
-- **Akcja:** Usunac.
-
----
-
 ## 7. Duplikacja kodu
 
 ### DUP-01: KRYTYCZNA - design/[id].tsx vs projekty/[id].tsx (~1050 linii)

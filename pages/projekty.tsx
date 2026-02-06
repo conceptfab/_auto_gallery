@@ -1,54 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
-import { useProtectedAuth, useAuth } from '@/src/contexts/AuthContext';
-
-interface Project {
-  id: string;
-  slug?: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-}
+import { useProtectedAuth } from '@/src/contexts/AuthContext';
+import { useProjects } from '@/src/hooks/useProjects';
 
 const ProjectsPage: React.FC = () => {
   const router = useRouter();
   const { authStatus, authLoading } = useProtectedAuth();
-  const { refetchAuth } = useAuth();
   const { trackDesignView } = useStatsTracker();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectsLoading, setProjectsLoading] = useState(true);
+  const { projects, loading: projectsLoading } = useProjects(!!authStatus?.isLoggedIn);
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn || authLoading) return;
     trackDesignView('design_list', 'projekty', 'Projekty');
   }, [authStatus?.isLoggedIn, authLoading, trackDesignView]);
-
-  useEffect(() => {
-    if (!authStatus?.isLoggedIn) return;
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch('/api/projects');
-        if (res.status === 401) {
-          await refetchAuth();
-          router.replace('/login');
-          return;
-        }
-        const data = await res.json();
-        if (data.success && Array.isArray(data.projects)) {
-          setProjects(data.projects);
-        }
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      } finally {
-        setProjectsLoading(false);
-      }
-    };
-    setProjectsLoading(true);
-    fetchProjects();
-  }, [authStatus?.isLoggedIn, refetchAuth, router]);
 
   if (authLoading && !authStatus) {
     return <LoadingOverlay message="Sprawdzanie autoryzacji..." />;
