@@ -17,6 +17,15 @@ import { useAdminSettings } from '../src/hooks/useAdminSettings';
 import type { AdminAuthStatus } from '../src/types/admin';
 import { logger } from '../src/utils/logger';
 
+type AdminTab = 'overview' | 'users' | 'settings' | 'files';
+
+const ADMIN_TABS: { id: AdminTab; label: string; icon: string }[] = [
+  { id: 'overview', label: 'Przegląd', icon: 'la-chart-bar' },
+  { id: 'users', label: 'Użytkownicy', icon: 'la-users' },
+  { id: 'settings', label: 'Ustawienia', icon: 'la-cog' },
+  { id: 'files', label: 'Pliki', icon: 'la-folder-open' },
+];
+
 const AdminPanel: React.FC = () => {
   const router = useRouter();
   const { data, loading, setLoading, fetchData } = useAdminData();
@@ -27,6 +36,7 @@ const AdminPanel: React.FC = () => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [authStatus, setAuthStatus] = useState<AdminAuthStatus | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
   const [cleanupProcessing, setCleanupProcessing] = useState(false);
   const [lastCleanupResult, setLastCleanupResult] = useState<{
@@ -228,7 +238,7 @@ const AdminPanel: React.FC = () => {
       });
 
       if (response.ok) {
-        await fetchData(); // Odśwież dane
+        await fetchData();
       } else {
         const error = await response.json();
         alert(`Error: ${error.error}`);
@@ -266,7 +276,7 @@ const AdminPanel: React.FC = () => {
       });
 
       if (response.ok) {
-        await fetchData(); // Odśwież dane
+        await fetchData();
       } else {
         const error = await response.json();
         alert(`Error: ${error.error}`);
@@ -288,7 +298,6 @@ const AdminPanel: React.FC = () => {
       return;
     }
 
-    // Walidacja emaila
     const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!EMAIL_REGEX.test(email.trim())) {
       alert('Nieprawidłowy adres email');
@@ -306,8 +315,7 @@ const AdminPanel: React.FC = () => {
       });
 
       if (response.ok) {
-        await fetchData(); // Odśwież dane
-        // Wyczyść pole formularza
+        await fetchData();
         if (listType === 'whitelist') {
           setNewWhitelistEmail('');
         } else {
@@ -332,7 +340,7 @@ const AdminPanel: React.FC = () => {
   }
 
   if (!authStatus?.isAdminLoggedIn) {
-    return null; // Przekierowanie w toku
+    return null;
   }
 
   if (loading) {
@@ -350,599 +358,627 @@ const AdminPanel: React.FC = () => {
         <div className="admin-header">
           <h1 className="admin-header-title">Panel administracyjny</h1>
           <div className="admin-header-actions">
+            <button
+              onClick={refreshAll}
+              type="button"
+              className="admin-btn"
+              title="Odśwież dane"
+            >
+              <i className="las la-sync" style={{ marginRight: '6px' }}></i>
+              Odśwież
+            </button>
             <span className="admin-header-user">
-              Zalogowany: <strong>{authStatus.email}</strong>
+              <strong>{authStatus.email}</strong>
             </span>
             <button
               onClick={handleAdminLogout}
               type="button"
               className="admin-btn admin-btn--danger"
             >
-              Wyloguj admina
+              Wyloguj
             </button>
           </div>
         </div>
 
-        <PendingRequestsSection
-          pending={data.pending}
-          processing={processing}
-          onAction={handlePendingEmailAction}
-        />
+        {/* Pending requests - always visible when there are items */}
+        {data.pending.length > 0 && (
+          <PendingRequestsSection
+            pending={data.pending}
+            processing={processing}
+            onAction={handlePendingEmailAction}
+          />
+        )}
 
-        <DashboardStats
-          isExpanded={expandedSections.has('stats')}
-          onToggleSection={() => toggleSection('stats')}
-        />
+        {/* Tab bar */}
+        <div className="admin-tabs">
+          {ADMIN_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`admin-tab ${activeTab === tab.id ? 'admin-tab--active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <i className={`las ${tab.icon}`}></i>
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        <section className="admin-section">
-          <h2
-            className="admin-section-title admin-section-title-clickable"
-            onClick={() => toggleSection('design-stats')}
-          >
-            <span>Statystyki Design</span>
-            <i
-              className={`las la-angle-up admin-section-toggle ${
-                expandedSections.has('design-stats') ? '' : 'collapsed'
-              }`}
+        {/* Tab: Przegląd */}
+        {activeTab === 'overview' && (
+          <>
+            <DashboardStats
+              isExpanded={expandedSections.has('stats')}
+              onToggleSection={() => toggleSection('stats')}
             />
-          </h2>
-          {expandedSections.has('design-stats') && <DesignStatsSection />}
-        </section>
 
-        <ProjectsSection
-          isExpanded={expandedSections.has('projects')}
-          onToggleSection={() => toggleSection('projects')}
-        />
-
-        <UserLists
-          whitelist={data.whitelist}
-          blacklist={data.blacklist}
-          newWhitelistEmail={newWhitelistEmail}
-          newBlacklistEmail={newBlacklistEmail}
-          processing={processing}
-          expandedSections={expandedSections}
-          onToggleSection={toggleSection}
-          onWhitelistEmailChange={setNewWhitelistEmail}
-          onBlacklistEmailChange={setNewBlacklistEmail}
-          onAddToList={handleAddToList}
-          onRemoveFromList={handleRemoveFromList}
-        />
-
-        <GroupsManager
-          groups={groups}
-          folderStatus={folderStatus}
-          unassignedUsers={unassignedUsers}
-          processing={processing}
-          setProcessing={setProcessing}
-          isExpanded={expandedSections.has('groups')}
-          onToggleSection={() => toggleSection('groups')}
-          onGroupsChange={fetchGroups}
-        />
-
-        {/* Ustawienia UI/UX */}
-        <section className="admin-section">
-          <h2
-            className="admin-section-title admin-section-title-clickable"
-            onClick={() => toggleSection('settings')}
-          >
-            <span>Ustawienia UI/UX</span>
-            <i
-              className={`las la-angle-up admin-section-toggle ${
-                expandedSections.has('settings') ? '' : 'collapsed'
-              }`}
-            ></i>
-          </h2>
-
-          {expandedSections.has('settings') && (
-            <>
-              <div className="admin-form-box">
-                <h3>Kolorowanie słów kluczowych</h3>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}
-                >
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                    Włącz/wyłącz kolorowanie słów kluczowych w nazwach plików
-                  </p>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={settings.highlightKeywords}
-                      onChange={(e) => {
-                        updateSettings({ highlightKeywords: e.target.checked });
-                      }}
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                      }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: 500 }}>
-                      {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="admin-form-box">
-                <h3>Opóźnienie animacji miniaturek</h3>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}
-                >
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                    Czas opóźnienia między pojawianiem się kolejnych miniaturek
-                    (0–1000 ms)
-                  </p>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                    }}
-                  >
-                    <input
-                      type="range"
-                      min="0"
-                      max="1000"
-                      step="5"
-                      value={settings.thumbnailAnimationDelay}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value, 10);
-                        setSettings((prev) => ({
-                          ...prev,
-                          thumbnailAnimationDelay: value,
-                        }));
-                      }}
-                      onMouseUp={(e) => {
-                        const value = parseInt(
-                          (e.target as HTMLInputElement).value,
-                          10
-                        );
-                        updateSettings({ thumbnailAnimationDelay: value });
-                      }}
-                      onTouchEnd={(e) => {
-                        const value = parseInt(
-                          (e.target as HTMLInputElement).value,
-                          10
-                        );
-                        updateSettings({ thumbnailAnimationDelay: value });
-                      }}
-                      style={{
-                        width: '120px',
-                        cursor: 'pointer',
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        minWidth: '50px',
-                      }}
-                    >
-                      {settings.thumbnailAnimationDelay} ms
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-form-box">
-                <h3>Czas trwania sesji (cookies)</h3>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}
-                >
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                    Jak długo ciasteczka utrzymują zalogowanie użytkownika
-                  </p>
-                  <select
-                    value={settings.sessionDurationHours}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value, 10);
-                      updateSettings({ sessionDurationHours: value });
-                    }}
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      minWidth: '120px',
-                    }}
-                  >
-                    <option value={12}>12 godzin</option>
-                    <option value={24}>1 dzień</option>
-                    <option value={48}>2 dni</option>
-                    <option value={72}>3 dni</option>
-                    <option value={168}>7 dni</option>
-                    <option value={336}>14 dni</option>
-                  </select>
-                </div>
-              </div>
-            </>
-          )}
-        </section>
-
-        {/* Czyszczenie danych */}
-        <section className="admin-section">
-          <h2
-            className="admin-section-title admin-section-title-clickable"
-            onClick={() => toggleSection('data-cleanup')}
-          >
-            <span>Czyszczenie danych</span>
-            <i
-              className={`las la-angle-up admin-section-toggle ${
-                expandedSections.has('data-cleanup') ? '' : 'collapsed'
-              }`}
-            ></i>
-          </h2>
-
-          {expandedSections.has('data-cleanup') && (
-            <div className="admin-form-box">
-              <h3>Automatyczne czyszczenie historii</h3>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '16px',
-                }}
+            <section className="admin-section">
+              <h2
+                className="admin-section-title admin-section-title-clickable"
+                onClick={() => toggleSection('design-stats')}
               >
-                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                  Automatycznie usuwaj dane (logowania, sesje, wyświetlenia,
-                  pobrania) starsze niż określona liczba dni
-                </p>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={settings.autoCleanupEnabled}
-                    onChange={(e) => {
-                      updateSettings({ autoCleanupEnabled: e.target.checked });
-                    }}
-                    style={{
-                      width: '20px',
-                      height: '20px',
-                      cursor: 'pointer',
-                    }}
-                  />
-                  <span style={{ fontSize: '14px', fontWeight: 500 }}>
-                    {settings.autoCleanupEnabled ? 'Włączone' : 'Wyłączone'}
-                  </span>
-                </label>
-              </div>
+                <span>Statystyki Design</span>
+                <i
+                  className={`las la-angle-up admin-section-toggle ${
+                    expandedSections.has('design-stats') ? '' : 'collapsed'
+                  }`}
+                />
+              </h2>
+              {expandedSections.has('design-stats') && <DesignStatsSection />}
+            </section>
 
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px',
-                  marginBottom: '20px',
-                }}
+            <ProjectsSection
+              isExpanded={expandedSections.has('projects')}
+              onToggleSection={() => toggleSection('projects')}
+            />
+          </>
+        )}
+
+        {/* Tab: Użytkownicy */}
+        {activeTab === 'users' && (
+          <>
+            <UserLists
+              whitelist={data.whitelist}
+              blacklist={data.blacklist}
+              newWhitelistEmail={newWhitelistEmail}
+              newBlacklistEmail={newBlacklistEmail}
+              processing={processing}
+              expandedSections={expandedSections}
+              onToggleSection={toggleSection}
+              onWhitelistEmailChange={setNewWhitelistEmail}
+              onBlacklistEmailChange={setNewBlacklistEmail}
+              onAddToList={handleAddToList}
+              onRemoveFromList={handleRemoveFromList}
+            />
+
+            <GroupsManager
+              groups={groups}
+              folderStatus={folderStatus}
+              unassignedUsers={unassignedUsers}
+              processing={processing}
+              setProcessing={setProcessing}
+              isExpanded={expandedSections.has('groups')}
+              onToggleSection={() => toggleSection('groups')}
+              onGroupsChange={fetchGroups}
+            />
+          </>
+        )}
+
+        {/* Tab: Ustawienia */}
+        {activeTab === 'settings' && (
+          <>
+            {/* Ustawienia UI/UX */}
+            <section className="admin-section">
+              <h2
+                className="admin-section-title admin-section-title-clickable"
+                onClick={() => toggleSection('settings')}
               >
-                <label style={{ fontSize: '14px', color: '#333' }}>
-                  Usuwaj dane starsze niż:
-                </label>
-                <select
-                  value={settings.autoCleanupDays}
-                  onChange={(e) => {
-                    updateSettings({
-                      autoCleanupDays: parseInt(e.target.value, 10),
-                    });
-                  }}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '14px',
-                  }}
-                >
-                  <option value={7}>7 dni</option>
-                  <option value={14}>14 dni</option>
-                  <option value={30}>30 dni</option>
-                  <option value={60}>60 dni</option>
-                  <option value={90}>90 dni</option>
-                </select>
-              </div>
+                <span>Ustawienia UI/UX</span>
+                <i
+                  className={`las la-angle-up admin-section-toggle ${
+                    expandedSections.has('settings') ? '' : 'collapsed'
+                  }`}
+                ></i>
+              </h2>
 
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px',
-                  marginBottom: '20px',
-                }}
-              >
-                <label style={{ fontSize: '14px', color: '#333' }}>
-                  Retencja historii cache (pliki history/cache-*.json):
-                </label>
-                <select
-                  value={settings.historyRetentionDays}
-                  onChange={(e) => {
-                    updateSettings({
-                      historyRetentionDays: parseInt(e.target.value, 10),
-                    });
-                  }}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '14px',
-                  }}
-                >
-                  <option value={7}>7 dni</option>
-                  <option value={14}>14 dni</option>
-                  <option value={30}>30 dni</option>
-                  <option value={60}>60 dni</option>
-                  <option value={90}>90 dni</option>
-                </select>
-              </div>
-
-              {/* Ręczne czyszczenie */}
-              <div
-                style={{
-                  padding: '15px',
-                  backgroundColor: '#fef3c7',
-                  border: '1px solid #f59e0b',
-                  borderRadius: '6px',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
-                      Ręczne czyszczenie
-                    </h4>
-                    <p
-                      style={{ margin: 0, fontSize: '13px', color: '#a16207' }}
-                    >
-                      Usuń teraz wszystkie dane starsze niż{' '}
-                      {settings.autoCleanupDays} dni
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleManualCleanup}
-                    disabled={cleanupProcessing}
-                    className="admin-btn admin-btn--danger"
-                    style={{ minWidth: '120px' }}
-                  >
-                    {cleanupProcessing ? 'Czyszczenie...' : 'Wyczyść teraz'}
-                  </button>
-                </div>
-
-                {lastCleanupResult && (
-                  <div
-                    style={{
-                      marginTop: '15px',
-                      padding: '10px',
-                      backgroundColor: '#d1fae5',
-                      border: '1px solid #10b981',
-                      borderRadius: '4px',
-                      fontSize: '13px',
-                      color: '#065f46',
-                    }}
-                  >
-                    <strong>Usunięto:</strong> {lastCleanupResult.deletedLogins}{' '}
-                    logowań, {lastCleanupResult.deletedSessions} sesji,{' '}
-                    {lastCleanupResult.deletedViews} wyświetleń,{' '}
-                    {lastCleanupResult.deletedDownloads} pobrań
-                  </div>
-                )}
-              </div>
-
-              {/* Osierocone pliki graficzne */}
-              <div
-                style={{
-                  marginTop: '20px',
-                  padding: '15px',
-                  backgroundColor: '#fef3c7',
-                  border: '1px solid #f59e0b',
-                  borderRadius: '6px',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
-                      Osierocone pliki graficzne
-                    </h4>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#a16207' }}>
-                      Pliki miniaturek i galerii z usuniętych rewizji/moodboardów
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleScanOrphanedFiles}
-                    disabled={orphanedFilesScanning}
-                    className="admin-btn"
-                    style={{ minWidth: '120px' }}
-                  >
-                    {orphanedFilesScanning ? 'Skanowanie...' : 'Skanuj pliki'}
-                  </button>
-                </div>
-
-                {orphanedFilesScanResult && (
-                  <div style={{ marginTop: '15px' }}>
+              {expandedSections.has('settings') && (
+                <>
+                  <div className="admin-form-box">
+                    <h3>Kolorowanie słów kluczowych</h3>
                     <div
                       style={{
-                        padding: '10px',
-                        backgroundColor: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#fef2f2' : '#d1fae5',
-                        border: `1px solid ${orphanedFilesScanResult.orphanedFiles.length > 0 ? '#ef4444' : '#10b981'}`,
-                        borderRadius: '4px',
-                        fontSize: '13px',
-                        color: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#991b1b' : '#065f46',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
                       }}
                     >
-                      <div style={{ marginBottom: '8px' }}>
-                        <strong>Przeskanowano:</strong>{' '}
-                        {orphanedFilesScanResult.scannedRevisionThumbnails} miniaturek rewizji,{' '}
-                        {orphanedFilesScanResult.scannedGalleryFiles} plików galerii,{' '}
-                        {orphanedFilesScanResult.scannedMoodboardFiles} plików moodboardu
-                      </div>
-                      {orphanedFilesScanResult.orphanedFiles.length > 0 ? (
-                        <>
-                          <div style={{ marginBottom: '8px' }}>
-                            <strong>Znaleziono {orphanedFilesScanResult.orphanedFiles.length} osieroconych plików</strong>{' '}
-                            ({formatBytes(orphanedFilesScanResult.totalSize)})
-                          </div>
-                          <div
-                            style={{
-                              maxHeight: '150px',
-                              overflow: 'auto',
-                              backgroundColor: '#fff',
-                              border: '1px solid #ddd',
-                              borderRadius: '4px',
-                              padding: '8px',
-                              marginBottom: '10px',
-                              fontSize: '12px',
-                              fontFamily: 'monospace',
-                            }}
-                          >
-                            {orphanedFilesScanResult.orphanedFiles.map((f, i) => (
-                              <div key={i} style={{ marginBottom: '2px' }}>
-                                <span style={{ color: '#666' }}>[{f.type}]</span> {f.path}{' '}
-                                <span style={{ color: '#999' }}>({formatBytes(f.size)})</span>
-                              </div>
-                            ))}
-                          </div>
-                          <button
-                            onClick={handleDeleteOrphanedFiles}
-                            disabled={orphanedFilesDeleting}
-                            className="admin-btn admin-btn--danger"
-                            style={{ minWidth: '120px' }}
-                          >
-                            {orphanedFilesDeleting ? 'Usuwanie...' : 'Usuń osierocone pliki'}
-                          </button>
-                        </>
-                      ) : (
-                        <div>Brak osieroconych plików</div>
-                      )}
+                      <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                        Włącz/wyłącz kolorowanie słów kluczowych w nazwach plików
+                      </p>
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={settings.highlightKeywords}
+                          onChange={(e) => {
+                            updateSettings({ highlightKeywords: e.target.checked });
+                          }}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            cursor: 'pointer',
+                          }}
+                        />
+                        <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                          {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
+                        </span>
+                      </label>
                     </div>
                   </div>
-                )}
 
-                {orphanedFilesDeleteResult && (
+                  <div className="admin-form-box">
+                    <h3>Opóźnienie animacji miniaturek</h3>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
+                      <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                        Czas opóźnienia między pojawianiem się kolejnych miniaturek
+                        (0–1000 ms)
+                      </p>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                        }}
+                      >
+                        <input
+                          type="range"
+                          min="0"
+                          max="1000"
+                          step="5"
+                          value={settings.thumbnailAnimationDelay}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            setSettings((prev) => ({
+                              ...prev,
+                              thumbnailAnimationDelay: value,
+                            }));
+                          }}
+                          onMouseUp={(e) => {
+                            const value = parseInt(
+                              (e.target as HTMLInputElement).value,
+                              10
+                            );
+                            updateSettings({ thumbnailAnimationDelay: value });
+                          }}
+                          onTouchEnd={(e) => {
+                            const value = parseInt(
+                              (e.target as HTMLInputElement).value,
+                              10
+                            );
+                            updateSettings({ thumbnailAnimationDelay: value });
+                          }}
+                          style={{
+                            width: '120px',
+                            cursor: 'pointer',
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            minWidth: '50px',
+                          }}
+                        >
+                          {settings.thumbnailAnimationDelay} ms
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-form-box">
+                    <h3>Czas trwania sesji (cookies)</h3>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
+                      }}
+                    >
+                      <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                        Jak długo ciasteczka utrzymują zalogowanie użytkownika
+                      </p>
+                      <select
+                        value={settings.sessionDurationHours}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10);
+                          updateSettings({ sessionDurationHours: value });
+                        }}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #ccc',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          minWidth: '120px',
+                        }}
+                      >
+                        <option value={12}>12 godzin</option>
+                        <option value={24}>1 dzień</option>
+                        <option value={48}>2 dni</option>
+                        <option value={72}>3 dni</option>
+                        <option value={168}>7 dni</option>
+                        <option value={336}>14 dni</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
+            </section>
+
+            {/* Czyszczenie danych */}
+            <section className="admin-section">
+              <h2
+                className="admin-section-title admin-section-title-clickable"
+                onClick={() => toggleSection('data-cleanup')}
+              >
+                <span>Czyszczenie danych</span>
+                <i
+                  className={`las la-angle-up admin-section-toggle ${
+                    expandedSections.has('data-cleanup') ? '' : 'collapsed'
+                  }`}
+                ></i>
+              </h2>
+
+              {expandedSections.has('data-cleanup') && (
+                <div className="admin-form-box">
+                  <h3>Automatyczne czyszczenie historii</h3>
                   <div
                     style={{
-                      marginTop: '15px',
-                      padding: '10px',
-                      backgroundColor: '#d1fae5',
-                      border: '1px solid #10b981',
-                      borderRadius: '4px',
-                      fontSize: '13px',
-                      color: '#065f46',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px',
                     }}
                   >
-                    <strong>Usunięto:</strong> {orphanedFilesDeleteResult.deleted} plików,
-                    zwolniono {formatBytes(orphanedFilesDeleteResult.freedBytes)}
+                    <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                      Automatycznie usuwaj dane (logowania, sesje, wyświetlenia,
+                      pobrania) starsze niż określona liczba dni
+                    </p>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={settings.autoCleanupEnabled}
+                        onChange={(e) => {
+                          updateSettings({ autoCleanupEnabled: e.target.checked });
+                        }}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                        {settings.autoCleanupEnabled ? 'Włączone' : 'Wyłączone'}
+                      </span>
+                    </label>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-        </section>
 
-        {/* Cache i Miniaturki */}
-        <section className="admin-section">
-          <h2
-            className="admin-section-title admin-section-title-clickable"
-            onClick={() => toggleSection('cache')}
-          >
-            <span>Cache i Miniaturki</span>
-            <i
-              className={`las la-angle-up admin-section-toggle ${
-                expandedSections.has('cache') ? '' : 'collapsed'
-              }`}
-            ></i>
-          </h2>
-          {expandedSections.has('cache') && <CacheMonitorSection />}
-        </section>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '15px',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    <label style={{ fontSize: '14px', color: '#333' }}>
+                      Usuwaj dane starsze niż:
+                    </label>
+                    <select
+                      value={settings.autoCleanupDays}
+                      onChange={(e) => {
+                        updateSettings({
+                          autoCleanupDays: parseInt(e.target.value, 10),
+                        });
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px',
+                      }}
+                    >
+                      <option value={7}>7 dni</option>
+                      <option value={14}>14 dni</option>
+                      <option value={30}>30 dni</option>
+                      <option value={60}>60 dni</option>
+                      <option value={90}>90 dni</option>
+                    </select>
+                  </div>
 
-        {/* Menedżer plików */}
-        <section className="admin-section">
-          <h2
-            className="admin-section-title admin-section-title-clickable"
-            onClick={() => toggleSection('files')}
-          >
-            <span>Menedżer plików</span>
-            <i
-              className={`las la-angle-up admin-section-toggle ${
-                expandedSections.has('files') ? '' : 'collapsed'
-              }`}
-            ></i>
-          </h2>
-          {expandedSections.has('files') && <FileManager />}
-        </section>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '15px',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    <label style={{ fontSize: '14px', color: '#333' }}>
+                      Retencja historii cache (pliki history/cache-*.json):
+                    </label>
+                    <select
+                      value={settings.historyRetentionDays}
+                      onChange={(e) => {
+                        updateSettings({
+                          historyRetentionDays: parseInt(e.target.value, 10),
+                        });
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px',
+                      }}
+                    >
+                      <option value={7}>7 dni</option>
+                      <option value={14}>14 dni</option>
+                      <option value={30}>30 dni</option>
+                      <option value={60}>60 dni</option>
+                      <option value={90}>90 dni</option>
+                    </select>
+                  </div>
 
-        {/* Zawartość volume /data-storage */}
-        <section className="admin-section">
-          <h2
-            className="admin-section-title admin-section-title-clickable"
-            onClick={() => toggleSection('volume')}
-          >
-            <span>Zawartość volume (/data-storage)</span>
-            <i
-              className={`las la-angle-up admin-section-toggle ${
-                expandedSections.has('volume') ? '' : 'collapsed'
-              }`}
-            />
-          </h2>
-          {expandedSections.has('volume') && <VolumeBrowserSection />}
-        </section>
+                  {/* Ręczne czyszczenie */}
+                  <div
+                    style={{
+                      padding: '15px',
+                      backgroundColor: '#fef3c7',
+                      border: '1px solid #f59e0b',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div>
+                        <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
+                          Ręczne czyszczenie
+                        </h4>
+                        <p
+                          style={{ margin: 0, fontSize: '13px', color: '#a16207' }}
+                        >
+                          Usuń teraz wszystkie dane starsze niż{' '}
+                          {settings.autoCleanupDays} dni
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleManualCleanup}
+                        disabled={cleanupProcessing}
+                        className="admin-btn admin-btn--danger"
+                        style={{ minWidth: '120px' }}
+                      >
+                        {cleanupProcessing ? 'Czyszczenie...' : 'Wyczyść teraz'}
+                      </button>
+                    </div>
 
-        <div style={{ marginTop: '40px', textAlign: 'center' }}>
-          <button
-            onClick={refreshAll}
-            style={{
-              backgroundColor: '#2196F3',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Odśwież dane
-          </button>
-        </div>
+                    {lastCleanupResult && (
+                      <div
+                        style={{
+                          marginTop: '15px',
+                          padding: '10px',
+                          backgroundColor: '#d1fae5',
+                          border: '1px solid #10b981',
+                          borderRadius: '4px',
+                          fontSize: '13px',
+                          color: '#065f46',
+                        }}
+                      >
+                        <strong>Usunięto:</strong> {lastCleanupResult.deletedLogins}{' '}
+                        logowań, {lastCleanupResult.deletedSessions} sesji,{' '}
+                        {lastCleanupResult.deletedViews} wyświetleń,{' '}
+                        {lastCleanupResult.deletedDownloads} pobrań
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Osierocone pliki graficzne */}
+                  <div
+                    style={{
+                      marginTop: '20px',
+                      padding: '15px',
+                      backgroundColor: '#fef3c7',
+                      border: '1px solid #f59e0b',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div>
+                        <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
+                          Osierocone pliki graficzne
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#a16207' }}>
+                          Pliki miniaturek i galerii z usuniętych rewizji/moodboardów
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleScanOrphanedFiles}
+                        disabled={orphanedFilesScanning}
+                        className="admin-btn"
+                        style={{ minWidth: '120px' }}
+                      >
+                        {orphanedFilesScanning ? 'Skanowanie...' : 'Skanuj pliki'}
+                      </button>
+                    </div>
+
+                    {orphanedFilesScanResult && (
+                      <div style={{ marginTop: '15px' }}>
+                        <div
+                          style={{
+                            padding: '10px',
+                            backgroundColor: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#fef2f2' : '#d1fae5',
+                            border: `1px solid ${orphanedFilesScanResult.orphanedFiles.length > 0 ? '#ef4444' : '#10b981'}`,
+                            borderRadius: '4px',
+                            fontSize: '13px',
+                            color: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#991b1b' : '#065f46',
+                          }}
+                        >
+                          <div style={{ marginBottom: '8px' }}>
+                            <strong>Przeskanowano:</strong>{' '}
+                            {orphanedFilesScanResult.scannedRevisionThumbnails} miniaturek rewizji,{' '}
+                            {orphanedFilesScanResult.scannedGalleryFiles} plików galerii,{' '}
+                            {orphanedFilesScanResult.scannedMoodboardFiles} plików moodboardu
+                          </div>
+                          {orphanedFilesScanResult.orphanedFiles.length > 0 ? (
+                            <>
+                              <div style={{ marginBottom: '8px' }}>
+                                <strong>Znaleziono {orphanedFilesScanResult.orphanedFiles.length} osieroconych plików</strong>{' '}
+                                ({formatBytes(orphanedFilesScanResult.totalSize)})
+                              </div>
+                              <div
+                                style={{
+                                  maxHeight: '150px',
+                                  overflow: 'auto',
+                                  backgroundColor: '#fff',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '4px',
+                                  padding: '8px',
+                                  marginBottom: '10px',
+                                  fontSize: '12px',
+                                  fontFamily: 'monospace',
+                                }}
+                              >
+                                {orphanedFilesScanResult.orphanedFiles.map((f, i) => (
+                                  <div key={i} style={{ marginBottom: '2px' }}>
+                                    <span style={{ color: '#666' }}>[{f.type}]</span> {f.path}{' '}
+                                    <span style={{ color: '#999' }}>({formatBytes(f.size)})</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <button
+                                onClick={handleDeleteOrphanedFiles}
+                                disabled={orphanedFilesDeleting}
+                                className="admin-btn admin-btn--danger"
+                                style={{ minWidth: '120px' }}
+                              >
+                                {orphanedFilesDeleting ? 'Usuwanie...' : 'Usuń osierocone pliki'}
+                              </button>
+                            </>
+                          ) : (
+                            <div>Brak osieroconych plików</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {orphanedFilesDeleteResult && (
+                      <div
+                        style={{
+                          marginTop: '15px',
+                          padding: '10px',
+                          backgroundColor: '#d1fae5',
+                          border: '1px solid #10b981',
+                          borderRadius: '4px',
+                          fontSize: '13px',
+                          color: '#065f46',
+                        }}
+                      >
+                        <strong>Usunięto:</strong> {orphanedFilesDeleteResult.deleted} plików,
+                        zwolniono {formatBytes(orphanedFilesDeleteResult.freedBytes)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Cache i Miniaturki */}
+            <section className="admin-section">
+              <h2
+                className="admin-section-title admin-section-title-clickable"
+                onClick={() => toggleSection('cache')}
+              >
+                <span>Cache i Miniaturki</span>
+                <i
+                  className={`las la-angle-up admin-section-toggle ${
+                    expandedSections.has('cache') ? '' : 'collapsed'
+                  }`}
+                ></i>
+              </h2>
+              {expandedSections.has('cache') && <CacheMonitorSection />}
+            </section>
+          </>
+        )}
+
+        {/* Tab: Pliki */}
+        {activeTab === 'files' && (
+          <>
+            <section className="admin-section">
+              <h2
+                className="admin-section-title admin-section-title-clickable"
+                onClick={() => toggleSection('files')}
+              >
+                <span>Menedżer plików</span>
+                <i
+                  className={`las la-angle-up admin-section-toggle ${
+                    expandedSections.has('files') ? '' : 'collapsed'
+                  }`}
+                ></i>
+              </h2>
+              {expandedSections.has('files') && <FileManager />}
+            </section>
+
+            <section className="admin-section">
+              <h2
+                className="admin-section-title admin-section-title-clickable"
+                onClick={() => toggleSection('volume')}
+              >
+                <span>Zawartość volume (/data-storage)</span>
+                <i
+                  className={`las la-angle-up admin-section-toggle ${
+                    expandedSections.has('volume') ? '' : 'collapsed'
+                  }`}
+                />
+              </h2>
+              {expandedSections.has('volume') && <VolumeBrowserSection />}
+            </section>
+          </>
+        )}
       </div>
     </>
   );
 };
 
 export default AdminPanel;
-

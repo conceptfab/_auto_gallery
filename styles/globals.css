@@ -3486,7 +3486,7 @@ a {
 .admin-header-title {
   margin: 0;
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 100;
   color: #111827;
 }
 
@@ -3499,6 +3499,42 @@ a {
 .admin-header-user {
   font-size: 14px;
   color: #6b7280;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.admin-tab {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-tab:hover {
+  color: #111827;
+}
+
+.admin-tab--active {
+  color: #111827;
+  border-bottom-color: #111827;
+}
+
+.admin-tab i {
+  font-size: 18px;
 }
 
 .admin-section {
