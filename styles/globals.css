@@ -178,6 +178,7 @@ a {
   color: #666;
   font-weight: 100;
   margin-left: 4px;
+  align-self: center;
 }
 
 .menu-left {
