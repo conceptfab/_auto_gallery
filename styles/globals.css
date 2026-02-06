@@ -154,16 +154,15 @@ a {
   position: relative;
 }
 
-/* Logo icon before title */
+/* Logo icon – oryginalny rozmiar, w osi (wyśrodkowana z nazwą) */
 .menu-left .logo h1 .logo-icon {
   width: 22px;
   height: 22px;
   margin-right: 8px;
   flex-shrink: 0;
-  align-self: center;
 }
 
-/* Logo text style - main application title */
+/* Logo: ikona w osi nazwy, nazwa + ver: w jednej linii (ta sama linia bazowa) */
 .menu-left .logo h1 {
   font-size: 0.9rem;
   font-weight: 200;
@@ -173,12 +172,16 @@ a {
   align-items: center;
 }
 
+.menu-left .logo h1 .logo-text {
+  display: flex;
+  align-items: baseline;
+}
+
 .version {
   font-size: 0.56em;
   color: #666;
   font-weight: 100;
   margin-left: 4px;
-  align-self: center;
 }
 
 .menu-left {

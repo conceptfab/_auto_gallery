@@ -236,12 +236,14 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
                 height={22}
                 className="logo-icon"
               />
-              ConceptView
-              <span className="version">
-                ver:{' '}
-                {versionInfo?.message?.split(':')[0] ??
-                  versionInfo?.message ??
-                  ''}
+              <span className="logo-text">
+                ConceptView
+                <span className="version">
+                  ver:{' '}
+                  {versionInfo?.message?.split(':')[0] ??
+                    versionInfo?.message ??
+                    ''}
+                </span>
               </span>
             </h1>
           </div>
