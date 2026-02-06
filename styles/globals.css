@@ -3991,6 +3991,8 @@ a {
 .design-revision-embed {
   position: relative;
   width: 100%;
+  /* Ustalony kadr 16:9 pod miniaturę 800x450 */
+  aspect-ratio: 16 / 9;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -4034,6 +4036,7 @@ a {
   width: 100%;
   height: 100%;
   min-height: 0;
+  /* Obraz w proporcjach 16:9 wypełnia cały kadr */
   object-fit: contain;
   background: #1a1a1a;
 }
