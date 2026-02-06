@@ -3,6 +3,7 @@ import { getEmailFromCookie } from '@/src/utils/auth';
 import { isUserLoggedIn, isAdminLoggedIn } from '@/src/utils/storage';
 import { getProjects, getGalleryFilePath } from '@/src/utils/projectsStorage';
 import { ADMIN_EMAIL } from '@/src/config/constants';
+import { logger } from '@/src/utils/logger';
 import fsp from 'fs/promises';
 
 /**
@@ -47,12 +48,17 @@ export default async function handler(
   const project = projects.find((p) => p.id === projectId);
   const revision = project?.revisions?.find((r) => r.id === revisionId);
   const galleryPaths = revision?.galleryPaths ?? [];
-  if (!galleryPaths.includes(filename)) {
+  const imageAllowed =
+    galleryPaths.includes(filename) ||
+    galleryPaths.some((p) => p === `${projectId}/${revisionId}/${filename}` || p.endsWith(`/${filename}`));
+  if (!imageAllowed) {
+    logger.warn('[gallery API] Obraz nie w galleryPaths', { projectId, revisionId, filename, galleryPaths });
     return res.status(404).json({ error: 'Obraz nie znaleziony' });
   }
 
   const filePath = await getGalleryFilePath(projectId, revisionId, filename);
   if (!filePath) {
+    logger.warn('[gallery API] getGalleryFilePath zwrócił null', { projectId, revisionId, filename });
     // Plik nie na dysku (np. po migracji danych) – zwróć 1×1 transparent, żeby <img> nie psuło layoutu
     const transparentGif = Buffer.from(
       'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',

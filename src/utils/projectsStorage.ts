@@ -10,6 +10,7 @@ import {
   REVISION_THUMBNAIL_FILENAME,
 } from './projectsStoragePath';
 import { decodeDataUrlToBuffer } from './moodboardStorage';
+import { logger } from '@/src/utils/logger';
 import type { Revision, Project } from '@/src/types/projects';
 
 export type { Revision, Project };
@@ -269,6 +270,7 @@ export async function getThumbnailFilePath(
     await fsp.access(filePath);
     return filePath;
   } catch {
+    logger.warn('[thumbnail] Plik nie istnieje', { path: filePath, projectId, revisionId });
     return null;
   }
 }
@@ -311,11 +313,15 @@ export async function getGalleryFilePath(
   const filePath = path.join(galleryDir, filename);
   const base = path.normalize(galleryDir);
   const full = path.normalize(filePath);
-  if (!full.startsWith(base)) return null;
+  if (!full.startsWith(base)) {
+    logger.warn('[gallery] Path traversal', { galleryDir, filename, projectId, revisionId });
+    return null;
+  }
   try {
     await fsp.access(filePath);
     return filePath;
   } catch {
+    logger.warn('[gallery] Plik nie istnieje', { path: filePath, projectId, revisionId, filename });
     return null;
   }
 }

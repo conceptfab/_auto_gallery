@@ -3,6 +3,7 @@ import { getEmailFromCookie } from '@/src/utils/auth';
 import { isUserLoggedIn, isAdminLoggedIn } from '@/src/utils/storage';
 import { getProjects, getThumbnailFilePath } from '@/src/utils/projectsStorage';
 import { ADMIN_EMAIL } from '@/src/config/constants';
+import { logger } from '@/src/utils/logger';
 import fsp from 'fs/promises';
 
 /**
@@ -46,6 +47,7 @@ export default async function handler(
 
   const filePath = await getThumbnailFilePath(projectId, revisionId);
   if (!filePath) {
+    logger.warn('[thumbnail API] getThumbnailFilePath zwrócił null', { projectId, revisionId });
     return res.status(404).json({ error: 'Plik miniaturki nie istnieje' });
   }
 

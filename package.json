@@ -1,6 +1,6 @@
 {
   "name": "ConceptView",
-  "version": "b 0.35e",
+  "version": "b 0.35f",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
