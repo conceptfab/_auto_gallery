@@ -5,7 +5,7 @@ import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
 import { useProtectedAuth } from '@/src/contexts/AuthContext';
 import { useProject } from '@/src/hooks/useProjects';
-import type { Revision, Project } from '@/src/types/projects';
+import type { Revision } from '@/src/types/projects';
 
 const ProjectsProjectPage: React.FC = () => {
   const router = useRouter();

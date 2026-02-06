@@ -37,13 +37,6 @@ const DynamicTopMenuBar = dynamic(() => import('@/src/components/TopMenuBar'), {
   loading: () => <TopMenuBarPlaceholder />,
 });
 
-interface GroupInfo {
-  id: string;
-  name: string;
-  clientName: string;
-  galleryFolder: string;
-}
-
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [clientName, setClientName] = useState<string | undefined>(undefined);
