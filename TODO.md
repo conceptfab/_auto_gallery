@@ -2,4 +2,4 @@
 
 => Moodboard => moodboard_TODO.md
 
-=> backup / upload projekty/rewizje i moodboardy -realna nazwa w widoku admina, checkboxy, weryfikacja plików
+test
