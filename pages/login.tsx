@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -42,9 +42,12 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const submittingRef = useRef(false);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError('');
     setMessage('');
@@ -65,6 +68,13 @@ const LoginPage: React.FC = () => {
           'Wniosek został wysłany do administratora. Sprawdź swoją skrzynkę email po otrzymaniu zatwierdzenia.'
         );
         setStep('code');
+      } else if (response.status === 429) {
+        const min = result.retryAfter
+          ? Math.ceil(Number(result.retryAfter) / 60)
+          : 15;
+        setError(
+          `Zbyt wiele prób. Spróbuj ponownie za ${min} ${min === 1 ? 'minutę' : min < 5 ? 'minuty' : 'minut'}.`
+        );
       } else {
         setError(result.error || 'Wystąpił błąd');
       }
@@ -72,11 +82,14 @@ const LoginPage: React.FC = () => {
       setError('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError('');
 
@@ -97,6 +110,12 @@ const LoginPage: React.FC = () => {
         setTimeout(() => {
           router.push('/');
         }, 1500);
+      } else if (response.status === 429) {
+        const sec = result.retryAfter ? Number(result.retryAfter) : 60;
+        const min = Math.ceil(sec / 60);
+        setError(
+          `Zbyt wiele prób. Spróbuj ponownie za ${min} ${min === 1 ? 'minutę' : min < 5 ? 'minuty' : 'minut'}.`
+        );
       } else {
         setError(result.error || 'Wystąpił błąd');
       }
@@ -104,19 +123,20 @@ const LoginPage: React.FC = () => {
       setError('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
   return (
     <>
       <Head>
-        <title>Logowanie - ConceptView</title>
+        <title>Logowanie - ConceptDesk</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="login-container">
         <div className="login-box">
-          <h1 className="login-title">ConceptView</h1>
+          <h1 className="login-title">ConceptDesk</h1>
           {versionInfo && (
             <div className="login-version">
               <span className="version">
@@ -222,4 +242,3 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-

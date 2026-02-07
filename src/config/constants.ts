@@ -11,7 +11,7 @@ export const GALLERY_BASE_URL =
   'https://conceptfab.com/__metro/gallery/';
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'michal@conceptfab.com';
 export const EMAIL_FROM =
-  process.env.EMAIL_FROM || 'ConceptView <no-reply@conceptfab.com>';
+  process.env.EMAIL_FROM || 'ConceptDesk <no-reply@conceptfab.com>';
 export const ADMIN_PANEL_URL =
   process.env.ADMIN_PANEL_URL || 'https://app.conceptfab.com/admin';
 

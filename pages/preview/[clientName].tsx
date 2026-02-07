@@ -25,17 +25,14 @@ const PreviewPage: React.FC<PreviewPageProps> = ({ groupId, clientName }) => {
   return (
     <>
       <Head>
-        <title>{clientName} – ConceptView</title>
+        <title>{clientName} – ConceptDesk</title>
         <meta name="description" content={`Podgląd: ${clientName}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main>
-        <Gallery
-          groupId={groupId}
-          isAdmin={authStatus?.isAdmin ?? false}
-        />
+        <Gallery groupId={groupId} isAdmin={authStatus?.isAdmin ?? false} />
       </main>
     </>
   );
@@ -43,7 +40,9 @@ const PreviewPage: React.FC<PreviewPageProps> = ({ groupId, clientName }) => {
 
 export default PreviewPage;
 
-export const getServerSideProps: GetServerSideProps<PreviewPageProps> = async (ctx) => {
+export const getServerSideProps: GetServerSideProps<PreviewPageProps> = async (
+  ctx
+) => {
   const clientName = ctx.params?.clientName;
   if (!clientName || typeof clientName !== 'string') {
     return { notFound: true };

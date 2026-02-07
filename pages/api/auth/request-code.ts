@@ -136,5 +136,5 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-// 5 żądań na 15 minut na IP (ograniczenie spamu i powiadomień)
-export default withRateLimit(5, 15 * 60 * 1000)(requestCodeHandler);
+// 10 żądań na 15 minut na IP (ograniczenie spamu, bez blokowania przy podwójnym kliku)
+export default withRateLimit(10, 15 * 60 * 1000)(requestCodeHandler);

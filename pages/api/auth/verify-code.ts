@@ -99,5 +99,5 @@ async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-// Limit 5 prób na minutę
-export default withRateLimit(5, 60000)(verifyCodeHandler);
+// Limit 15 prób na minutę (wpisywanie kodu, ewentualne literówki)
+export default withRateLimit(15, 60000)(verifyCodeHandler);

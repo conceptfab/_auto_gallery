@@ -49,9 +49,9 @@ export async function sendAdminNotification(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: ADMIN_EMAIL,
-      subject: '[ADMIN] Nowy wniosek o dostęp - ConceptView',
+      subject: '[ADMIN] Nowy wniosek o dostęp - ConceptDesk',
       html: `
-        <h2>Nowy wniosek o dostęp do ConceptView</h2>
+        <h2>Nowy wniosek o dostęp do ConceptDesk</h2>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>IP:</strong> ${ip}</p>
         <p><strong>Data:</strong> ${new Date().toLocaleString('pl-PL')}</p>
@@ -85,7 +85,7 @@ export async function sendLoginCode(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: email,
-      subject: 'Kod dostępu do ConceptView',
+      subject: 'Kod dostępu do ConceptDesk',
       html: `
         <h2>Twój kod dostępu</h2>
 
@@ -118,9 +118,9 @@ export async function sendAdminLoginCode(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: email,
-      subject: '[ADMIN] Kod dostępu do ConceptView',
+      subject: '[ADMIN] Kod dostępu do ConceptDesk',
       html: `
-        <h2>Twój kod dostępu administratora do ConceptView</h2>
+        <h2>Twój kod dostępu administratora do ConceptDesk</h2>
         <p>Witaj Administratorze!</p>
         <p>Oto Twój kod dostępu:</p>
 
@@ -154,7 +154,7 @@ export async function sendEmergencyCodeAlert(ip: string): Promise<void> {
     await resend.emails.send({
       from: EMAIL_FROM,
       to: ADMIN_EMAIL,
-      subject: '[SECURITY] Emergency code used - ConceptView',
+      subject: '[SECURITY] Emergency code used - ConceptDesk',
       html: `
         <h2 style="color: #f44336;">Użyto kodu awaryjnego</h2>
         <p>Ktoś zalogował się do panelu administracyjnego przy użyciu kodu awaryjnego.</p>
@@ -165,7 +165,9 @@ export async function sendEmergencyCodeAlert(ip: string): Promise<void> {
           </tr>
           <tr>
             <td style="padding: 8px 12px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Data:</strong></td>
-            <td style="padding: 8px 12px; border: 1px solid #ddd;">${new Date().toLocaleString('pl-PL')}</td>
+            <td style="padding: 8px 12px; border: 1px solid #ddd;">${new Date().toLocaleString(
+              'pl-PL'
+            )}</td>
           </tr>
         </table>
         <p style="color: #f44336;"><strong>Jeśli to nie Ty — natychmiast zmień ADMIN_EMERGENCY_CODE w zmiennych środowiskowych.</strong></p>
@@ -223,7 +225,7 @@ export async function sendRebuildNotification(
     const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: targetEmail,
-      subject: `[CACHE] Rebuild ${statusText} - ConceptView`,
+      subject: `[CACHE] Rebuild ${statusText} - ConceptDesk`,
       html: `
         <h2 style="color: ${statusColor}">Rebuild cache zakończony: ${statusText}</h2>
         <table style="border-collapse: collapse; margin: 20px 0; width: 100%; max-width: 400px;">

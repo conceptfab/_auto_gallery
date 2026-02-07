@@ -82,7 +82,7 @@ const MoodboardPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Moodboard – ConceptView</title>
+        <title>Moodboard – ConceptDesk</title>
         <meta
           name="description"
           content="Moodboard – tablica nastrojów z obrazkami i komentarzami"
@@ -101,4 +101,3 @@ const MoodboardPage: React.FC = () => {
 };
 
 export default MoodboardPage;
-

@@ -10,7 +10,9 @@ const ProjectsPage: React.FC = () => {
   const router = useRouter();
   const { authStatus, authLoading } = useProtectedAuth();
   const { trackDesignView } = useStatsTracker();
-  const { projects, loading: projectsLoading } = useProjects(!!authStatus?.isLoggedIn);
+  const { projects, loading: projectsLoading } = useProjects(
+    !!authStatus?.isLoggedIn
+  );
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn || authLoading) return;
@@ -28,8 +30,8 @@ const ProjectsPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Projekty – ConceptView</title>
-        <meta name="description" content="Projekty – ConceptView" />
+        <title>Projekty – ConceptDesk</title>
+        <meta name="description" content="Projekty – ConceptDesk" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -65,4 +67,3 @@ const ProjectsPage: React.FC = () => {
 };
 
 export default ProjectsPage;
-

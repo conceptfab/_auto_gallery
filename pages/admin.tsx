@@ -137,8 +137,16 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleDeleteOrphanedFiles = async () => {
-    if (!orphanedFilesScanResult || orphanedFilesScanResult.orphanedFiles.length === 0) return;
-    if (!confirm(`Czy na pewno chcesz usunąć ${orphanedFilesScanResult.orphanedFiles.length} osieroconych plików? Ta operacja jest nieodwracalna.`)) {
+    if (
+      !orphanedFilesScanResult ||
+      orphanedFilesScanResult.orphanedFiles.length === 0
+    )
+      return;
+    if (
+      !confirm(
+        `Czy na pewno chcesz usunąć ${orphanedFilesScanResult.orphanedFiles.length} osieroconych plików? Ta operacja jest nieodwracalna.`
+      )
+    ) {
       return;
     }
     setOrphanedFilesDeleting(true);
@@ -353,7 +361,7 @@ const AdminPanel: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Panel Administracyjny - ConceptView</title>
+        <title>Panel Administracyjny - ConceptDesk</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -398,7 +406,9 @@ const AdminPanel: React.FC = () => {
             <button
               key={tab.id}
               type="button"
-              className={`admin-tab ${activeTab === tab.id ? 'admin-tab--active' : ''}`}
+              className={`admin-tab ${
+                activeTab === tab.id ? 'admin-tab--active' : ''
+              }`}
               onClick={() => setActiveTab(tab.id)}
             >
               <i className={`las ${tab.icon}`}></i>
@@ -497,7 +507,8 @@ const AdminPanel: React.FC = () => {
                       }}
                     >
                       <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                        Włącz/wyłącz kolorowanie słów kluczowych w nazwach plików
+                        Włącz/wyłącz kolorowanie słów kluczowych w nazwach
+                        plików
                       </p>
                       <label
                         style={{
@@ -511,7 +522,9 @@ const AdminPanel: React.FC = () => {
                           type="checkbox"
                           checked={settings.highlightKeywords}
                           onChange={(e) => {
-                            updateSettings({ highlightKeywords: e.target.checked });
+                            updateSettings({
+                              highlightKeywords: e.target.checked,
+                            });
                           }}
                           style={{
                             width: '20px',
@@ -520,7 +533,9 @@ const AdminPanel: React.FC = () => {
                           }}
                         />
                         <span style={{ fontSize: '14px', fontWeight: 500 }}>
-                          {settings.highlightKeywords ? 'Włączone' : 'Wyłączone'}
+                          {settings.highlightKeywords
+                            ? 'Włączone'
+                            : 'Wyłączone'}
                         </span>
                       </label>
                     </div>
@@ -537,8 +552,8 @@ const AdminPanel: React.FC = () => {
                       }}
                     >
                       <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                        Czas opóźnienia między pojawianiem się kolejnych miniaturek
-                        (0–1000 ms)
+                        Czas opóźnienia między pojawianiem się kolejnych
+                        miniaturek (0–1000 ms)
                       </p>
                       <div
                         style={{
@@ -674,7 +689,9 @@ const AdminPanel: React.FC = () => {
                         type="checkbox"
                         checked={settings.autoCleanupEnabled}
                         onChange={(e) => {
-                          updateSettings({ autoCleanupEnabled: e.target.checked });
+                          updateSettings({
+                            autoCleanupEnabled: e.target.checked,
+                          });
                         }}
                         style={{
                           width: '20px',
@@ -775,7 +792,11 @@ const AdminPanel: React.FC = () => {
                           Ręczne czyszczenie
                         </h4>
                         <p
-                          style={{ margin: 0, fontSize: '13px', color: '#a16207' }}
+                          style={{
+                            margin: 0,
+                            fontSize: '13px',
+                            color: '#a16207',
+                          }}
                         >
                           Usuń teraz wszystkie dane starsze niż{' '}
                           {settings.autoCleanupDays} dni
@@ -803,8 +824,9 @@ const AdminPanel: React.FC = () => {
                           color: '#065f46',
                         }}
                       >
-                        <strong>Usunięto:</strong> {lastCleanupResult.deletedLogins}{' '}
-                        logowań, {lastCleanupResult.deletedSessions} sesji,{' '}
+                        <strong>Usunięto:</strong>{' '}
+                        {lastCleanupResult.deletedLogins} logowań,{' '}
+                        {lastCleanupResult.deletedSessions} sesji,{' '}
                         {lastCleanupResult.deletedViews} wyświetleń,{' '}
                         {lastCleanupResult.deletedDownloads} pobrań
                       </div>
@@ -832,8 +854,15 @@ const AdminPanel: React.FC = () => {
                         <h4 style={{ margin: '0 0 5px 0', color: '#92400e' }}>
                           Osierocone pliki graficzne
                         </h4>
-                        <p style={{ margin: 0, fontSize: '13px', color: '#a16207' }}>
-                          Pliki miniaturek i galerii z usuniętych rewizji/moodboardów
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '13px',
+                            color: '#a16207',
+                          }}
+                        >
+                          Pliki miniaturek i galerii z usuniętych
+                          rewizji/moodboardów
                         </p>
                       </div>
                       <button
@@ -842,7 +871,9 @@ const AdminPanel: React.FC = () => {
                         className="admin-btn"
                         style={{ minWidth: '120px' }}
                       >
-                        {orphanedFilesScanning ? 'Skanowanie...' : 'Skanuj pliki'}
+                        {orphanedFilesScanning
+                          ? 'Skanowanie...'
+                          : 'Skanuj pliki'}
                       </button>
                     </div>
 
@@ -851,24 +882,43 @@ const AdminPanel: React.FC = () => {
                         <div
                           style={{
                             padding: '10px',
-                            backgroundColor: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#fef2f2' : '#d1fae5',
-                            border: `1px solid ${orphanedFilesScanResult.orphanedFiles.length > 0 ? '#ef4444' : '#10b981'}`,
+                            backgroundColor:
+                              orphanedFilesScanResult.orphanedFiles.length > 0
+                                ? '#fef2f2'
+                                : '#d1fae5',
+                            border: `1px solid ${
+                              orphanedFilesScanResult.orphanedFiles.length > 0
+                                ? '#ef4444'
+                                : '#10b981'
+                            }`,
                             borderRadius: '4px',
                             fontSize: '13px',
-                            color: orphanedFilesScanResult.orphanedFiles.length > 0 ? '#991b1b' : '#065f46',
+                            color:
+                              orphanedFilesScanResult.orphanedFiles.length > 0
+                                ? '#991b1b'
+                                : '#065f46',
                           }}
                         >
                           <div style={{ marginBottom: '8px' }}>
                             <strong>Przeskanowano:</strong>{' '}
-                            {orphanedFilesScanResult.scannedRevisionThumbnails} miniaturek rewizji,{' '}
-                            {orphanedFilesScanResult.scannedGalleryFiles} plików galerii,{' '}
-                            {orphanedFilesScanResult.scannedMoodboardFiles} plików moodboardu
+                            {orphanedFilesScanResult.scannedRevisionThumbnails}{' '}
+                            miniaturek rewizji,{' '}
+                            {orphanedFilesScanResult.scannedGalleryFiles} plików
+                            galerii,{' '}
+                            {orphanedFilesScanResult.scannedMoodboardFiles}{' '}
+                            plików moodboardu
                           </div>
                           {orphanedFilesScanResult.orphanedFiles.length > 0 ? (
                             <>
                               <div style={{ marginBottom: '8px' }}>
-                                <strong>Znaleziono {orphanedFilesScanResult.orphanedFiles.length} osieroconych plików</strong>{' '}
-                                ({formatBytes(orphanedFilesScanResult.totalSize)})
+                                <strong>
+                                  Znaleziono{' '}
+                                  {orphanedFilesScanResult.orphanedFiles.length}{' '}
+                                  osieroconych plików
+                                </strong>{' '}
+                                (
+                                {formatBytes(orphanedFilesScanResult.totalSize)}
+                                )
                               </div>
                               <div
                                 style={{
@@ -883,12 +933,22 @@ const AdminPanel: React.FC = () => {
                                   fontFamily: 'monospace',
                                 }}
                               >
-                                {orphanedFilesScanResult.orphanedFiles.map((f, i) => (
-                                  <div key={i} style={{ marginBottom: '2px' }}>
-                                    <span style={{ color: '#666' }}>[{f.type}]</span> {f.path}{' '}
-                                    <span style={{ color: '#999' }}>({formatBytes(f.size)})</span>
-                                  </div>
-                                ))}
+                                {orphanedFilesScanResult.orphanedFiles.map(
+                                  (f, i) => (
+                                    <div
+                                      key={i}
+                                      style={{ marginBottom: '2px' }}
+                                    >
+                                      <span style={{ color: '#666' }}>
+                                        [{f.type}]
+                                      </span>{' '}
+                                      {f.path}{' '}
+                                      <span style={{ color: '#999' }}>
+                                        ({formatBytes(f.size)})
+                                      </span>
+                                    </div>
+                                  )
+                                )}
                               </div>
                               <button
                                 onClick={handleDeleteOrphanedFiles}
@@ -896,7 +956,9 @@ const AdminPanel: React.FC = () => {
                                 className="admin-btn admin-btn--danger"
                                 style={{ minWidth: '120px' }}
                               >
-                                {orphanedFilesDeleting ? 'Usuwanie...' : 'Usuń osierocone pliki'}
+                                {orphanedFilesDeleting
+                                  ? 'Usuwanie...'
+                                  : 'Usuń osierocone pliki'}
                               </button>
                             </>
                           ) : (
@@ -918,8 +980,9 @@ const AdminPanel: React.FC = () => {
                           color: '#065f46',
                         }}
                       >
-                        <strong>Usunięto:</strong> {orphanedFilesDeleteResult.deleted} plików,
-                        zwolniono {formatBytes(orphanedFilesDeleteResult.freedBytes)}
+                        <strong>Usunięto:</strong>{' '}
+                        {orphanedFilesDeleteResult.deleted} plików, zwolniono{' '}
+                        {formatBytes(orphanedFilesDeleteResult.freedBytes)}
                       </div>
                     )}
                   </div>

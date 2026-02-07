@@ -158,7 +158,7 @@ a {
 .menu-left .logo h1 .logo-icon {
   width: 22px;
   height: 22px;
-  margin-right: 8px;
+  margin-right: 3px;
   flex-shrink: 0;
 }
 
@@ -947,7 +947,7 @@ a {
 
 /* Ta sekcja została przeniesiona do media query (min-width: 481px) and (max-width: 1024px) */
 
-/* Pionowy smartfon: 3 rzędy – 1) logo+ConceptView ver, 2) ikony+cache,bug,mail+logout, 3) Content|Projekty|Moodboard */
+/* Pionowy smartfon: 3 rzędy – 1) logo+ConceptDesk ver, 2) ikony+cache,bug,mail+logout, 3) Content|Projekty|Moodboard */
 @media (max-width: 480px) {
   body {
     padding-top: 135px;
@@ -971,7 +971,7 @@ a {
     gap: 0 !important;
   }
 
-  /* Rząd 1: ikona + ConceptView ver: b 0.3 */
+  /* Rząd 1: ikona + ConceptDesk ver: b 0.3 */
   .menu-left {
     order: 1;
     width: 100% !important;
@@ -991,7 +991,7 @@ a {
   }
 
   .menu-left .logo h1 .logo-icon {
-    margin-right: 6px;
+    margin-right: 3px;
     flex-shrink: 0;
   }
 

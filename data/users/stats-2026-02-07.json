@@ -1,0 +1,351 @@
+{
+  "date": "2026-02-07",
+  "logins": [
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-07T09:50:28.591Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36"
+    },
+    {
+      "email": "micz@kleniewski.com",
+      "timestamp": "2026-02-07T09:54:49.206Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sess_1770457828593_8zruct",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-07T09:50:28.593Z",
+      "lastActivity": "2026-02-07T10:00:21.777Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36"
+    },
+    {
+      "id": "sess_1770458089208_i4yazf",
+      "email": "micz@kleniewski.com",
+      "startedAt": "2026-02-07T09:54:49.208Z",
+      "lastActivity": "2026-02-07T10:00:13.490Z",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    }
+  ],
+  "viewEvents": [
+    {
+      "id": "view_1770457832156_5ejp04",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:50:32.156Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      }
+    },
+    {
+      "id": "view_1770457833167_o7er42",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:50:33.167Z",
+      "type": "design_project",
+      "path": "projekty/94692817-2408-4ff1-9d9a-4ff7d5034a12",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      },
+      "projectId": "94692817-2408-4ff1-9d9a-4ff7d5034a12",
+      "projectName": "MCR1000"
+    },
+    {
+      "id": "view_1770457834546_wv25rb",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:50:34.546Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      }
+    },
+    {
+      "id": "view_1770457835776_d4kb02",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:50:35.776Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      }
+    },
+    {
+      "id": "view_1770457836577_9lrgwm",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:50:36.577Z",
+      "type": "design_project",
+      "path": "projekty/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    },
+    {
+      "id": "view_1770457921109_hv3hh9",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:52:01.109Z",
+      "type": "design_project",
+      "path": "projekty/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    },
+    {
+      "id": "view_1770457964177_0d3i1u",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:52:44.177Z",
+      "type": "design_project",
+      "path": "projekty/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    },
+    {
+      "id": "view_1770458062234_khd8xz",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770457828593_8zruct",
+      "timestamp": "2026-02-07T09:54:22.234Z",
+      "type": "design_project",
+      "path": "projekty/1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/2.4.30 Chrome/142.0.7444.235 Electron/39.2.7 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "142.0.7444.235",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "en-US"
+      },
+      "projectId": "1b3a696b-189d-473c-a5f2-d710a0ba3f87",
+      "projectName": "EXE"
+    },
+    {
+      "id": "view_1770458095562_1slrky",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:54:55.562Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770458096352_zztkji",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:54:56.352Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      },
+      "folderName": "01.QX"
+    },
+    {
+      "id": "view_1770458096977_gorjem",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:54:56.977Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      },
+      "folderName": "U120 White"
+    },
+    {
+      "id": "view_1770458144908_c5ime2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:55:44.908Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770458145771_vv3zi3",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:55:45.771Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770458150497_ksycn4",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:55:50.497Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770458173576_n4ylkn",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-07T09:56:13.576Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
+    }
+  ],
+  "downloadEvents": []
+}

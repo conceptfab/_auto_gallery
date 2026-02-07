@@ -13,7 +13,11 @@ const ProjectsProjectPage: React.FC = () => {
   const { authStatus, authLoading } = useProtectedAuth();
   const { trackDesignView } = useStatsTracker();
   const idStr = typeof id === 'string' ? id : undefined;
-  const { project, loading: projectLoading, refresh: refreshProject } = useProject(idStr, !!authStatus?.isLoggedIn);
+  const {
+    project,
+    loading: projectLoading,
+    refresh: refreshProject,
+  } = useProject(idStr, !!authStatus?.isLoggedIn);
   const [addingRevision, setAddingRevision] = useState(false);
   const [editingRevision, setEditingRevision] = useState<Revision | null>(null);
   const [editLabel, setEditLabel] = useState('');
@@ -131,21 +135,27 @@ const ProjectsProjectPage: React.FC = () => {
     }
   };
 
-  const getGalleryImageUrl = (projectId: string, revisionId: string, filename: string) =>
-    `/api/projects/gallery/${projectId}/${revisionId}/${filename}`;
+  const getGalleryImageUrl = (
+    projectId: string,
+    revisionId: string,
+    filename: string
+  ) => `/api/projects/gallery/${projectId}/${revisionId}/${filename}`;
 
-  const getRevisionThumbnail = useCallback((rev: Revision): string | undefined => {
-    if (project && rev.thumbnailPath) {
-      return `/api/projects/thumbnail/${project.id}/${rev.id}`;
-    }
-    if (rev.thumbnailDataUrl || rev.screenshotDataUrl) {
-      return rev.thumbnailDataUrl || rev.screenshotDataUrl;
-    }
-    if (project && rev.galleryPaths?.length) {
-      return getGalleryImageUrl(project.id, rev.id, rev.galleryPaths[0]);
-    }
-    return undefined;
-  }, [project]);
+  const getRevisionThumbnail = useCallback(
+    (rev: Revision): string | undefined => {
+      if (project && rev.thumbnailPath) {
+        return `/api/projects/thumbnail/${project.id}/${rev.id}`;
+      }
+      if (rev.thumbnailDataUrl || rev.screenshotDataUrl) {
+        return rev.thumbnailDataUrl || rev.screenshotDataUrl;
+      }
+      if (project && rev.galleryPaths?.length) {
+        return getGalleryImageUrl(project.id, rev.id, rev.galleryPaths[0]);
+      }
+      return undefined;
+    },
+    [project]
+  );
 
   const handleRemoveThumbnail = async () => {
     if (!project || !editingRevision) return;
@@ -430,7 +440,7 @@ const ProjectsProjectPage: React.FC = () => {
     return (
       <>
         <Head>
-          <title>Projekt – ConceptView</title>
+          <title>Projekt – ConceptDesk</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -445,7 +455,7 @@ const ProjectsProjectPage: React.FC = () => {
     return (
       <>
         <Head>
-          <title>Projekt nie znaleziony – ConceptView</title>
+          <title>Projekt nie znaleziony – ConceptDesk</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -459,7 +469,7 @@ const ProjectsProjectPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>{project.name} – ConceptView</title>
+        <title>{project.name} – ConceptDesk</title>
         <meta
           name="description"
           content={project.description || project.name}
@@ -970,26 +980,24 @@ const ProjectsProjectPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="design-gallery-grid">
-                  {showGalleryForRevision.galleryPaths?.map(
-                    (filename, idx) => (
-                      <button
-                        key={filename}
-                        type="button"
-                        className="design-gallery-grid-item"
-                        onClick={() => setSelectedGalleryImageIndex(idx)}
-                      >
-                        <img
-                          src={getGalleryImageUrl(
-                            id as string,
-                            showGalleryForRevision.id,
-                            filename
-                          )}
-                          alt=""
-                          className="design-gallery-img"
-                        />
-                      </button>
-                    )
-                  )}
+                  {showGalleryForRevision.galleryPaths?.map((filename, idx) => (
+                    <button
+                      key={filename}
+                      type="button"
+                      className="design-gallery-grid-item"
+                      onClick={() => setSelectedGalleryImageIndex(idx)}
+                    >
+                      <img
+                        src={getGalleryImageUrl(
+                          id as string,
+                          showGalleryForRevision.id,
+                          filename
+                        )}
+                        alt=""
+                        className="design-gallery-img"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -1001,4 +1009,3 @@ const ProjectsProjectPage: React.FC = () => {
 };
 
 export default ProjectsProjectPage;
-

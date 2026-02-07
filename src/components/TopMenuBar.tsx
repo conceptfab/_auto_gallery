@@ -237,7 +237,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
                 className="logo-icon"
               />
               <span className="logo-text">
-                ConceptView
+                ConceptDesk
                 <span className="version">
                   ver:{' '}
                   {versionInfo?.message?.split(':')[0] ??
