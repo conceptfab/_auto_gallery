@@ -1,10 +1,12 @@
 'use client';
 
+import './drawing/konva-fix';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 import { MOODBOARD_MAX_IMAGE_BYTES } from '@/src/types/moodboard';
 import ImageItem from './ImageItem';
 import CommentItem from './CommentItem';
+import SketchItem from './SketchItem';
 import ContextMenu from './ContextMenu';
 import GroupItem from './GroupItem';
 import CommentEditPanel from './CommentEditPanel';
@@ -61,20 +63,25 @@ interface PanStart {
 }
 
 export default function Canvas() {
-  const { 
-    images, 
-    comments, 
-    groups = [], 
-    addImage, 
-    addComment, 
+  const {
+    images,
+    comments,
+    groups = [],
+    sketches = [],
+    addImage,
+    addComment,
     updateComment,
-    addGroup, 
+    addGroup,
     updateGroup,
     removeGroup,
-    setSelected, 
+    addSketch,
+    setSelected,
     activeId,
     viewport,
-    updateViewport
+    updateViewport,
+    drawingMode,
+    setDrawingMode,
+    setActiveTool,
   } = useMoodboard();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -145,6 +152,9 @@ export default function Canvas() {
     y: number;
   } | null>(null);
 
+  const drawingModeRef = useRef(drawingMode);
+  drawingModeRef.current = drawingMode;
+
   // Shift selection state
   const [shiftPressed, setShiftPressed] = useState(false);
   const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
@@ -164,6 +174,16 @@ export default function Canvas() {
       }
       if (e.key === 'Shift') {
         setShiftPressed(true);
+      }
+      // Drawing shortcuts
+      if (!isEditable(e.target)) {
+        if (e.key === 'd' || e.key === 'D') setDrawingMode(!drawingModeRef.current);
+        if (e.key === 'Escape') setDrawingMode(false);
+        if (e.key === 'p' || e.key === 'P') setActiveTool('pen');
+        if (e.key === 'r') setActiveTool('rect');
+        if (e.key === 'c') setActiveTool('circle');
+        if (e.key === 'l' || e.key === 'L') setActiveTool('line');
+        if (e.key === 'e') setActiveTool('eraser');
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -185,7 +205,7 @@ export default function Canvas() {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, []);
+  }, [setActiveTool, setDrawingMode]);
 
   const transformRef = useRef({ scale: 1, translateX: 0, translateY: 0 });
   transformRef.current = { scale, translateX, translateY };
@@ -196,7 +216,7 @@ export default function Canvas() {
     const onWheel = (e: WheelEvent) => {
       // Zoom działa przez Ctrl+scroll LUB zwykły scroll gdy kursor jest na pustym obszarze
       const target = e.target as HTMLElement;
-      const isOnItem = target.closest('.moodboard-image-item') || target.closest('.moodboard-comment-item');
+      const isOnItem = target.closest('.moodboard-image-item') || target.closest('.moodboard-comment-item') || target.closest('.moodboard-sketch-item');
 
       if (!e.ctrlKey && isOnItem) return; // Na elemencie bez Ctrl - nie zoomuj
 
@@ -288,7 +308,7 @@ export default function Canvas() {
   );
 
   const handleFitToView = useCallback(() => {
-    if (!containerRef.current || (images.length === 0 && comments.length === 0 && groups.length === 0)) {
+    if (!containerRef.current || (images.length === 0 && comments.length === 0 && groups.length === 0 && sketches.length === 0)) {
       setScale(1);
       setTranslateX(0);
       setTranslateY(0);
@@ -321,6 +341,13 @@ export default function Canvas() {
       maxY = Math.max(maxY, g.y + g.height);
     });
 
+    sketches.forEach((sk) => {
+      minX = Math.min(minX, sk.x);
+      minY = Math.min(minY, sk.y);
+      maxX = Math.max(maxX, sk.x + sk.width);
+      maxY = Math.max(maxY, sk.y + sk.height);
+    });
+
     const contentWidth = maxX - minX;
     const contentHeight = maxY - minY;
     if (contentWidth <= 0 || contentHeight <= 0 || minX === Infinity) return;
@@ -342,7 +369,7 @@ export default function Canvas() {
     setTranslateX(offsetX - minX * newScale);
     setTranslateY(offsetY - minY * newScale);
     setScale(newScale);
-  }, [images, comments, groups]);
+  }, [images, comments, groups, sketches]);
 
   const isEmptyArea = useCallback((el: EventTarget | null) => {
     const node = el as HTMLElement;
@@ -351,6 +378,7 @@ export default function Canvas() {
       !node.closest('.moodboard-image-item') &&
       !node.closest('.moodboard-comment-item') &&
       !node.closest('.moodboard-group-item') &&
+      !node.closest('.moodboard-sketch-item') &&
       !node.closest('.moodboard-comment-edit-panel') &&
       !node.closest('.moodboard-group-edit-panel') &&
       !node.closest('.moodboard-canvas-zoom-controls')
@@ -385,8 +413,13 @@ export default function Canvas() {
         return;
       }
 
-      // Left click on empty area = pan
+      // Left click on empty area = pan (blocked in drawingMode unless Space is held)
       if (e.button === 0 && isEmptyArea(e.target)) {
+        if (drawingMode && !spacePressed) {
+          e.preventDefault();
+          setSelected(null, null);
+          return;
+        }
         e.preventDefault();
         setSelected(null, null);
         const el = containerRef.current;
@@ -404,7 +437,7 @@ export default function Canvas() {
         return;
       }
     },
-    [translateX, translateY, setSelected, isEmptyArea, clientToContent]
+    [translateX, translateY, setSelected, isEmptyArea, clientToContent, drawingMode, spacePressed]
   );
 
   // Handle context menu (right-click)
@@ -478,6 +511,20 @@ export default function Canvas() {
     });
   }, [contextMenu, addComment]);
 
+  const handleAddSketchFromMenu = useCallback(() => {
+    if (!contextMenu) return;
+    const nextNum = sketches.length + 1;
+    addSketch({
+      name: `Szkic ${nextNum}`,
+      x: contextMenu.contentX,
+      y: contextMenu.contentY,
+      width: 400,
+      height: 300,
+      backgroundColor: '#ffffff',
+      drawing: { strokes: [], shapes: [] },
+    });
+  }, [contextMenu, addSketch, sketches.length]);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el || !isPanning || !panStartRef.current) return;
@@ -548,9 +595,17 @@ export default function Canvas() {
 
           // Find comments inside selection
           comments.forEach(c => {
-            if (c.x >= x1 && c.x + c.width <= x2 && 
+            if (c.x >= x1 && c.x + c.width <= x2 &&
                 c.y >= y1 && c.y + c.height <= y2) {
               selectedMemberIds.push(c.id);
+            }
+          });
+
+          // Find sketches inside selection
+          sketches.forEach(sk => {
+            if (sk.x >= x1 && sk.x + sk.width <= x2 &&
+                sk.y >= y1 && sk.y + sk.height <= y2) {
+              selectedMemberIds.push(sk.id);
             }
           });
 
@@ -579,7 +634,7 @@ export default function Canvas() {
       el.removeEventListener('pointerup', onUp, { capture: true });
       el.removeEventListener('pointercancel', onUp, { capture: true });
     };
-  }, [selectionBox, clientToContent, images, comments, addGroup, groups.length]);
+  }, [selectionBox, clientToContent, images, comments, sketches, addGroup, groups.length]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     // Clear selection box
@@ -609,9 +664,14 @@ export default function Canvas() {
     [images, allMemberIds]
   );
 
-  const standaloneComments = React.useMemo(() => 
+  const standaloneComments = React.useMemo(() =>
     comments.filter(c => !allMemberIds.has(c.id)),
     [comments, allMemberIds]
+  );
+
+  const standaloneSketches = React.useMemo(() =>
+    sketches.filter(sk => !allMemberIds.has(sk.id)),
+    [sketches, allMemberIds]
   );
 
   return (
@@ -621,7 +681,9 @@ export default function Canvas() {
         isDragOver ? 'moodboard-canvas--drag-over' : ''
       } ${spacePressed ? 'moodboard-canvas--space' : ''} ${
         isPanning ? 'moodboard-canvas--panning' : ''
-      } ${shiftPressed ? 'moodboard-canvas--shift' : ''}`}
+      } ${shiftPressed ? 'moodboard-canvas--shift' : ''}${
+        drawingMode ? ' moodboard-canvas--drawing' : ''
+      }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -648,10 +710,14 @@ export default function Canvas() {
         {standaloneComments.map((c) => (
           <CommentItem key={c.id} comment={c} />
         ))}
+        {standaloneSketches.map((sk) => (
+          <SketchItem key={sk.id} sketch={sk} />
+        ))}
         {groups.map((g) => {
           const groupImages = images.filter((img) => g.memberIds.includes(img.id));
           const groupComments = comments.filter((c) => g.memberIds.includes(c.id));
-          
+          const groupSketches = sketches.filter((sk) => g.memberIds.includes(sk.id));
+
           return (
             <GroupItem key={g.id} group={g}>
               {groupImages.map((img) => (
@@ -666,6 +732,14 @@ export default function Canvas() {
                 <CommentItem
                   key={c.id}
                   comment={c}
+                  parentX={g.x}
+                  parentY={g.y}
+                />
+              ))}
+              {groupSketches.map((sk) => (
+                <SketchItem
+                  key={sk.id}
+                  sketch={sk}
                   parentX={g.x}
                   parentY={g.y}
                 />
@@ -732,6 +806,7 @@ export default function Canvas() {
           x={contextMenu.x}
           y={contextMenu.y}
           onAddComment={handleAddCommentFromMenu}
+          onAddSketch={handleAddSketchFromMenu}
           onClose={() => setContextMenu(null)}
         />
       )}
@@ -767,6 +842,7 @@ export default function Canvas() {
           if (!group) return null;
           
           const handleUngroup = () => {
+            if (!window.confirm('Czy na pewno chcesz rozgrupować tę grupę?')) return;
             removeGroup(group.id);
             setEditingGroup(null);
           };

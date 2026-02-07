@@ -6,6 +6,7 @@ interface ContextMenuProps {
   x: number;
   y: number;
   onAddComment: () => void;
+  onAddSketch: () => void;
   onClose: () => void;
 }
 
@@ -13,11 +14,18 @@ export default function ContextMenu({
   x,
   y,
   onAddComment,
+  onAddSketch,
   onClose,
 }: ContextMenuProps) {
   const handleAddComment = (e: React.MouseEvent) => {
     e.stopPropagation();
     onAddComment();
+    onClose();
+  };
+
+  const handleAddSketch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddSketch();
     onClose();
   };
 
@@ -44,6 +52,13 @@ export default function ContextMenu({
           onClick={handleAddComment}
         >
           + Dodaj komentarz
+        </button>
+        <button
+          type="button"
+          className="moodboard-context-menu-item"
+          onClick={handleAddSketch}
+        >
+          + Dodaj szkic
         </button>
       </div>
     </>

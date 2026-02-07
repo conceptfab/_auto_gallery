@@ -14,21 +14,26 @@ import {
   MoodboardComment,
   MoodboardImage,
   MoodboardGroup,
+  MoodboardSketch,
   MoodboardAppState,
+  DrawingData,
+  DrawingTool,
   MOODBOARD_STORAGE_KEY,
 } from '@/src/types/moodboard';
+
+type SelectableType = 'image' | 'comment' | 'group' | 'sketch' | null;
 
 interface MoodboardContextValue extends MoodboardBoard {
   loading: boolean;
   loadError: string | null;
   saveError: string | null;
   selectedId: string | null;
-  selectedType: 'image' | 'comment' | 'group' | null;
+  selectedType: SelectableType;
   boards: MoodboardBoard[];
   activeId: string;
   hoveredGroupId: string | null;
   lastAddedGroupId: string | null;
-  setSelected: (id: string | null, type: 'image' | 'comment' | 'group' | null) => void;
+  setSelected: (id: string | null, type: SelectableType) => void;
   setHoveredGroup: (x: number | null, y: number | null) => void;
   setActiveBoard: (id: string) => void;
   setMoodboardName: (name: string) => void;
@@ -43,8 +48,21 @@ interface MoodboardContextValue extends MoodboardBoard {
   addGroup: (group: Omit<MoodboardGroup, 'id'>) => void;
   updateGroup: (id: string, patch: Partial<MoodboardGroup>) => void;
   removeGroup: (id: string) => void;
+  addSketch: (sketch: Omit<MoodboardSketch, 'id'>) => void;
+  updateSketch: (id: string, patch: Partial<MoodboardSketch>) => void;
+  removeSketch: (id: string) => void;
+  updateImageAnnotations: (imageId: string, drawing: DrawingData) => void;
+  clearImageAnnotations: (imageId: string) => void;
   autoGroupItem: (itemId: string, x: number, y: number, width: number, height: number) => void;
   updateViewport: (viewport: { scale: number; translateX: number; translateY: number }) => void;
+  drawingMode: boolean;
+  setDrawingMode: (active: boolean) => void;
+  activeTool: DrawingTool;
+  setActiveTool: (tool: DrawingTool) => void;
+  toolColor: string;
+  setToolColor: (color: string) => void;
+  toolWidth: number;
+  setToolWidth: (width: number) => void;
 }
 
 const MoodboardContext = createContext<MoodboardContextValue | null>(null);
@@ -105,9 +123,11 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   const [hoveredGroupId, setHoveredGroupId] = useState<string | null>(null);
   const [lastAddedGroupId, setLastAddedGroupId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<'image' | 'comment' | 'group' | null>(
-    null
-  );
+  const [selectedType, setSelectedType] = useState<SelectableType>(null);
+  const [drawingMode, setDrawingMode] = useState(false);
+  const [activeTool, setActiveTool] = useState<DrawingTool>('pen');
+  const [toolColor, setToolColor] = useState('#000000');
+  const [toolWidth, setToolWidth] = useState(3);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeBoard =
@@ -162,7 +182,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setSelected = useCallback(
-    (id: string | null, type: 'image' | 'comment' | 'group' | null) => {
+    (id: string | null, type: SelectableType) => {
       setSelectedId(id);
       setSelectedType(type);
     },
@@ -444,6 +464,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
           const isResize = patch.width !== undefined || patch.height !== undefined;
           let images = b.images;
           let comments = b.comments;
+          let sketches = b.sketches || [];
 
           if (!isResize && (patch.x !== undefined || patch.y !== undefined)) {
             const dx = (patch.x ?? group.x) - group.x;
@@ -460,10 +481,15 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
                   ? { ...c, x: c.x + dx, y: c.y + dy }
                   : c
               );
+              sketches = sketches.map((sk) =>
+                group.memberIds.includes(sk.id)
+                  ? { ...sk, x: sk.x + dx, y: sk.y + dy }
+                  : sk
+              );
             }
           }
 
-          return { ...b, groups, images, comments };
+          return { ...b, groups, images, comments, sketches };
         });
 
         const next = { ...prev, boards };
@@ -492,6 +518,109 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       }
     },
     [scheduleSave, selectedId, selectedType]
+  );
+
+  const addSketch = useCallback(
+    (sketch: Omit<MoodboardSketch, 'id'>) => {
+      const newSketch: MoodboardSketch = {
+        ...sketch,
+        id: generateId(),
+      };
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, sketches: [...(b.sketches || []), newSketch] }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const updateSketch = useCallback(
+    (id: string, patch: Partial<MoodboardSketch>) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? {
+                ...b,
+                sketches: (b.sketches || []).map((sk) =>
+                  sk.id === id ? { ...sk, ...patch } : sk
+                ),
+              }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const removeSketch = useCallback(
+    (id: string) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? { ...b, sketches: (b.sketches || []).filter((sk) => sk.id !== id) }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+      if (selectedId === id && selectedType === 'sketch') {
+        setSelectedId(null);
+        setSelectedType(null);
+      }
+    },
+    [scheduleSave, selectedId, selectedType]
+  );
+
+  const updateImageAnnotations = useCallback(
+    (imageId: string, drawing: DrawingData) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? {
+                ...b,
+                images: b.images.map((img) =>
+                  img.id === imageId ? { ...img, annotations: drawing } : img
+                ),
+              }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const clearImageAnnotations = useCallback(
+    (imageId: string) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === prev.activeId
+            ? {
+                ...b,
+                images: b.images.map((img) =>
+                  img.id === imageId ? { ...img, annotations: undefined } : img
+                ),
+              }
+            : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
   );
 
   const autoGroupItem = useCallback(
@@ -622,11 +751,24 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       addGroup,
       updateGroup,
       removeGroup,
+      addSketch,
+      updateSketch,
+      removeSketch,
+      updateImageAnnotations,
+      clearImageAnnotations,
       autoGroupItem,
       setHoveredGroup,
       updateViewport,
       hoveredGroupId,
       lastAddedGroupId,
+      drawingMode,
+      setDrawingMode,
+      activeTool,
+      setActiveTool,
+      toolColor,
+      setToolColor,
+      toolWidth,
+      setToolWidth,
     }),
     [
       activeBoard,
@@ -651,11 +793,20 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       addGroup,
       updateGroup,
       removeGroup,
+      addSketch,
+      updateSketch,
+      removeSketch,
+      updateImageAnnotations,
+      clearImageAnnotations,
       autoGroupItem,
       setHoveredGroup,
       updateViewport,
       hoveredGroupId,
       lastAddedGroupId,
+      drawingMode,
+      activeTool,
+      toolColor,
+      toolWidth,
     ]
   );
 

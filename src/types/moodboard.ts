@@ -1,3 +1,49 @@
+/** Tryb narzedzia rysowania */
+export type DrawingTool = 'pen' | 'rect' | 'circle' | 'line' | 'eraser';
+
+/** Pojedyncza kreska (freehand lub eraser) */
+export interface MoodboardStroke {
+  id: string;
+  tool: 'pen' | 'eraser';
+  points: number[];       // flat array [x1,y1,pressure1, x2,y2,pressure2, ...]
+  color: string;           // hex
+  width: number;           // px
+}
+
+/** Ksztalt geometryczny */
+export interface MoodboardDrawShape {
+  id: string;
+  type: 'rect' | 'circle' | 'line';
+  x: number;
+  y: number;
+  width: number;           // rect/circle: rozmiar
+  height: number;
+  endX?: number;           // line: punkt koncowy
+  endY?: number;
+  stroke: string;          // kolor obrysu
+  strokeWidth: number;
+  fill?: string;           // kolor wypelnienia (opcjonalny)
+}
+
+/** Dane rysunku (wspolne dla standalone sketch i adnotacji na obrazie) */
+export interface DrawingData {
+  strokes: MoodboardStroke[];
+  shapes: MoodboardDrawShape[];
+}
+
+/** Standalone sketch na moodboardzie */
+export interface MoodboardSketch {
+  id: string;
+  name?: string;             // nazwa szkicu (jak grupa)
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  backgroundColor?: string;  // domyslnie bialy
+  drawing: DrawingData;
+  rotation?: number;
+}
+
 /** Element obrazka na moodboardzie */
 export interface MoodboardImage {
   id: string;
@@ -10,6 +56,7 @@ export interface MoodboardImage {
   width: number;
   height: number;
   rotation?: number;
+  annotations?: DrawingData;
 }
 
 /** Kolor tła komentarza (klucz w palecie); 'none' = bez tła (sam tekst) */
@@ -73,6 +120,7 @@ export interface MoodboardBoard {
   images: MoodboardImage[];
   comments: MoodboardComment[];
   groups?: MoodboardGroup[];
+  sketches?: MoodboardSketch[];
   viewport?: MoodboardViewport;
 }
 

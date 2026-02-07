@@ -151,6 +151,7 @@ const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemPr
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (!window.confirm('Czy na pewno chcesz usunąć tę grupę?')) return;
       removeGroup(group.id);
     },
     [group.id, removeGroup]

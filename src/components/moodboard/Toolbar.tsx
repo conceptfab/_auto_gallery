@@ -5,6 +5,7 @@ import { useMoodboard } from '@/src/contexts/MoodboardContext';
 import type {
   CommentColorKey,
   CommentFontWeightKey,
+  DrawingTool,
 } from '@/src/types/moodboard';
 import { COLOR_MAP, DEFAULT_COMMENT } from './CommentItem';
 
@@ -25,8 +26,30 @@ const FONT_WEIGHT_OPTIONS: { value: CommentFontWeightKey; label: string }[] = [
   { value: 'bold', label: 'Bold' },
 ];
 
+const DRAWING_TOOLS: { value: DrawingTool; label: string; shortcut: string }[] = [
+  { value: 'pen', label: 'Pen', shortcut: 'P' },
+  { value: 'rect', label: 'Rect', shortcut: 'R' },
+  { value: 'circle', label: 'Circle', shortcut: 'C' },
+  { value: 'line', label: 'Line', shortcut: 'L' },
+  { value: 'eraser', label: 'Eraser', shortcut: 'E' },
+];
+
+const STROKE_COLORS = ['#000000', '#ef4444', '#3b82f6', '#22c55e', '#f97316', '#ffffff'];
+const STROKE_WIDTHS = [1, 3, 5, 10, 20];
+
 export default function Toolbar() {
-  const { addComment } = useMoodboard();
+  const {
+    addComment,
+    addSketch,
+    drawingMode,
+    setDrawingMode,
+    activeTool,
+    setActiveTool,
+    toolColor,
+    setToolColor,
+    toolWidth,
+    setToolWidth,
+  } = useMoodboard();
   const [color, setColor] = useState<CommentColorKey>(DEFAULT_COMMENT.color);
   const [fontWeight, setFontWeight] = useState<CommentFontWeightKey>(
     DEFAULT_COMMENT.fontWeight
@@ -42,6 +65,17 @@ export default function Toolbar() {
       y: 80,
       width: 200,
       height: 120,
+    });
+  };
+
+  const handleAddSketch = () => {
+    addSketch({
+      x: 100,
+      y: 100,
+      width: 400,
+      height: 300,
+      backgroundColor: '#ffffff',
+      drawing: { strokes: [], shapes: [] },
     });
   };
 
@@ -95,7 +129,87 @@ export default function Toolbar() {
             ))}
           </div>
         </div>
+
+        <div className="moodboard-toolbar-separator" />
+
+        <button
+          type="button"
+          className={`moodboard-toolbar-btn moodboard-toolbar-btn--drawing${drawingMode ? ' moodboard-toolbar-btn--active' : ''}`}
+          onClick={() => setDrawingMode(!drawingMode)}
+          aria-pressed={drawingMode}
+          title="Tryb rysowania (D)"
+        >
+          {drawingMode ? 'Rysowanie ON' : 'Rysowanie'}
+        </button>
+
+        <button
+          type="button"
+          className="moodboard-toolbar-btn"
+          onClick={handleAddSketch}
+          title="Dodaj nowy szkic"
+        >
+          + Nowy szkic
+        </button>
       </div>
+
+      {drawingMode && (
+        <div className="moodboard-toolbar-row moodboard-toolbar-drawing">
+          <div className="moodboard-toolbar-drawing-tools">
+            {DRAWING_TOOLS.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                className="moodboard-toolbar-tool-btn"
+                aria-pressed={activeTool === t.value}
+                title={`${t.label} (${t.shortcut})`}
+                onClick={() => setActiveTool(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="moodboard-toolbar-separator" />
+
+          <div className="moodboard-toolbar-drawing-colors">
+            {STROKE_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="moodboard-toolbar-stroke-color-btn"
+                style={{ backgroundColor: c }}
+                aria-pressed={toolColor === c}
+                title={c}
+                onClick={() => setToolColor(c)}
+              />
+            ))}
+            <input
+              type="color"
+              className="moodboard-toolbar-color-input"
+              value={toolColor}
+              onChange={(e) => setToolColor(e.target.value)}
+              title="Dowolny kolor"
+            />
+          </div>
+
+          <div className="moodboard-toolbar-separator" />
+
+          <div className="moodboard-toolbar-drawing-widths">
+            {STROKE_WIDTHS.map((w) => (
+              <button
+                key={w}
+                type="button"
+                className="moodboard-toolbar-width-btn"
+                aria-pressed={toolWidth === w}
+                title={`${w}px`}
+                onClick={() => setToolWidth(w)}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -189,6 +189,7 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (!window.confirm('Czy na pewno chcesz usunąć ten komentarz?')) return;
       removeComment(comment.id);
     },
     [comment.id, removeComment]

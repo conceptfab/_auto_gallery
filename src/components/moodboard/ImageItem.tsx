@@ -1,10 +1,23 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
-import { MoodboardImage } from '@/src/types/moodboard';
+import dynamic from 'next/dynamic';
+import { MoodboardImage, DrawingData, DrawingTool } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 
+const DrawingCanvas = dynamic(() => import('./DrawingCanvas'), { ssr: false });
+
 const MIN_SIZE = 40;
+
+const TOOLS: { value: DrawingTool; label: string }[] = [
+  { value: 'pen', label: '\u270F' },
+  { value: 'line', label: '\u2571' },
+  { value: 'rect', label: '\u25AD' },
+  { value: 'circle', label: '\u25CB' },
+  { value: 'eraser', label: '\u232B' },
+];
+const COLORS = ['#000000', '#ef4444', '#3b82f6', '#22c55e', '#f97316', '#ffffff'];
+const WIDTHS = [1, 3, 5, 10];
 
 interface ImageItemProps {
   image: MoodboardImage;
@@ -21,6 +34,15 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
     selectedType,
     autoGroupItem,
     setHoveredGroup,
+    updateImageAnnotations,
+    drawingMode,
+    setDrawingMode,
+    activeTool,
+    setActiveTool,
+    toolColor,
+    setToolColor,
+    toolWidth,
+    setToolWidth,
   } = useMoodboard();
   const isSelected = selectedId === image.id && selectedType === 'image';
   const [isDragging, setIsDragging] = useState(false);
@@ -40,10 +62,17 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (resizing) return;
+      // In drawing mode, don't drag - let DrawingCanvas handle
+      if (drawingMode) {
+        e.stopPropagation();
+        setSelected(image.id, 'image');
+        return;
+      }
       e.stopPropagation();
       setSelected(image.id, 'image');
       if ((e.target as HTMLElement).closest('.moodboard-item-delete')) return;
       if ((e.target as HTMLElement).closest('.moodboard-resize-handle')) return;
+      if ((e.target as HTMLElement).closest('.sketch-drawbar')) return;
       setIsDragging(true);
       dragStartRef.current = {
         x: e.clientX,
@@ -53,7 +82,7 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
       };
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     },
-    [image.id, image.x, image.y, resizing, setSelected]
+    [image.id, image.x, image.y, resizing, setSelected, drawingMode]
   );
 
   const handlePointerMove = useCallback(
@@ -157,10 +186,23 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (!window.confirm('Czy na pewno chcesz usunąć ten obrazek?')) return;
       removeImage(image.id);
     },
     [image.id, removeImage]
   );
+
+  const handleAnnotationChange = useCallback(
+    (drawing: DrawingData) => {
+      updateImageAnnotations(image.id, drawing);
+    },
+    [image.id, updateImageAnnotations]
+  );
+
+  const hasAnnotations = image.annotations &&
+    (image.annotations.strokes.length > 0 || image.annotations.shapes.length > 0);
+
+  const showDrawingOverlay = drawingMode && isSelected;
 
   return (
     <div
@@ -175,9 +217,9 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
         transform: image.rotation ? `rotate(${image.rotation}deg)` : undefined,
       }}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
+      onPointerMove={!drawingMode ? handlePointerMove : undefined}
+      onPointerUp={!drawingMode ? handlePointerUp : undefined}
+      onPointerLeave={!drawingMode ? handlePointerUp : undefined}
     >
       <img
         src={image.imagePath ? `/api/moodboard/images/${image.imagePath}` : image.url}
@@ -185,32 +227,65 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
         className="moodboard-image-img"
         draggable={false}
       />
+      {/* Annotation / drawing overlay — always mounted when annotations exist or drawing active.
+           No backgroundImage: the <img> underneath is always visible, overlay is transparent. */}
+      {(hasAnnotations || showDrawingOverlay) && (
+        <div className={showDrawingOverlay ? 'moodboard-image-drawing-overlay' : 'moodboard-image-annotation-overlay'}>
+          <DrawingCanvas
+            width={image.width}
+            height={image.height}
+            drawing={image.annotations || { strokes: [], shapes: [] }}
+            onDrawingChange={handleAnnotationChange}
+            isActive={showDrawingOverlay}
+            tool={activeTool}
+            color={toolColor}
+            strokeWidth={toolWidth}
+          />
+        </div>
+      )}
+      {/* Drawing bar — below image when selected */}
       {isSelected && (
-        <>
-          <button
-            type="button"
-            className="moodboard-item-delete"
-            onClick={onDelete}
-            aria-label="Usuń"
-          >
+        <div className="sketch-drawbar" onPointerDown={(e) => e.stopPropagation()}>
+          {!drawingMode ? (
+            <button type="button" className="sketch-drawbar-draw-btn" onClick={() => setDrawingMode(true)} title="Rysuj (D)">
+              Rysuj
+            </button>
+          ) : (
+            <>
+              {TOOLS.map((t) => (
+                <button key={t.value} type="button" className="sketch-drawbar-tool" aria-pressed={activeTool === t.value} title={t.value} onClick={() => setActiveTool(t.value)}>
+                  {t.label}
+                </button>
+              ))}
+              <span className="sketch-drawbar-sep" />
+              {COLORS.map((c) => (
+                <button key={c} type="button" className="sketch-drawbar-color" aria-pressed={toolColor === c} style={{ background: c }} onClick={() => setToolColor(c)} />
+              ))}
+              <input type="color" className="sketch-drawbar-picker" value={toolColor} onChange={(e) => setToolColor(e.target.value)} title="Kolor" />
+              <span className="sketch-drawbar-sep" />
+              {WIDTHS.map((w) => (
+                <button key={w} type="button" className="sketch-drawbar-width" aria-pressed={toolWidth === w} onClick={() => setToolWidth(w)}>
+                  {w}
+                </button>
+              ))}
+              <span className="sketch-drawbar-sep" />
+              <button type="button" className="sketch-drawbar-done" onClick={() => setDrawingMode(false)}>
+                Gotowe
+              </button>
+            </>
+          )}
+          <button type="button" className="sketch-drawbar-delete" onClick={onDelete} title="Usuń obrazek">
             ×
           </button>
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--se"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'se')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--sw"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'sw')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--ne"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'ne')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--nw"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')}
-          />
+        </div>
+      )}
+      {/* Resize handles — only when selected and NOT drawing */}
+      {isSelected && !drawingMode && (
+        <>
+          <div className="moodboard-resize-handle moodboard-resize-handle--se" onPointerDown={(e) => onResizeHandlePointerDown(e, 'se')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--sw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'sw')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--ne" onPointerDown={(e) => onResizeHandlePointerDown(e, 'ne')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--nw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')} />
         </>
       )}
     </div>
