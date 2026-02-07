@@ -1,6 +1,6 @@
 {
   "name": "ConceptDesk",
-  "version": "B 0.36B",
+  "version": "b 0.36C",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
+    "@types/adm-zip": "^0.5.5",
     "@types/archiver": "^7.0.0",
     "@types/formidable": "^3.4.6",
     "@types/node": "^20",
