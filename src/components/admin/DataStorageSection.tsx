@@ -5,6 +5,7 @@ interface MoodboardBoardInfo {
   id: string;
   name?: string;
   imagesCount: number;
+  sketchesCount?: number;
 }
 
 interface RevisionInfo {
@@ -485,7 +486,7 @@ export const DataStorageSection: React.FC = () => {
                     <span>{board.name || 'Moodboard'}</span>
                     <span style={{ color: '#9ca3af', fontSize: '12px' }}>({board.id})</span>
                     <span style={{ color: '#6b7280', fontSize: '12px' }}>
-                      ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'})
+                      ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'}, {(board.sketchesCount ?? 0)} {(board.sketchesCount ?? 0) === 1 ? 'szkic' : (board.sketchesCount ?? 0) >= 2 && (board.sketchesCount ?? 0) <= 4 ? 'szkice' : 'szkiców'})
                     </span>
                   </div>
                 </li>

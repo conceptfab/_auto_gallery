@@ -8,6 +8,7 @@ export interface MoodboardBoardInfo {
   id: string;
   name?: string;
   imagesCount: number;
+  sketchesCount: number;
 }
 
 export interface RevisionInfo {
@@ -46,18 +47,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const boardIds = index.boardIds || [];
       for (const boardId of boardIds) {
         let imagesCount = 0;
+        let sketchesCount = 0;
         try {
           const boardPath = path.join(moodboardDir, `${boardId}.json`);
           const boardRaw = await fsp.readFile(boardPath, 'utf8');
-          const board = JSON.parse(boardRaw) as { name?: string; images?: unknown[] };
+          const board = JSON.parse(boardRaw) as { name?: string; images?: unknown[]; sketches?: unknown[] };
           imagesCount = board.images?.length ?? 0;
+          sketchesCount = board.sketches?.length ?? 0;
           moodboardBoards.push({
             id: boardId,
             name: board.name,
             imagesCount,
+            sketchesCount,
           });
         } catch {
-          moodboardBoards.push({ id: boardId, imagesCount: 0 });
+          moodboardBoards.push({ id: boardId, imagesCount: 0, sketchesCount: 0 });
         }
       }
     } catch {

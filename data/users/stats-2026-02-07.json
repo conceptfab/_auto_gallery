@@ -2328,6 +2328,26 @@
         "screenHeight": 1200,
         "language": "pl"
       }
+    },
+    {
+      "id": "view_1770501991035_j9sfj3",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T22:06:31.035Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
     }
   ],
   "downloadEvents": []
