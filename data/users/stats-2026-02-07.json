@@ -2056,6 +2056,278 @@
         "screenHeight": 1200,
         "language": "pl"
       }
+    },
+    {
+      "id": "view_1770500541928_lmbpxg",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:42:21.928Z",
+      "type": "folder",
+      "path": "metro",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "metro"
+    },
+    {
+      "id": "view_1770500542970_6e252z",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:42:22.970Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770500544098_x8s8x8",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:42:24.098Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "01.QX"
+    },
+    {
+      "id": "view_1770500545652_30apwu",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:42:25.652Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U120 White"
+    },
+    {
+      "id": "view_1770500597851_dgno2i",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:17.851Z",
+      "type": "folder",
+      "path": "metro",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "metro"
+    },
+    {
+      "id": "view_1770500598726_ypy0bs",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:18.726Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Biurka pracownicze"
+    },
+    {
+      "id": "view_1770500599515_9qj8u4",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:19.515Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "01.QX"
+    },
+    {
+      "id": "view_1770500600349_x9ff33",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:20.349Z",
+      "type": "folder",
+      "path": "metro/Biurka pracownicze/01.QX/U120 White",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U120 White"
+    },
+    {
+      "id": "view_1770500604081_h93pr0",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:24.081Z",
+      "type": "folder",
+      "path": "Kolorystyka",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Kolorystyka"
+    },
+    {
+      "id": "view_1770500608526_dzhvmi",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:28.526Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Meble konferencyjne"
+    },
+    {
+      "id": "view_1770500609243_s8vofg",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:29.243Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "Fota"
+    },
+    {
+      "id": "view_1770500610141_ftf9cp",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:30.141Z",
+      "type": "folder",
+      "path": "metro/Meble konferencyjne/Fota/U100 white",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      },
+      "folderName": "U100 white"
+    },
+    {
+      "id": "view_1770500614441_paiwzl",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-07T21:43:34.441Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
     }
   ],
   "downloadEvents": []
