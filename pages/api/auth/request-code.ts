@@ -50,17 +50,17 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
     // Normalizuj email do lowercase dla spójnych porównań
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Sprawdź czy email jest na czarnej liście (case-insensitive)
+    // Sprawdź czy email jest na czarnej liście (case-insensitive, trim wpisów z pliku)
     const blacklist = await getBlacklist();
-    const blacklistLower = blacklist.map((e) => e.toLowerCase());
+    const blacklistLower = blacklist.map((e) => e.trim().toLowerCase());
     if (blacklistLower.includes(normalizedEmail)) {
       // Zwracamy generyczny komunikat — nie zdradzamy statusu emaila
       return sendNormalized(200, { message: 'Request processed', email: normalizedEmail });
     }
 
-    // Sprawdź czy email jest na białej liście (case-insensitive)
+    // Sprawdź czy email jest na białej liście (case-insensitive, trim wpisów z pliku)
     const whitelist = await getWhitelist();
-    const whitelistLower = whitelist.map((e) => e.toLowerCase());
+    const whitelistLower = whitelist.map((e) => e.trim().toLowerCase());
     if (whitelistLower.includes(normalizedEmail)) {
       // Email jest na białej liście - wygeneruj i wyślij kod od razu
       const code = generateCode();

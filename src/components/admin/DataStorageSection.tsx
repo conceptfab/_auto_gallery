@@ -41,6 +41,33 @@ export const DataStorageSection: React.FC = () => {
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const [verifyRepairLoading, setVerifyRepairLoading] = useState(false);
   const [verifyRepairReport, setVerifyRepairReport] = useState<VerifyRepairReport | null>(null);
+  const [selectedBoardIds, setSelectedBoardIds] = useState<Set<string>>(new Set());
+  const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [restoreNewName, setRestoreNewName] = useState('');
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [restoreConflict, setRestoreConflict] = useState<{ type: string; existingId?: string } | null>(null);
+  const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  const toggleBoard = (id: string) => {
+    setSelectedBoardIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleProject = (id: string) => {
+    setSelectedProjectIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const hasSelection = selectedBoardIds.size > 0 || selectedProjectIds.size > 0;
 
   const fetchTree = useCallback(async () => {
     setLoading(true);
@@ -94,12 +121,16 @@ export const DataStorageSection: React.FC = () => {
     }
   };
 
-  const handleBackup = async (scope: 'all' | 'moodboard' | 'projects') => {
-    setBackupLoading(scope);
+  const handleBackup = async (scope: 'all' | 'moodboard' | 'projects' | 'selected') => {
+    const loadingKey = scope === 'selected' ? 'selected' : scope;
+    setBackupLoading(loadingKey);
     try {
-      const res = await fetch(`/api/admin/data-storage/backup?scope=${scope}`, {
-        credentials: 'same-origin',
-      });
+      let url = `/api/admin/data-storage/backup?scope=${scope}`;
+      if (scope === 'selected') {
+        if (selectedBoardIds.size) url += `&boardIds=${encodeURIComponent([...selectedBoardIds].join(','))}`;
+        if (selectedProjectIds.size) url += `&projectIds=${encodeURIComponent([...selectedProjectIds].join(','))}`;
+      }
+      const res = await fetch(url, { credentials: 'same-origin' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         alert(data.error || 'Błąd pobierania backupu');
@@ -109,18 +140,111 @@ export const DataStorageSection: React.FC = () => {
       const disp = res.headers.get('Content-Disposition');
       const match = disp && /filename\*?=(?:UTF-8'')?([^;]+)/i.exec(disp);
       const name = match ? decodeURIComponent(match[1].replace(/^["']|["']$/g, '')) : `backup-${scope}.zip`;
-      const url = URL.createObjectURL(blob);
+      const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = name;
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(downloadUrl);
     } catch (err) {
       logger.error('Backup download error', err);
       alert('Błąd pobierania backupu');
     } finally {
       setBackupLoading(null);
     }
+  };
+
+  const handleRestore = () => {
+    if (!restoreFile) {
+      setRestoreError('Wybierz plik ZIP.');
+      return;
+    }
+    setRestoreLoading(true);
+    setUploadProgress(0);
+    setRestoreConflict(null);
+    setRestoreSuccess(null);
+    setRestoreError(null);
+    const form = new FormData();
+    form.append('file', restoreFile);
+    if (restoreNewName.trim()) form.append('newName', restoreNewName.trim());
+    const xhr = new XMLHttpRequest();
+    const timeoutId = setTimeout(() => {
+      xhr.abort();
+    }, 120_000);
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        setUploadProgress(Math.round((e.loaded / e.total) * 100));
+      } else {
+        setUploadProgress((prev) => (prev < 90 ? prev + 5 : prev));
+      }
+    });
+    xhr.addEventListener('load', () => {
+      clearTimeout(timeoutId);
+      setUploadProgress(100);
+      const text = xhr.responseText;
+      let data: { error?: string; hint?: string; type?: string; message?: string; existingId?: string; debug?: Record<string, unknown> } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        const msg = xhr.status === 200
+          ? 'Serwer zwrócił nieprawidłową odpowiedź.'
+          : `Serwer zwrócił błąd (nie JSON). Status: ${xhr.status}. ${text.slice(0, 300)}${text.length > 300 ? '…' : ''}`;
+        setRestoreError(msg);
+        setUploadProgress(0);
+        alert('BŁĄD PRZYWRACANIA:\n\n' + msg);
+        setRestoreLoading(false);
+        return;
+      }
+      if (xhr.status === 409) {
+        setRestoreConflict({ type: data.type || 'unknown', existingId: data.existingId });
+        setUploadProgress(0);
+        setRestoreLoading(false);
+        return;
+      }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        let msg = [data.error, data.hint].filter(Boolean).join('\n\n');
+        if (!msg) msg = 'Błąd przywracania (brak opisu).';
+        if (xhr.status === 413) msg = 'Plik za duży (limit 100 MB) lub limit żądania na serwerze.';
+        if (xhr.status === 403) msg = (data.error || 'Brak uprawnień (zaloguj się jako admin).') + (data.hint ? '\n\n' + data.hint : '');
+        if (data.debug) msg += '\n\n[Debug serwera] ' + JSON.stringify(data.debug);
+        setRestoreError(msg);
+        setUploadProgress(0);
+        alert('BŁĄD PRZYWRACANIA (status ' + xhr.status + '):\n\n' + msg);
+        setRestoreLoading(false);
+        return;
+      }
+      if (data.type !== 'moodboard' && data.type !== 'project') {
+        const msg = data.error || 'Nieprawidłowa odpowiedź serwera (brak type).';
+        setRestoreError(msg);
+        setUploadProgress(0);
+        alert('BŁĄD:\n\n' + msg);
+        setRestoreLoading(false);
+        return;
+      }
+      setRestoreSuccess(data.message || 'Przywrócono');
+      setRestoreFile(null);
+      setRestoreNewName('');
+      setUploadProgress(0);
+      setRestoreLoading(false);
+      fetchTree();
+    });
+    xhr.addEventListener('error', () => {
+      clearTimeout(timeoutId);
+      setUploadProgress(0);
+      setRestoreError('Błąd połączenia (sieć lub serwer).');
+      setRestoreLoading(false);
+      alert('BŁĄD PRZYWRACANIA:\n\nBłąd połączenia (sieć lub serwer).');
+    });
+    xhr.addEventListener('abort', () => {
+      clearTimeout(timeoutId);
+      setUploadProgress(0);
+      setRestoreError('Przekroczono limit czasu (2 min) lub przerwano.');
+      setRestoreLoading(false);
+      alert('BŁĄD PRZYWRACANIA:\n\nPrzekroczono limit czasu (2 min) lub przerwano.');
+    });
+    xhr.open('POST', '/api/admin/data-storage/restore');
+    xhr.withCredentials = true;
+    xhr.send(form);
   };
 
   if (loading) {
@@ -230,10 +354,108 @@ export const DataStorageSection: React.FC = () => {
         >
           {backupLoading === 'projects' ? 'Pobieranie...' : 'Tylko projekty'}
         </button>
+        <button
+          type="button"
+          className="admin-btn"
+          disabled={!!backupLoading || !hasSelection}
+          onClick={() => handleBackup('selected')}
+          title={hasSelection ? `Zaznaczono: ${selectedBoardIds.size} moodboardów, ${selectedProjectIds.size} projektów` : 'Zaznacz elementy na liście'}
+        >
+          {backupLoading === 'selected' ? 'Pobieranie...' : `Zaznaczone (ZIP)${hasSelection ? ` (${selectedBoardIds.size + selectedProjectIds.size})` : ''}`}
+        </button>
         <button type="button" onClick={fetchTree} className="admin-btn" style={{ marginLeft: 'auto' }}>
           <i className="las la-sync" style={{ marginRight: '6px' }} />
           Odśwież
         </button>
+      </div>
+
+      <div style={{ marginBottom: '20px', padding: '14px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
+        <div style={{ fontWeight: 600, marginBottom: '10px' }}>Przywróć z ZIP (moodboard lub projekt)</div>
+        <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#6b7280' }}>
+          Wgraj plik ZIP z backupu. Jeśli moodboard lub projekt o tym samym ID już istnieje, podaj nową nazwę – zostanie utworzony z nowym ID (UIUU). Komunikat błędu lub sukcesu pojawi się pod przyciskiem.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+            <input
+              type="file"
+              name="file"
+              accept=".zip,application/zip,application/x-zip-compressed"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setRestoreFile(f);
+                setRestoreConflict(null);
+                setRestoreSuccess(null);
+                setRestoreError(null);
+                if (f) console.log('[Restore] Wybrano plik:', f.name, 'rozmiar:', (f.size / 1024 / 1024).toFixed(2), 'MB');
+              }}
+              style={{ fontSize: '13px' }}
+            />
+            <span style={{ fontSize: '14px' }}>Plik ZIP</span>
+          </label>
+          {restoreFile ? (
+            <span style={{ fontSize: '13px', color: '#059669', fontWeight: 500 }}>
+              Wybrano: {restoreFile.name} ({restoreFile.size >= 1024 * 1024
+                ? (restoreFile.size / 1024 / 1024).toFixed(2) + ' MB'
+                : (restoreFile.size / 1024).toFixed(1) + ' KB'})
+            </span>
+          ) : (
+            <span style={{ fontSize: '13px', color: '#9ca3af' }}>Nie wybrano pliku</span>
+          )}
+          <input
+            type="text"
+            placeholder="Nowa nazwa (gdy ID już istnieje)"
+            value={restoreNewName}
+            onChange={(e) => setRestoreNewName(e.target.value)}
+            style={{ padding: '6px 10px', fontSize: '14px', minWidth: '220px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+          <button
+            type="button"
+            className="admin-btn"
+            disabled={restoreLoading || !restoreFile}
+            onClick={handleRestore}
+          >
+            {restoreLoading ? `Wysyłanie ${restoreFile?.name ?? '...'}...` : 'Przywróć'}
+          </button>
+        </div>
+        {(restoreFile || restoreLoading) && (
+          <div style={{ marginTop: '14px', padding: '14px', backgroundColor: '#eff6ff', border: '2px solid #2563eb', borderRadius: '8px' }}>
+            <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '14px', color: '#1e40af' }}>
+              {restoreLoading ? 'Pasek uploadu — wgrywanie pliku…' : 'Pasek uploadu — kliknij Przywróć, aby wgrać'}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '14px', color: '#1e3a8a' }}>
+              <span>{restoreFile?.name ?? 'plik'}</span>
+              <span><strong>{uploadProgress}%</strong></span>
+            </div>
+            <div style={{ height: '24px', backgroundColor: '#bfdbfe', borderRadius: '6px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%',
+                  width: `${Math.max(2, uploadProgress)}%`,
+                  backgroundColor: '#2563eb',
+                  borderRadius: '6px',
+                  transition: 'width 0.25s ease-out',
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {restoreError && (
+          <div style={{ marginTop: '10px', padding: '12px', backgroundColor: '#fef2f2', border: '2px solid #dc2626', borderRadius: '6px', fontSize: '14px', color: '#b91c1c', fontWeight: 500, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }} role="alert">
+            <strong>Błąd:</strong>
+            <br />
+            {restoreError}
+          </div>
+        )}
+        {restoreConflict && (
+          <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px', color: '#b91c1c' }}>
+            Element o tym ID już istnieje. Wpisz nową nazwę powyżej i kliknij „Przywróć” – zostanie utworzony z nowym ID.
+          </div>
+        )}
+        {restoreSuccess && (
+          <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '4px', fontSize: '13px', color: '#059669' }}>
+            {restoreSuccess}
+          </div>
+        )}
       </div>
 
       <div style={{ border: '1px solid #e5e7eb', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#fafafa' }}>
@@ -249,12 +471,23 @@ export const DataStorageSection: React.FC = () => {
             </div>
             <ul style={{ margin: 0, paddingLeft: '24px', paddingBottom: '8px', listStyle: 'none' }}>
               {tree.moodboard.boards.map((board) => (
-                <li key={board.id} style={{ padding: '6px 0', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: '#6b7280' }}>—</span>
-                  <span>{board.name || board.id}</span>
-                  <span style={{ color: '#6b7280', fontSize: '12px' }}>
-                    ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'})
-                  </span>
+                <li key={board.id} style={{ padding: '8px 0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedBoardIds.has(board.id)}
+                        onChange={() => toggleBoard(board.id)}
+                        style={{ margin: 0, cursor: 'pointer' }}
+                      />
+                    </label>
+                    <span style={{ color: '#6b7280' }}>—</span>
+                    <span>{board.name || 'Moodboard'}</span>
+                    <span style={{ color: '#9ca3af', fontSize: '12px' }}>({board.id})</span>
+                    <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                      ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'})
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -271,9 +504,17 @@ export const DataStorageSection: React.FC = () => {
               {tree.projects.map((project) => (
                 <li key={project.id} style={{ padding: '8px 0', fontSize: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedProjectIds.has(project.id)}
+                        onChange={() => toggleProject(project.id)}
+                        style={{ margin: 0, cursor: 'pointer' }}
+                      />
+                    </label>
                     <span style={{ color: '#6b7280' }}>—</span>
                     {project.name}
-                    {project.slug ? <span style={{ color: '#9ca3af', fontSize: '12px' }}>({project.slug})</span> : null}
+                    <span style={{ color: '#9ca3af', fontSize: '12px' }}>({project.id})</span>
                   </div>
                   {project.revisions?.length ? (
                     <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', listStyle: 'none', color: '#6b7280', fontSize: '13px' }}>
