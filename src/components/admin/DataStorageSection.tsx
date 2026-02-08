@@ -85,6 +85,7 @@ export const DataStorageSection: React.FC = () => {
   const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [restoreNewName, setRestoreNewName] = useState('');
+  const [restoreToGroupId, setRestoreToGroupId] = useState<string>('');
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreConflict, setRestoreConflict] = useState<{ type: string; existingId?: string } | null>(null);
   const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
@@ -304,6 +305,7 @@ export const DataStorageSection: React.FC = () => {
     const form = new FormData();
     form.append('file', restoreFile);
     if (restoreNewName.trim()) form.append('newName', restoreNewName.trim());
+    if (restoreToGroupId.trim()) form.append('restoreToGroupId', restoreToGroupId.trim());
     const xhr = new XMLHttpRequest();
     const timeoutId = setTimeout(() => {
       xhr.abort();
@@ -350,7 +352,7 @@ export const DataStorageSection: React.FC = () => {
         setRestoreLoading(false);
         return;
       }
-      if (data.type !== 'moodboard' && data.type !== 'project') {
+      if (data.type !== 'moodboard' && data.type !== 'project' && data.type !== 'groups') {
         const msg = data.error || 'Nieprawidłowa odpowiedź serwera (brak type).';
         setRestoreError(msg);
         setUploadProgress(0);
@@ -358,7 +360,7 @@ export const DataStorageSection: React.FC = () => {
         setRestoreLoading(false);
         return;
       }
-      setRestoreSuccess(data.message || 'Przywrócono');
+      setRestoreSuccess(data.message || (data.type === 'groups' ? 'Przywrócono dane grup.' : 'Przywrócono'));
       setRestoreFile(null);
       setRestoreNewName('');
       setUploadProgress(0);
@@ -661,7 +663,7 @@ export const DataStorageSection: React.FC = () => {
       <div style={{ marginBottom: '20px', padding: '14px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
         <div style={{ fontWeight: 600, marginBottom: '10px' }}>Przywróć z ZIP (moodboard lub projekt)</div>
         <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#6b7280' }}>
-          Wgraj plik ZIP z backupu. Jeśli moodboard lub projekt o tym samym ID już istnieje, podaj nową nazwę – zostanie utworzony z nowym ID (UIUU). Komunikat błędu lub sukcesu pojawi się pod przyciskiem.
+          Wgraj plik ZIP z backupu. Wybierz grupę, do której przywrócić (lub „Grupa globalna”). Jeśli moodboard lub projekt o tym samym ID już istnieje, podaj nową nazwę – zostanie utworzony z nowym ID. Komunikat błędu lub sukcesu pojawi się pod przyciskiem.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
@@ -680,6 +682,19 @@ export const DataStorageSection: React.FC = () => {
               style={{ fontSize: '13px' }}
             />
             <span style={{ fontSize: '14px' }}>Plik ZIP</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>Przywróć do grupy:</span>
+            <select
+              value={restoreToGroupId}
+              onChange={(e) => setRestoreToGroupId(e.target.value)}
+              style={{ padding: '6px 10px', fontSize: '14px', minWidth: '180px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            >
+              <option value="">Grupa globalna (bez przypisania)</option>
+              {tree?.groups?.map((g) => (
+                <option key={g.groupId} value={g.groupId}>{g.groupName}</option>
+              ))}
+            </select>
           </label>
           {restoreFile ? (
             <span style={{ fontSize: '13px', color: '#059669', fontWeight: 500 }}>

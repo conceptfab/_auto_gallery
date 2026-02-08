@@ -7,7 +7,7 @@ import formidable from 'formidable';
 import AdmZip from 'adm-zip';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDataDir } from '@/src/utils/dataDir';
-import { getProjects, getAllProjects } from '@/src/utils/projectsStorage';
+import { getAllProjects } from '@/src/utils/projectsStorage';
 
 export const config = {
   api: {
@@ -82,6 +82,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const newNameRaw = Array.isArray(fields.newName) ? fields.newName[0] : fields.newName;
   const newName = typeof newNameRaw === 'string' ? newNameRaw.trim() || undefined : undefined;
+  const restoreToGroupIdRaw = Array.isArray(fields.restoreToGroupId) ? fields.restoreToGroupId[0] : fields.restoreToGroupId;
+  const restoreToGroupId = typeof restoreToGroupIdRaw === 'string' ? restoreToGroupIdRaw.trim() || undefined : undefined;
 
   // Formidable może zwracać plik pod różnymi kluczami (file, zip, upload itd.) – bierzemy pierwszy przesłany plik
   const f = files as formidable.Files;
@@ -181,7 +183,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const boardIds = indexData.boardIds || [];
     if (boardIds.length === 0) return res.status(400).json({ error: 'Brak boardów w backupie moodboardu' });
 
-    const moodboardDir = path.join(dataDir, 'moodboard');
+    const moodboardDir = restoreToGroupId
+      ? path.join(dataDir, 'groups', restoreToGroupId, 'moodboard')
+      : path.join(dataDir, 'moodboard');
     await fsp.mkdir(moodboardDir, { recursive: true });
     await fsp.mkdir(path.join(moodboardDir, 'images'), { recursive: true });
 
@@ -296,7 +300,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const existingSlugs = projects.filter((p) => p.id !== newId).map((p) => p.slug).filter(Boolean) as string[];
     const newSlug = generateSlug(newNameFinal, existingSlugs);
 
-    const projectsDir = path.join(dataDir, 'projects');
+    const projectsDir = restoreToGroupId
+      ? path.join(dataDir, 'groups', restoreToGroupId, 'projects')
+      : path.join(dataDir, 'projects');
     const targetProjectDir = path.join(projectsDir, newId);
     await fsp.mkdir(targetProjectDir, { recursive: true });
 
@@ -310,10 +316,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await fsp.mkdir(path.dirname(targetPath), { recursive: true });
       let data = entry.getData();
       if (rel === 'project.json') {
-        const meta = JSON.parse(data.toString('utf8')) as typeof projectMeta;
+        const meta = JSON.parse(data.toString('utf8')) as typeof projectMeta & { groupId?: string };
         meta.id = newId;
         meta.name = newNameFinal;
         meta.slug = newSlug;
+        if (restoreToGroupId) meta.groupId = restoreToGroupId;
         data = Buffer.from(JSON.stringify(meta, null, 2), 'utf8');
       }
       await fsp.writeFile(targetPath, data);
