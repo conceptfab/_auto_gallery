@@ -4,7 +4,7 @@ import fsp from 'fs/promises';
 import type { MoodboardBoard } from '@/src/types/moodboard';
 import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
-import { getProjects } from '@/src/utils/projectsStorage';
+import { getProjects, getAllProjects } from '@/src/utils/projectsStorage';
 
 const INDEX_FILENAME = 'index.json';
 
@@ -32,14 +32,15 @@ async function handler(req: GroupScopedRequest, res: NextApiResponse) {
   }
 
   try {
-    const groupId = req.isAdmin && req.query.groupId ? (req.query.groupId as string) : req.userGroupId;
-    const projects = await getProjects(groupId);
+    const projects = req.isAdmin
+      ? await getAllProjects()
+      : await getProjects(req.userGroupId);
     const project = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
     if (!project) {
       return res.status(404).json({ error: 'Projekt nie znaleziony' });
     }
-
-    const dir = await getMoodboardBaseDir(groupId);
+    const moodboardGroupId = project.groupId;
+    const dir = await getMoodboardBaseDir(moodboardGroupId);
     await fsp.mkdir(dir, { recursive: true });
 
     const projectNameNorm = (project.name || '').trim();

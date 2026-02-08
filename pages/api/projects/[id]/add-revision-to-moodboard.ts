@@ -5,7 +5,7 @@ import type { MoodboardBoard } from '@/src/types/moodboard';
 import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
 import { saveMoodboardImage } from '@/src/utils/moodboardStorage';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
-import { getProjects, getThumbnailFilePath } from '@/src/utils/projectsStorage';
+import { getProjects, getAllProjects, getThumbnailFilePath } from '@/src/utils/projectsStorage';
 
 function getBoardFilename(boardId: string): string {
   return `${boardId}.json`;
@@ -36,14 +36,17 @@ async function handler(req: GroupScopedRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Wymagane: id projektu, revisionId, boardId' });
   }
 
-  const groupId = req.isAdmin && req.query.groupId ? (req.query.groupId as string) : req.userGroupId;
   try {
-    const projects = await getProjects(groupId);
+    const projects = req.isAdmin
+      ? await getAllProjects()
+      : await getProjects(req.userGroupId);
     const project = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
     if (!project) return res.status(404).json({ error: 'Projekt nie znaleziony' });
 
     const revision = (project.revisions || []).find((r) => r.id === revisionId);
     if (!revision) return res.status(404).json({ error: 'Rewizja nie znaleziona' });
+
+    const moodboardGroupId = project.groupId;
 
     const revisionLabel =
       revision.label ||
@@ -57,7 +60,7 @@ async function handler(req: GroupScopedRequest, res: NextApiResponse) {
     let imagePath: string | null = null;
     const imgW = 300;
     const imgH = 200;
-    const thumbPath = await getThumbnailFilePath(project.id, revision.id, groupId);
+    const thumbPath = await getThumbnailFilePath(project.id, revision.id, moodboardGroupId);
     if (thumbPath) {
       const buffer = await fsp.readFile(thumbPath);
       if (buffer.length > 0) {
@@ -67,12 +70,12 @@ async function handler(req: GroupScopedRequest, res: NextApiResponse) {
           imageId,
           buffer,
           '.webp',
-          groupId
+          moodboardGroupId
         );
       }
     }
 
-    const dir = await getMoodboardBaseDir(groupId);
+    const dir = await getMoodboardBaseDir(moodboardGroupId);
     const boardPath = path.join(dir, getBoardFilename(boardId));
     let raw: string;
     try {
