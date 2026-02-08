@@ -179,7 +179,7 @@ const ImageItem = memo(function ImageItem({
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(highlightedName, {
                 ALLOWED_TAGS: ['span'],
-                ALLOWED_ATTR: ['class', 'style'],
+                ALLOWED_ATTR: ['class'],
               }),
             }}
           />

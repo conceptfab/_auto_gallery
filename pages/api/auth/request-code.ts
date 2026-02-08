@@ -15,6 +15,23 @@ import { withRateLimit } from '../../../src/utils/rateLimiter';
 
 const MIN_RESPONSE_MS = 800;
 
+// SEC-5: Rate limit per email (3 żądania / 15 min per adres email)
+const emailRequests = new Map<string, { count: number; reset: number }>();
+const EMAIL_RATE_LIMIT = 3;
+const EMAIL_RATE_WINDOW_MS = 15 * 60 * 1000;
+
+function checkEmailRateLimit(email: string): boolean {
+  const now = Date.now();
+  const entry = emailRequests.get(email);
+  if (!entry || now > entry.reset) {
+    emailRequests.set(email, { count: 1, reset: now + EMAIL_RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= EMAIL_RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -49,6 +66,11 @@ async function requestCodeHandler(req: NextApiRequest, res: NextApiResponse) {
 
     // Normalizuj email do lowercase dla spójnych porównań
     const normalizedEmail = email.trim().toLowerCase();
+
+    // SEC-5: Limit per email (anti-spam, anti-brute-force)
+    if (!checkEmailRateLimit(normalizedEmail)) {
+      return sendNormalized(200, { message: 'Request processed', email: normalizedEmail });
+    }
 
     // Sprawdź czy email jest na czarnej liście (case-insensitive, trim wpisów z pliku)
     const blacklist = await getBlacklist();

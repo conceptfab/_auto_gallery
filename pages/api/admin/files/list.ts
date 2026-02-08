@@ -10,6 +10,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { folder = '' } = req.query;
   const folderPath = typeof folder === 'string' ? folder : '';
 
+  // SEC-1: Walidacja path traversal
+  if (folderPath.includes('..') || folderPath.includes('\0')) {
+    return res.status(400).json({ error: 'Nieprawidłowa ścieżka folderu' });
+  }
+
   try {
     const listUrl = generateListUrl(folderPath);
     const response = await fetch(listUrl);

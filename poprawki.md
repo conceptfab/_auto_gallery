@@ -7,12 +7,12 @@
 
 ## SPIS TRESCI
 
-1. [KRYTYCZNE: Bledy logiki usuwania](#1-krytyczne-bledy-logiki-usuwania)
-2. [BEZPIECZENSTWO](#2-bezpieczenstwo)
-3. [KOD MIGRACYJNY DO USUNIECIA](#3-kod-migracyjny-do-usuniecia)
-4. [MARTWY KOD I NIEUZYWANE EKSPORTY](#4-martwy-kod-i-nieuzywane-eksporty)
-5. [OVER-ENGINEERING](#5-over-engineering)
-6. [OPTYMALIZACJA WYDAJNOSCI](#6-optymalizacja-wydajnosci)
+1. [KRYTYCZNE: Bledy logiki usuwania](#1-krytyczne-bledy-logiki-usuwania) — ZREALIZOWANE
+2. [BEZPIECZENSTWO](#2-bezpieczenstwo) — ZREALIZOWANE
+3. [KOD MIGRACYJNY DO USUNIECIA](#3-kod-migracyjny-do-usuniecia) — do realizacji
+4. [MARTWY KOD I NIEUZYWANE EKSPORTY](#4-martwy-kod-i-nieuzywane-eksporty) — do realizacji
+5. [OVER-ENGINEERING](#5-over-engineering) — do realizacji
+6. [OPTYMALIZACJA WYDAJNOSCI](#6-optymalizacja-wydajnosci) — do realizacji
 7. [PLAN WDROZENIA](#7-plan-wdrozenia)
 
 ---
@@ -37,25 +37,14 @@ fetch('/api/moodboard/delete-image', {
 
 **Skutek:** Obraz znika z UI, ale plik zostaje na dysku. Po odswiezeniu strony obraz wraca. Uzytkownik musi powtarzac usuwanie.
 
-**Naprawa:** Dodac `await` i obsluge bledow:
-```typescript
-const removeImage = useCallback(async (id: string) => {
-  // Najpierw usun z serwera
-  if (imageToRemove?.imagePath) {
-    try {
-      const res = await fetch('/api/moodboard/delete-image', { ... });
-      if (!res.ok) {
-        console.error('Blad usuwania pliku z serwera');
-        // Mozna wyswietlic toast z bledem
-      }
-    } catch (err) {
-      console.error('Blad sieci przy usuwaniu:', err);
-    }
-  }
-  // Dopiero potem aktualizuj stan lokalny
-  setAppState(prev => { ... });
-}, [...]);
-```
+**Wykonane zmiany w `src/contexts/MoodboardContext.tsx`:**
+- Funkcja `removeImage` zmieniona na `async`
+- Dane do usuwania (boardId, imageToRemove) odczytywane z `appState` PRZED aktualizacja stanu
+- Dodany `await` na `fetch('/api/moodboard/delete-image')`
+- Dodane sprawdzenie `res.ok` z logowaniem bledu
+- Dodany `try/catch` z logowaniem bledu sieci
+- Stan lokalny (`setAppState`) aktualizowany DOPIERO po zakonczeniu requestu serwera
+- Dodany `appState` do tablicy zaleznosci `useCallback`
 
 ---
 
@@ -79,17 +68,11 @@ export async function deleteGroup(id: string): Promise<boolean> {
 
 **Skutek:** Dane grupy (projekty, moodboardy, obrazy) zostaja na dysku jako osierocone pliki. Wyciek przestrzeni dyskowej.
 
-**Naprawa:** Dodac usuwanie folderu grupy (opcjonalnie z parametrem `deleteData`):
-```typescript
-export async function deleteGroup(id: string, deleteData = false): Promise<boolean> {
-  // ... usun z groups.json ...
-  if (deleteData) {
-    const groupDir = path.join(await getGroupsBaseDir(), id);
-    await fsp.rm(groupDir, { recursive: true, force: true }).catch(() => {});
-  }
-  return true;
-}
-```
+**Wykonane zmiany w `src/utils/storage.ts`:**
+- Dodany import `getGroupsBaseDir` z `projectsStoragePath`
+- Sygnatura zmieniona na `deleteGroup(id: string, deleteData = true)` — domyslnie usuwa dane
+- Po usunieciu z `groups.json` dodany blok usuwajacy folder `/data-storage/groups/{id}/` przez `fsp.rm(groupDir, { recursive: true, force: true })`
+- Bledy usuwania folderu logowane przez `console.error` (nie przerywaja operacji)
 
 ---
 
@@ -110,14 +93,10 @@ await fsp.writeFile(projectPath, ...);
 
 **Skutek:** Rewizja znika z dysku ale pokazuje sie w UI. Klikniecie w nia daje blad "not found".
 
-**Naprawa:** Odwrocic kolejnosc - najpierw aktualizowac JSON, potem kasowac pliki:
-```typescript
-// 1. Zaktualizuj project.json (odwracalne)
-meta.revisionIds = meta.revisionIds.filter(id => id !== revisionId);
-await fsp.writeFile(projectPath, JSON.stringify(meta, null, 2), 'utf8');
-// 2. Usun folder rewizji (nieodwracalne)
-await fsp.rm(revDir, { recursive: true, force: true }).catch(() => {});
-```
+**Wykonane zmiany w `src/utils/projectsStorage.ts` (deleteProjectRevision):**
+- Odwrocona kolejnosc operacji: najpierw aktualizacja `project.json` (odwracalna), potem usuwanie folderu rewizji (nieodwracalne)
+- Dodane `logger.error` przy bledzie odczytu/parsowania `project.json` (z kontekstem projectId, groupId)
+- Dodane `logger.error` przy bledzie usuwania folderu rewizji (z kontekstem projectId, revisionId)
 
 ---
 
@@ -138,13 +117,9 @@ export async function deleteProject(id: string, groupId?: string): Promise<boole
 }
 ```
 
-**Naprawa:**
-```typescript
-} catch (err) {
-  logger.error('deleteProject failed', { id, groupId, error: err });
-  return false;
-}
-```
+**Wykonane zmiany w `src/utils/projectsStorage.ts` (deleteProject):**
+- Pusty `catch` zamieniony na `catch (err)` z `logger.error('[deleteProject] Blad usuwania projektu', { id, groupId, projectDir, error: err })`
+- Logowany pelny kontekst: ID projektu, groupId, sciezka na dysku, tresc bledu
 
 ---
 
@@ -166,21 +141,13 @@ for (const path of selectedItems) {
 }
 ```
 
-**Naprawa:**
-```typescript
-const errors: string[] = [];
-for (const filePath of selectedItems) {
-  try {
-    const res = await fetch('/api/admin/files/delete', { ... });
-    if (!res.ok) errors.push(filePath);
-  } catch {
-    errors.push(filePath);
-  }
-}
-if (errors.length > 0) {
-  alert(`Nie udalo sie usunac ${errors.length} z ${selectedItems.size} elementow`);
-}
-```
+**Wykonane zmiany w `src/components/FileManager.tsx` (handleDeleteSelected):**
+- Dodana tablica `failed: string[]` do sledzenia nieudanych operacji
+- Zmienna petli `path` przemianowana na `filePath` (unikniecie shadowing `path` z importu)
+- Dodane sprawdzenie `res.ok` — przy bledzie serwera sciezka dodawana do `failed`
+- Bledy sieci (catch) rowniez dodaja sciezke do `failed`
+- Po zakonczeniu petli: jesli `failed.length > 0`, wyswietlany alert z liczba nieudanych usuniec
+- Dodane logowanie `logger.error('Delete failed (batch)', { path, status })` przy bledach
 
 ---
 
@@ -209,26 +176,31 @@ body: JSON.stringify({ id }), // brak groupId
 
 **Skutek:** Dodatkowe operacje dyskowe, potencjalny problem jesli sa duplikaty ID.
 
-**Naprawa:** Dodac `groupId` do payloadu:
-```typescript
-body: JSON.stringify({ id, groupId: project.groupId }),
-```
+**Wykonane zmiany w `src/components/admin/ProjectsSection.tsx`:**
+- Sygnatura `handleDelete` zmieniona z `(id: string)` na `(id: string, groupId?: string)`
+- Payload requestu zmieniony z `{ id }` na `{ id, groupId }`
+- Wywolanie w onClick zmienione z `handleDelete(p.id)` na `handleDelete(p.id, p.groupId)`
+- Backend nie musi juz przeszukiwac wszystkich grup przez `findProjectById()`
 
 ---
 
-## 2. BEZPIECZENSTWO
+## 2. BEZPIECZENSTWO [ZREALIZOWANE]
 
-### SEC-1: Path traversal w admin files list [WYSOKI]
+### SEC-1: Path traversal w admin files list [ZREALIZOWANE]
 
 **Plik:** `pages/api/admin/files/list.ts:10-14`
 
 **Problem:** Parametr `folder` z query string trafia do `generateListUrl()` bez walidacji sciezki. Admin moze odczytac dowolny katalog.
 
-**Naprawa:** Walidowac sciezke przed uzyciem, sprawdzic czy jest w obrebie dozwolonego katalogu.
+**Wykonane zmiany w `pages/api/admin/files/list.ts`:**
+- Dodana walidacja `folderPath` przed przekazaniem do `generateListUrl()`
+- Sprawdzenie `folderPath.includes('..')` — blokuje path traversal (`../../../etc`)
+- Sprawdzenie `folderPath.includes('\0')` — blokuje null byte injection
+- Przy nieprawidlowej sciezce zwracany status 400 z komunikatem bledu
 
 ---
 
-### SEC-2: Zbyt permisywna autoryzacja galerii [WYSOKI]
+### SEC-2: Zbyt permisywna autoryzacja galerii [ZREALIZOWANE]
 
 **Plik:** `pages/api/projects/gallery/[...path].ts:47-62`
 
@@ -238,62 +210,76 @@ body: JSON.stringify({ id, groupId: project.groupId }),
 galleryPaths.some((p) => p.endsWith(`/${filename}`)); // zbyt szerokie dopasowanie
 ```
 
-**Naprawa:** Uzyc scislego dopasowania sciezki:
-```typescript
-galleryPaths.includes(`${projectId}/${revisionId}/${filename}`);
-```
+**Wykonane zmiany w `pages/api/projects/gallery/[...path].ts`:**
+- Usuniety warunek `p.endsWith(`/${filename}`)` ktory mogl dopasowac obrazy z innych projektow
+- Zastapiony scislym dopasowaniem: `p === `${project.id}/${revisionId}/${filename}``
+- Uzywany `project.id` (resolved) zamiast `projectId` (z URL, moze byc slug)
 
 ---
 
-### SEC-3: Backup/Restore pozwala na path traversal w ZIP [WYSOKI]
+### SEC-3: Backup/Restore pozwala na path traversal w ZIP [ZREALIZOWANE]
 
 **Plik:** `pages/api/admin/data-storage/restore.ts:173-179`
 
 **Problem:** Sprawdzenie `!rel.startsWith('../')` nie pokrywa wszystkich wektorow (URL encoding, sciezki Windows).
 
-**Naprawa:** Uzywac `path.resolve()` i weryfikowac ze wynikowa sciezka jest wewnatrz docelowego katalogu:
-```typescript
-const targetPath = path.resolve(groupsDir, rel);
-if (!targetPath.startsWith(path.resolve(groupsDir))) continue;
-```
+**Wykonane zmiany w `pages/api/admin/data-storage/restore.ts`:**
+- Dodana funkcja `isSafePath(targetPath, allowedBase)` uzywajaca `path.resolve()` do weryfikacji
+- Ekstrakcja grup: dodane `rel.includes('..')` check + `isSafePath(targetPath, groupsDir)`
+- Ekstrakcja projektow: dodane `rel.includes('..')` check + `isSafePath(targetPath, targetProjectDir)`
+- Ekstrakcja obrazow moodboard: dodane `rel.includes('..')` check + `isSafePath(targetPath, targetImagesDir)`
+- Laczne 3 punkty ekstrakcji zabezpieczone przed path traversal
 
 ---
 
-### SEC-4: Brak flagi Secure na cookies poza produkcja [SREDNI]
+### SEC-4: Brak flagi Secure na cookies poza produkcja [POMINIETE]
 
 **Plik:** `src/utils/auth.ts:10-11`
 
 **Problem:** `cookieSecure` jest pustym stringiem w development, co pozwala na przechwycenie sesji przez HTTP.
 
+**Status:** Pominiete - ustawienie Secure w dev bez HTTPS zlamaloby autentykacje. Obecne podejscie (Secure tylko w produkcji) jest standardowa praktyka.
+
 ---
 
-### SEC-5: Rate limit auth endpointu moze byc niewystarczajacy [SREDNI]
+### SEC-5: Rate limit auth endpointu moze byc niewystarczajacy [ZREALIZOWANE]
 
 **Plik:** `pages/api/auth/request-code.ts:140`
 
 **Problem:** 10 requestow / 15 min per IP. Brak limitu per email. Mozliwy email spam i enumeracja kont.
 
-**Naprawa:** Dodac limit per email (3/15min) oproz limitu per IP.
+**Wykonane zmiany w `pages/api/auth/request-code.ts`:**
+- Dodana in-memory mapa `emailRequests` (analogiczna do IP rate limiter)
+- Dodana funkcja `checkEmailRateLimit(email)` — limit 3 żadania / 15 min per adres email
+- Sprawdzenie wstawione PO normalizacji emaila, PRZED sprawdzeniem czarnej/bialej listy
+- Przy przekroczeniu limitu zwracana generyczna odpowiedz 200 (bez zdradzania statusu)
+- Istniejacy limit per IP (10/15min) dziala niezaleznie obok limitu per email
 
 ---
 
-### SEC-6: XSS - atrybut style w DOMPurify [NISKI]
+### SEC-6: XSS - atrybut style w DOMPurify [ZREALIZOWANE]
 
 **Plik:** `src/components/ImageGrid.tsx:179-184`
 
 **Problem:** `ALLOWED_ATTR: ['class', 'style']` - atrybut `style` moze byc uzwany do CSS injection.
 
-**Naprawa:** Usunac `style` z dozwolonych atrybutow.
+**Wykonane zmiany w `src/components/ImageGrid.tsx`:**
+- `ALLOWED_ATTR: ['class', 'style']` zmienione na `ALLOWED_ATTR: ['class']`
+- Usuniety atrybut `style` eliminujacy mozliwosc CSS injection przez dane z decorConverter
 
 ---
 
-### SEC-7: Walidacja typu pliku tylko po MIME [NISKI]
+### SEC-7: Walidacja typu pliku tylko po MIME [ZREALIZOWANE]
 
 **Plik:** `pages/api/admin/projects/upload-gallery.ts:18,81-84`
 
 **Problem:** Typ pliku sprawdzany tylko po `file.mimetype` z klienta, co mozna sfalsowac.
 
-**Naprawa:** Weryfikowac magic bytes pliku (np. `file-type` library).
+**Wykonane zmiany w `pages/api/admin/projects/upload-gallery.ts`:**
+- Dodana walidacja `sharp(raw).metadata()` przed konwersja do webp
+- Sprawdzenie `metadata.format` — akceptowane tylko: jpeg, png, webp, gif, tiff, svg
+- Plik z nieznanym formatem jest pomijany (continue) nawet jesli MIME type z klienta byl prawidlowy
+- Walidacja dziala na poziomie zawartosc pliku (magic bytes) a nie naglowkow HTTP
 
 ---
 
@@ -573,15 +559,17 @@ function getCachedRegexes(keyword: string): KeywordRegexes {
 | 5 | Sprawdzac response.ok w batch delete | `FileManager.tsx` | DONE |
 | 6 | Dodac groupId do delete call | `ProjectsSection.tsx` | DONE |
 
-### Faza 2: Bezpieczenstwo (PRIORYTET)
+### Faza 2: Bezpieczenstwo [ZREALIZOWANE]
 
-| # | Zadanie | Plik | Estymata |
-|---|---------|------|----------|
-| 1 | Walidacja path traversal w files/list | `pages/api/admin/files/list.ts` | 20 min |
-| 2 | Scislejsze dopasowanie galerii | `pages/api/projects/gallery/[...path].ts` | 10 min |
-| 3 | Walidacja sciezek w restore ZIP | `pages/api/admin/data-storage/restore.ts` | 20 min |
-| 4 | Rate limit per email | `pages/api/auth/request-code.ts` | 15 min |
-| 5 | Usunac style z DOMPurify ALLOWED_ATTR | `src/components/ImageGrid.tsx` | 2 min |
+| # | Zadanie | Plik | Status |
+|---|---------|------|--------|
+| 1 | Walidacja path traversal w files/list | `pages/api/admin/files/list.ts` | DONE |
+| 2 | Scislejsze dopasowanie galerii | `pages/api/projects/gallery/[...path].ts` | DONE |
+| 3 | Walidacja sciezek w restore ZIP | `pages/api/admin/data-storage/restore.ts` | DONE |
+| 4 | Rate limit per email | `pages/api/auth/request-code.ts` | DONE |
+| 5 | Usunac style z DOMPurify ALLOWED_ATTR | `src/components/ImageGrid.tsx` | DONE |
+| 6 | Walidacja magic bytes w upload-gallery | `pages/api/admin/projects/upload-gallery.ts` | DONE |
+| 7 | Secure cookie flag w dev | `src/utils/auth.ts` | POMINIETE |
 
 ### Faza 3: Usuniecie kodu migracyjnego (PO POTWIERDZENIU MIGRACJI)
 
@@ -608,9 +596,22 @@ function getCachedRegexes(keyword: string): KeywordRegexes {
 ---
 
 **Podsumowanie:**
-- **8 bledow logiki usuwania** (w tym 2 krytyczne)
-- **7 problemow bezpieczenstwa** (2 wysokie, 3 srednie, 2 niskie)
-- **5 blokow kodu migracyjnego** do usuniecia (~500-700 linii)
-- **6 przypadkow over-engineeringu**
-- **5 optymalizacji wydajnosci**
-- **~15 miejsc z debug console.log**
+- **7 bledow logiki usuwania** — 6 zrealizowanych, 1 odlozony (BUG-6 kaskadowe czyszczenie)
+- **7 problemow bezpieczenstwa** — 6 zrealizowanych, 1 pominiete (SEC-4 cookie Secure w dev)
+- **5 blokow kodu migracyjnego** do usuniecia (~500-700 linii) — do realizacji
+- **6 przypadkow over-engineeringu** — do realizacji
+- **5 optymalizacji wydajnosci** — do realizacji
+- **~15 miejsc z debug console.log** — do realizacji
+
+**Zrealizowane zmiany (12 plikow):**
+1. `src/contexts/MoodboardContext.tsx` — async removeImage z await na fetch
+2. `src/utils/storage.ts` — deleteGroup() usuwa folder danych grupy
+3. `src/utils/projectsStorage.ts` — odwrocona kolejnosc w deleteProjectRevision + logowanie bledow w deleteProject
+4. `src/components/FileManager.tsx` — batch delete sprawdza response.ok i informuje o bledach
+5. `src/components/admin/ProjectsSection.tsx` — groupId w delete request
+6. `pages/api/admin/files/list.ts` — walidacja path traversal
+7. `pages/api/projects/gallery/[...path].ts` — scisle dopasowanie galerii
+8. `pages/api/admin/data-storage/restore.ts` — isSafePath() w 3 punktach ekstrakcji ZIP
+9. `pages/api/auth/request-code.ts` — rate limit per email (3/15min)
+10. `src/components/ImageGrid.tsx` — usuniety style z DOMPurify
+11. `pages/api/admin/projects/upload-gallery.ts` — walidacja sharp metadata

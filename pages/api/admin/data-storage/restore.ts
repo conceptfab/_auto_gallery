@@ -50,6 +50,13 @@ function norm(name: string): string {
   return name.replace(/\\/g, '/').replace(/^\.\/+/, '').trim();
 }
 
+/** SEC-3: Sprawdza czy ścieżka docelowa jest wewnątrz dozwolonego katalogu. */
+function isSafePath(targetPath: string, allowedBase: string): boolean {
+  const resolved = path.resolve(targetPath);
+  const base = path.resolve(allowedBase);
+  return resolved.startsWith(base + path.sep) || resolved === base;
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -172,8 +179,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const name = norm(entry.entryName);
       if (!name.startsWith('groups/')) continue;
       const rel = name.slice('groups/'.length);
-      if (!rel || rel.startsWith('../')) continue;
+      if (!rel || rel.includes('..')) continue;
       const targetPath = path.join(groupsDir, rel);
+      if (!isSafePath(targetPath, groupsDir)) continue;
       await fsp.mkdir(path.dirname(targetPath), { recursive: true });
       await fsp.writeFile(targetPath, entry.getData());
     }
@@ -263,8 +271,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (imageEntries.length > 0) await fsp.mkdir(targetImagesDir, { recursive: true });
       for (const imgEntry of imageEntries) {
         const rel = norm(imgEntry.entryName).slice(imgPrefix.length);
-        if (!rel || rel.includes('/')) continue;
+        if (!rel || rel.includes('/') || rel.includes('..')) continue;
         const targetPath = path.join(targetImagesDir, rel);
+        if (!isSafePath(targetPath, targetImagesDir)) continue;
         await fsp.writeFile(targetPath, imgEntry.getData());
       }
     }
@@ -346,7 +355,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const name = norm(entry.entryName);
       if (!name.startsWith(entryPrefix) || name === entryPrefix.slice(0, -1)) continue;
       const rel = name.slice(entryPrefix.length);
+      if (rel.includes('..')) continue;
       const targetPath = path.join(targetProjectDir, rel);
+      if (!isSafePath(targetPath, targetProjectDir)) continue;
       await fsp.mkdir(path.dirname(targetPath), { recursive: true });
       let data = entry.getData();
       if (rel === 'project.json') {

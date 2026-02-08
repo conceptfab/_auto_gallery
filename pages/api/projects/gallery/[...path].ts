@@ -55,7 +55,7 @@ export default async function handler(
   const galleryPaths = revision?.galleryPaths ?? [];
   const imageAllowed =
     galleryPaths.includes(filename) ||
-    galleryPaths.some((p) => p === `${projectId}/${revisionId}/${filename}` || p.endsWith(`/${filename}`));
+    galleryPaths.some((p) => p === `${project.id}/${revisionId}/${filename}`);
   if (!imageAllowed) {
     logger.warn('[gallery API] Obraz nie w galleryPaths', { projectId, revisionId, filename, galleryPaths });
     return res.status(404).json({ error: 'Obraz nie znaleziony' });

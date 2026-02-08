@@ -9,7 +9,7 @@ n8n?
 
 + usuwanie grupy - pytaniecz czy rozgrupowac i usunąć grupę czy usunąć grupę z zawartoscią
 
-
+restore sledzic
 
 
 
