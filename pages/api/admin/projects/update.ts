@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { updateProject } from '@/src/utils/projectsStorage';
+import { updateProject, findProjectById } from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,7 +7,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { id, name, description, groupId } = req.body;
+    const { id, name, description, groupId, currentGroupId } = req.body;
     if (!id || typeof id !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
@@ -30,7 +30,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: 'Podaj name, description lub groupId' });
     }
-    const project = await updateProject(id, updates);
+    // Resolve group via explicit param or findProjectById
+    let resolvedGroupId = currentGroupId as string | undefined;
+    if (!resolvedGroupId) {
+      const [, foundGroupId] = await findProjectById(id);
+      resolvedGroupId = foundGroupId;
+    }
+    const project = await updateProject(id, updates, resolvedGroupId);
     if (!project) {
       return res.status(404).json({ error: 'Projekt nie znaleziony' });
     }

@@ -14,6 +14,9 @@ interface GroupEditPanelProps {
   onUngroup: () => void;
   onAddComment: () => void;
   position: { x: number; y: number };
+  /** Opcja przenoszenia na inny moodboard */
+  otherBoards?: { id: string; name?: string }[];
+  onMoveToBoard?: (targetBoardId: string) => void;
 }
 
 export default function GroupEditPanel({
@@ -28,6 +31,8 @@ export default function GroupEditPanel({
   onUngroup,
   onAddComment,
   position,
+  otherBoards = [],
+  onMoveToBoard,
 }: GroupEditPanelProps) {
   // Ensure we have a hex color for the picker
   const hexColor = color.startsWith('rgba') ? '#6366f1' : color;
@@ -99,6 +104,22 @@ export default function GroupEditPanel({
           </div>
         </div>
       </div>
+
+      {otherBoards.length > 0 && onMoveToBoard && (
+        <div className="moodboard-edit-panel-section">
+          <div className="sketch-label-menu-header">Przenieś na:</div>
+          {otherBoards.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              className="sketch-label-menu-item sketch-label-menu-item--move"
+              onClick={() => onMoveToBoard(b.id)}
+            >
+              {b.name?.trim() || 'Moodboard'}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="moodboard-edit-panel-section" style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
         <button

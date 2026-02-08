@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
   updateProjectRevision,
-  getProjects,
+  findProjectById,
 } from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
@@ -25,6 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       embedUrl,
       thumbnailDataUrl,
       screenshotDataUrl,
+      groupId,
     } = body;
     if (!projectId || typeof projectId !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
@@ -57,19 +58,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           'Podaj label, description, embedUrl, thumbnailDataUrl lub screenshotDataUrl',
       });
     }
-    const projects = await getProjects();
-    const project = projects.find((p) => p.id === projectId);
-    if (!project) {
-      return res.status(404).json({ error: 'Projekt nie znaleziony' });
-    }
-    const revisionExists = (project.revisions ?? []).some((r) => r.id === revisionId);
-    if (!revisionExists) {
-      return res.status(404).json({ error: 'Rewizja nie znaleziona' });
+    let resolvedGroupId = groupId as string | undefined;
+    if (!resolvedGroupId) {
+      const [foundProject, foundGroupId] = await findProjectById(projectId);
+      if (!foundProject) {
+        return res.status(404).json({ error: 'Projekt nie znaleziony' });
+      }
+      resolvedGroupId = foundGroupId;
+      const revisionExists = (foundProject.revisions ?? []).some((r) => r.id === revisionId);
+      if (!revisionExists) {
+        return res.status(404).json({ error: 'Rewizja nie znaleziona' });
+      }
     }
     const revision = await updateProjectRevision(
       projectId,
       revisionId,
-      updates
+      updates,
+      resolvedGroupId
     );
     if (!revision) {
       return res

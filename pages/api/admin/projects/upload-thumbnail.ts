@@ -5,7 +5,7 @@ import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import {
   saveThumbnailFile,
   updateProjectRevision,
-  getProjects,
+  findProjectById,
 } from '@/src/utils/projectsStorage';
 import sharp from 'sharp';
 
@@ -51,6 +51,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const revisionId = Array.isArray(fields.revisionId)
     ? fields.revisionId[0]
     : fields.revisionId;
+  const groupIdField = Array.isArray(fields.groupId)
+    ? fields.groupId[0]
+    : fields.groupId;
 
   if (!projectId || !revisionId) {
     return res
@@ -71,10 +74,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .json({ error: 'Dozwolone formaty: JPEG, PNG, WebP' });
   }
 
-  const projects = await getProjects();
-  const revision = projects
-    .find((p) => p.id === projectId)
-    ?.revisions?.find((r) => r.id === revisionId);
+  let resolvedGroupId = groupIdField || undefined;
+  const [foundProject, foundGroupId] = await findProjectById(projectId);
+  if (!resolvedGroupId) resolvedGroupId = foundGroupId;
+  const revision = foundProject?.revisions?.find((r) => r.id === revisionId);
   if (!revision) {
     await fsp.unlink(file.filepath).catch(() => {});
     return res.status(404).json({ error: 'Projekt lub rewizja nie znaleziona' });
@@ -97,10 +100,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await fsp.unlink(file.filepath).catch(() => {});
   }
 
-  const relativePath = await saveThumbnailFile(projectId, revisionId, buffer);
+  const relativePath = await saveThumbnailFile(projectId, revisionId, buffer, resolvedGroupId);
   const updated = await updateProjectRevision(projectId, revisionId, {
     thumbnailPath: relativePath,
-  });
+  }, resolvedGroupId);
 
   if (!updated) {
     return res.status(500).json({ error: 'Błąd zapisu rewizji' });

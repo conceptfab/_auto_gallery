@@ -57,6 +57,7 @@ interface MoodboardContextValue extends MoodboardBoard {
   addSketch: (sketch: Omit<MoodboardSketch, 'id'>) => void;
   updateSketch: (id: string, patch: Partial<MoodboardSketch>) => void;
   removeSketch: (id: string) => void;
+  moveItemToBoard: (type: 'image' | 'sketch' | 'group' | 'comment', itemId: string, targetBoardId: string) => void;
   updateImageAnnotations: (imageId: string, drawing: DrawingData) => void;
   clearImageAnnotations: (imageId: string) => void;
   autoGroupItem: (itemId: string, x: number, y: number, width: number, height: number) => void;
@@ -655,6 +656,105 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     [scheduleSave, selectedId, selectedType]
   );
 
+  const moveItemToBoard = useCallback(
+    (type: 'image' | 'sketch' | 'group' | 'comment', itemId: string, targetBoardId: string) => {
+      setAppState((prev) => {
+        const srcBoard = prev.boards.find((b) => b.id === prev.activeId);
+        if (!srcBoard) return prev;
+
+        if (type === 'comment') {
+          const comment = srcBoard.comments.find((c) => c.id === itemId);
+          if (!comment) return prev;
+          const boards = prev.boards.map((b) => {
+            if (b.id === prev.activeId) {
+              return { ...b, comments: b.comments.filter((c) => c.id !== itemId) };
+            }
+            if (b.id === targetBoardId) {
+              return { ...b, comments: [...b.comments, comment] };
+            }
+            return b;
+          });
+          const next = { ...prev, boards };
+          scheduleSave(next);
+          return next;
+        }
+
+        if (type === 'group') {
+          const group = (srcBoard.groups || []).find((g) => g.id === itemId);
+          if (!group) return prev;
+          const memberIds = group.memberIds || [];
+          const memberImages = srcBoard.images.filter((img) => memberIds.includes(img.id));
+          const memberSketches = (srcBoard.sketches || []).filter((sk) => memberIds.includes(sk.id));
+          const boards = prev.boards.map((b) => {
+            if (b.id === prev.activeId) {
+              return {
+                ...b,
+                groups: (b.groups || []).filter((g) => g.id !== itemId),
+                images: b.images.filter((img) => !memberIds.includes(img.id)),
+                sketches: (b.sketches || []).filter((sk) => !memberIds.includes(sk.id)),
+              };
+            }
+            if (b.id === targetBoardId) {
+              return {
+                ...b,
+                groups: [...(b.groups || []), group],
+                images: [...b.images, ...memberImages],
+                sketches: [...(b.sketches || []), ...memberSketches],
+              };
+            }
+            return b;
+          });
+          const next = { ...prev, boards };
+          scheduleSave(next);
+          return next;
+        }
+
+        // image | sketch
+        let item: MoodboardImage | MoodboardSketch | undefined;
+        if (type === 'image') {
+          item = srcBoard.images.find((img) => img.id === itemId);
+        } else {
+          item = (srcBoard.sketches || []).find((sk) => sk.id === itemId);
+        }
+        if (!item) return prev;
+
+        const boards = prev.boards.map((b) => {
+          if (b.id === prev.activeId) {
+            const patch: Partial<MoodboardBoard> = {};
+            if (type === 'image') {
+              patch.images = b.images.filter((img) => img.id !== itemId);
+            } else {
+              patch.sketches = (b.sketches || []).filter((sk) => sk.id !== itemId);
+            }
+            patch.groups = (b.groups || []).map((g) =>
+              g.memberIds.includes(itemId)
+                ? { ...g, memberIds: g.memberIds.filter((id) => id !== itemId) }
+                : g
+            );
+            return { ...b, ...patch };
+          }
+          if (b.id === targetBoardId) {
+            if (type === 'image') {
+              return { ...b, images: [...b.images, item as MoodboardImage] };
+            } else {
+              return { ...b, sketches: [...(b.sketches || []), item as MoodboardSketch] };
+            }
+          }
+          return b;
+        });
+
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+      if (selectedId === itemId) {
+        setSelectedId(null);
+        setSelectedType(null);
+      }
+    },
+    [scheduleSave, selectedId]
+  );
+
   const updateImageAnnotations = useCallback(
     (imageId: string, drawing: DrawingData) => {
       setAppState((prev) => {
@@ -829,6 +929,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       addSketch,
       updateSketch,
       removeSketch,
+      moveItemToBoard,
       updateImageAnnotations,
       clearImageAnnotations,
       autoGroupItem,
@@ -878,6 +979,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       addSketch,
       updateSketch,
       removeSketch,
+      moveItemToBoard,
       updateImageAnnotations,
       clearImageAnnotations,
       autoGroupItem,

@@ -1,39 +1,38 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie } from '@/src/utils/auth';
-import { isUserLoggedIn, isAdminLoggedIn } from '@/src/utils/storage';
-import { getProjects } from '@/src/utils/projectsStorage';
-import { ADMIN_EMAIL } from '@/src/config/constants';
+import { NextApiResponse } from 'next';
+import { getProjects, getAllProjects } from '@/src/utils/projectsStorage';
+import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
 /**
- * GET – lista projektów dla zalogowanego użytkownika (zwykły user lub admin).
+ * GET – lista projektów dla zalogowanego użytkownika.
+ * User: widzi tylko projekty swojej grupy.
+ * Admin: widzi wszystkie (lub filtruje per ?groupId=).
  */
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: GroupScopedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const email = getEmailFromCookie(req);
-  if (!email) {
-    return res.status(401).json({ error: 'Wymagane logowanie' });
-  }
-
-  const userLoggedIn = await isUserLoggedIn(email);
-  const adminLoggedIn = await isAdminLoggedIn(email);
-  const isAdminEmail =
-    email.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
-  const allowedAsUser = userLoggedIn || (isAdminEmail && adminLoggedIn);
-  if (!allowedAsUser) {
-    return res.status(401).json({ error: 'Wymagane logowanie' });
-  }
-
   try {
-    const projects = await getProjects();
+    if (req.isAdmin) {
+      const filterGroupId = req.query.groupId as string | undefined;
+      if (filterGroupId) {
+        const projects = await getProjects(filterGroupId);
+        return res.status(200).json({ success: true, projects });
+      }
+      const projects = await getAllProjects();
+      return res.status(200).json({ success: true, projects });
+    }
+
+    // Zwykły user: projekty swojej grupy
+    const projects = await getProjects(req.userGroupId);
     return res.status(200).json({ success: true, projects });
   } catch (error) {
     console.error('Error fetching projects:', error);
     return res.status(500).json({ error: 'Błąd ładowania projektów' });
   }
 }
+
+export default withGroupAccess(handler);

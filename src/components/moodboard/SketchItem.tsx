@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import { MoodboardSketch, DrawingData, DrawingTool } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
@@ -44,6 +45,9 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
     notifyDrawing,
     notifyIdle,
     drawingConfig,
+    boards,
+    activeId,
+    moveItemToBoard,
   } = useMoodboard();
   const tools = drawingConfig.tools;
   const strokeColors = drawingConfig.strokeColors;
@@ -140,8 +144,8 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
     [sketch.id, updateSketch]
   );
 
-  // Label right-click menu
-  const handleLabelContextMenu = useCallback((e: React.MouseEvent) => {
+  // Kontekstowe menu (PPM na etykiecie lub na obszarze szkicu)
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setLabelMenu({ x: e.clientX, y: e.clientY });
@@ -166,6 +170,16 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
     if (!window.confirm('Czy na pewno chcesz usunąć ten szkic?')) return;
     removeSketch(sketch.id);
   }, [sketch.id, removeSketch]);
+
+  const otherBoards = boards.filter((b) => b.id !== activeId);
+
+  const handleMoveToBoard = useCallback(
+    (targetBoardId: string) => {
+      setLabelMenu(null);
+      moveItemToBoard('sketch', sketch.id, targetBoardId);
+    },
+    [sketch.id, moveItemToBoard]
+  );
 
   const isDrawingThis = drawingMode && isSelected;
   const displayName = sketch.name || 'Szkic';
@@ -193,11 +207,12 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
       onPointerMove={!drawingMode ? handlePointerMove : undefined}
       onPointerUp={!drawingMode ? handlePointerUp : undefined}
       onPointerLeave={!drawingMode ? handlePointerUp : undefined}
+      onContextMenu={handleContextMenu}
     >
       {/* Label above sketch */}
       <div
         className="sketch-label"
-        onContextMenu={handleLabelContextMenu}
+        onContextMenu={handleContextMenu}
         onPointerDown={(e) => e.stopPropagation()}
       >
         {renaming ? (
@@ -214,8 +229,8 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
         )}
       </div>
 
-      {/* Label context menu */}
-      {labelMenu && (
+      {/* Label context menu — w portalu do body, żeby position:fixed było względem viewport */}
+      {labelMenu && typeof document !== 'undefined' && createPortal(
         <div
           className="sketch-label-menu"
           style={{ position: 'fixed', left: labelMenu.x, top: labelMenu.y, zIndex: 9999 }}
@@ -223,11 +238,29 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
           <button type="button" className="sketch-label-menu-item" onClick={startRename}>
             Zmień nazwę
           </button>
+          {otherBoards.length > 0 && (
+            <>
+              <div className="sketch-label-menu-sep" />
+              <div className="sketch-label-menu-header">Przenieś na:</div>
+              {otherBoards.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className="sketch-label-menu-item sketch-label-menu-item--move"
+                  onClick={() => handleMoveToBoard(b.id)}
+                >
+                  {b.name?.trim() || 'Moodboard'}
+                </button>
+              ))}
+            </>
+          )}
+          <div className="sketch-label-menu-sep" />
           <button type="button" className="sketch-label-menu-item sketch-label-menu-item--danger" onClick={handleDeleteSketch}>
             Usuń szkic
           </button>
           <div className="sketch-label-menu-backdrop" onClick={() => setLabelMenu(null)} />
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Canvas */}

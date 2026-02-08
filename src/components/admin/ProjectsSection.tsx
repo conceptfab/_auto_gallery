@@ -27,6 +27,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [updatingGroupId, setUpdatingGroupId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [newGroupId, setNewGroupId] = useState('');
 
   const fetchProjects = async () => {
     try {
@@ -62,6 +64,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         body: JSON.stringify({
           name: newName.trim(),
           description: newDescription.trim() || undefined,
+          groupId: newGroupId || undefined,
         }),
       });
       const data = await res.json();
@@ -114,26 +117,62 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     }
   };
 
-  const handleGroupChange = async (projectId: string, groupId: string) => {
+  const handleGroupChange = async (projectId: string, toGroupId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    const fromGroupId = project.groupId || '';
+    if (fromGroupId === toGroupId) return;
     setUpdatingGroupId(projectId);
     try {
-      const res = await fetch('/api/admin/projects/update', {
+      const res = await fetch('/api/admin/projects/move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: projectId, groupId: groupId || undefined }),
+        body: JSON.stringify({
+          projectId,
+          fromGroupId: fromGroupId || undefined,
+          toGroupId: toGroupId || undefined,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         await fetchProjects();
         onGroupsChange?.();
       } else {
-        alert(data.error || 'Błąd zapisywania grupy');
+        alert(data.error || 'Błąd przenoszenia projektu');
       }
     } catch (error) {
-      logger.error('Error updating project group', error);
-      alert('Błąd zapisywania grupy');
+      logger.error('Error moving project', error);
+      alert('Błąd przenoszenia projektu');
     } finally {
       setUpdatingGroupId(null);
+    }
+  };
+
+  const handleCopyProject = async (projectId: string, toGroupId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    setCopyingId(projectId);
+    try {
+      const res = await fetch('/api/admin/projects/copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          fromGroupId: project.groupId || undefined,
+          toGroupId: toGroupId || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchProjects();
+      } else {
+        alert(data.error || 'Błąd kopiowania projektu');
+      }
+    } catch (error) {
+      logger.error('Error copying project', error);
+      alert('Błąd kopiowania projektu');
+    } finally {
+      setCopyingId(null);
     }
   };
 
@@ -195,6 +234,19 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 className="admin-input"
                 style={{ flex: '1 1 200px' }}
               />
+              {groups.length > 0 && (
+                <select
+                  value={newGroupId}
+                  onChange={(e) => setNewGroupId(e.target.value)}
+                  className="admin-input"
+                  style={{ flex: '0 0 auto', minWidth: '120px' }}
+                >
+                  <option value="">— globalne —</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              )}
               <button
                 type="button"
                 onClick={handleAdd}
@@ -289,7 +341,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                         {groups.length > 0 && (
                           <div style={{ marginTop: '8px' }}>
                             <label htmlFor={`group-${p.id}`} style={{ fontSize: '12px', color: '#666', marginRight: '6px' }}>
-                              Grupa:
+                              Przenieś do:
                             </label>
                             <select
                               id={`group-${p.id}`}
@@ -303,13 +355,42 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                                 border: '1px solid #d1d5db',
                               }}
                             >
-                              <option value="">—</option>
+                              <option value="">— globalne —</option>
                               {groups.map((g) => (
                                 <option key={g.id} value={g.id}>
                                   {g.name}
                                 </option>
                               ))}
                             </select>
+                            {updatingGroupId === p.id && <span style={{ fontSize: '11px', marginLeft: '4px' }}>⏳</span>}
+                            <div style={{ marginTop: '4px', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                              <label htmlFor={`copy-${p.id}`} style={{ fontSize: '12px', color: '#666' }}>
+                                Kopiuj do:
+                              </label>
+                              <select
+                                id={`copy-${p.id}`}
+                                value=""
+                                onChange={(e) => {
+                                  if (e.target.value) handleCopyProject(p.id, e.target.value === '__global__' ? '' : e.target.value);
+                                }}
+                                disabled={copyingId === p.id}
+                                style={{
+                                  fontSize: '12px',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  border: '1px solid #d1d5db',
+                                }}
+                              >
+                                <option value="">wybierz…</option>
+                                <option value="__global__">— globalne —</option>
+                                {groups.filter((g) => g.id !== p.groupId).map((g) => (
+                                  <option key={g.id} value={g.id}>
+                                    {g.name}
+                                  </option>
+                                ))}
+                              </select>
+                              {copyingId === p.id && <span style={{ fontSize: '11px' }}>⏳</span>}
+                            </div>
                           </div>
                         )}
                       </>

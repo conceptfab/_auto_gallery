@@ -9,6 +9,7 @@ import type {
 } from '../types/moodboard';
 import { DEFAULT_MOODBOARD_DRAWING_CONFIG } from '../types/moodboard';
 import { getDataDir } from './dataDir';
+import { ensureGroupFolders } from './projectsStoragePath';
 
 // Trwałe przechowywanie danych w plikach JSON
 
@@ -726,6 +727,10 @@ export async function createGroup(
   groups.push(newGroup);
   await saveGroups(groups);
   if (cachedData) cachedData.groups = groups;
+
+  // Auto-tworzenie folderów grupy (projects/ i moodboard/)
+  await ensureGroupFolders(newGroup.id);
+
   return newGroup;
 }
 

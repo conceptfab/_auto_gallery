@@ -7,11 +7,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { name, description } = req.body;
+    const { name, description, groupId } = req.body;
     if (!name || typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({ error: 'Nazwa projektu jest wymagana' });
     }
-    const project = await addProject(name.trim(), description);
+    const project = await addProject(name.trim(), description, groupId || undefined);
     return res.status(200).json({ success: true, project });
   } catch (error) {
     console.error('Error adding project:', error);

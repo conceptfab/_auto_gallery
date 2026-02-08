@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import { MoodboardImage, DrawingData, DrawingTool } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
@@ -45,6 +46,9 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
     notifyDrawing,
     notifyIdle,
     drawingConfig,
+    boards,
+    activeId,
+    moveItemToBoard,
   } = useMoodboard();
   const tools = drawingConfig.tools;
   const strokeColors = drawingConfig.strokeColors;
@@ -53,6 +57,7 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
   const [isDragging, setIsDragging] = useState(false);
   type ResizeHandle = 'se' | 'sw' | 'ne' | 'nw' | 'n' | 's' | 'e' | 'w';
   const [resizing, setResizing] = useState<ResizeHandle | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const dragStartRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const resizeStartRef = useRef({
     x: 0,
@@ -203,6 +208,28 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
     [image.id, updateImageAnnotations]
   );
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const otherBoards = boards.filter((b) => b.id !== activeId);
+
+  const handleMoveToBoard = useCallback(
+    (targetBoardId: string) => {
+      setContextMenu(null);
+      moveItemToBoard('image', image.id, targetBoardId);
+    },
+    [image.id, moveItemToBoard]
+  );
+
+  const handleDeleteFromMenu = useCallback(() => {
+    setContextMenu(null);
+    if (!window.confirm('Czy na pewno chcesz usunąć ten obrazek?')) return;
+    removeImage(image.id);
+  }, [image.id, removeImage]);
+
   const hasAnnotations = image.annotations &&
     (image.annotations.strokes.length > 0 || image.annotations.shapes.length > 0);
 
@@ -229,7 +256,37 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
       onPointerMove={!drawingMode ? handlePointerMove : undefined}
       onPointerUp={!drawingMode ? handlePointerUp : undefined}
       onPointerLeave={!drawingMode ? handlePointerUp : undefined}
+      onContextMenu={handleContextMenu}
     >
+      {/* Context menu — w portalu do body, żeby position:fixed było względem viewport (canvas ma transform) */}
+      {contextMenu && typeof document !== 'undefined' && createPortal(
+        <div
+          className="sketch-label-menu"
+          style={{ position: 'fixed', left: contextMenu.x, top: contextMenu.y, zIndex: 9999 }}
+        >
+          {otherBoards.length > 0 && (
+            <>
+              <div className="sketch-label-menu-header">Przenieś na:</div>
+              {otherBoards.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className="sketch-label-menu-item sketch-label-menu-item--move"
+                  onClick={() => handleMoveToBoard(b.id)}
+                >
+                  {b.name?.trim() || 'Moodboard'}
+                </button>
+              ))}
+              <div className="sketch-label-menu-sep" />
+            </>
+          )}
+          <button type="button" className="sketch-label-menu-item sketch-label-menu-item--danger" onClick={handleDeleteFromMenu}>
+            Usuń obrazek
+          </button>
+          <div className="sketch-label-menu-backdrop" onClick={() => setContextMenu(null)} />
+        </div>,
+        document.body
+      )}
       <img
         src={image.imagePath ? `/api/moodboard/images/${image.imagePath}` : image.url}
         alt=""

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MoodboardComment,
   CommentColorKey,
@@ -49,9 +50,13 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
     selectedType,
     autoGroupItem,
     setHoveredGroup,
+    boards,
+    activeId,
+    moveItemToBoard,
   } = useMoodboard();
   const isSelected = selectedId === comment.id && selectedType === 'comment';
   const [isDragging, setIsDragging] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   type ResizeHandle = 'se' | 'sw' | 'ne' | 'nw' | 'n' | 's' | 'e' | 'w';
   const [resizing, setResizing] = useState<ResizeHandle | null>(null);
   const itemRef = useRef<HTMLDivElement>(null);
@@ -195,6 +200,35 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
     [comment.id, removeComment]
   );
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const otherBoards = boards.filter((b) => b.id !== activeId);
+  const handleMoveToBoard = useCallback(
+    (targetBoardId: string) => {
+      setContextMenu(null);
+      moveItemToBoard('comment', comment.id, targetBoardId);
+    },
+    [comment.id, moveItemToBoard]
+  );
+
+  const handleDeleteFromMenu = useCallback(() => {
+    setContextMenu(null);
+    if (!window.confirm('Czy na pewno chcesz usunąć ten komentarz?')) return;
+    removeComment(comment.id);
+  }, [comment.id, removeComment]);
+
+  const handleEditFromMenu = useCallback(
+    (_e: React.MouseEvent) => {
+      setContextMenu(null);
+      if (contextMenu && onOpenEditMenu) onOpenEditMenu(comment.id, { x: contextMenu.x, y: contextMenu.y });
+    },
+    [comment.id, contextMenu, onOpenEditMenu]
+  );
+
   const onTextChange = useCallback(
     (e: React.FormEvent<HTMLDivElement>) => {
       const text = (e.target as HTMLDivElement).innerText;
@@ -237,7 +271,43 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
+      onContextMenu={handleContextMenu}
     >
+      {/* Menu kontekstowe (PPM) — w portalu do body */}
+      {contextMenu && typeof document !== 'undefined' && createPortal(
+        <div
+          className="sketch-label-menu"
+          style={{ position: 'fixed', left: contextMenu.x, top: contextMenu.y, zIndex: 9999 }}
+        >
+          {onOpenEditMenu && (
+            <button type="button" className="sketch-label-menu-item" onClick={handleEditFromMenu}>
+              Edytuj
+            </button>
+          )}
+          {otherBoards.length > 0 && (
+            <>
+              <div className="sketch-label-menu-sep" />
+              <div className="sketch-label-menu-header">Przenieś na:</div>
+              {otherBoards.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className="sketch-label-menu-item sketch-label-menu-item--move"
+                  onClick={() => handleMoveToBoard(b.id)}
+                >
+                  {b.name?.trim() || 'Moodboard'}
+                </button>
+              ))}
+            </>
+          )}
+          <div className="sketch-label-menu-sep" />
+          <button type="button" className="sketch-label-menu-item sketch-label-menu-item--danger" onClick={handleDeleteFromMenu}>
+            Usuń komentarz
+          </button>
+          <div className="sketch-label-menu-backdrop" onClick={() => setContextMenu(null)} />
+        </div>,
+        document.body
+      )}
       <div
         className="moodboard-comment-text moodboard-comment-edit"
         contentEditable

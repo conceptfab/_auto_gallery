@@ -7,6 +7,7 @@ import {
   getProjectDir,
   getRevisionDir,
   getRevisionGalleryDir,
+  getGroupsBaseDir,
   REVISION_THUMBNAIL_FILENAME,
 } from './projectsStoragePath';
 import { decodeDataUrlToBuffer } from './moodboardStorage';
@@ -93,7 +94,6 @@ let legacyMigrationAttempted = false;
 
 /**
  * Jednorazowa migracja z legacy projects.json do struktury katalogowej.
- * Kopiuje miniatury i galerie ze starych ścieżek (thumbnails/design-revision, design-gallery).
  */
 async function migrateLegacyToFolderStructure(
   dataDir: string,
@@ -116,6 +116,7 @@ async function migrateLegacyToFolderStructure(
       name: project.name || 'Projekt',
       slug: project.slug,
       description: project.description,
+      groupId: project.groupId,
       createdAt: project.createdAt || new Date().toISOString(),
       revisionIds: (project.revisions || []).map((r) => r.id),
     };
@@ -137,7 +138,7 @@ async function migrateLegacyToFolderStructure(
         await fsp.copyFile(oldThumbFile, newThumbFile);
         thumbnailCopied = true;
       } catch {
-        // brak starej miniaturki w thumbnails/design-revision
+        // brak starej miniaturki
       }
 
       const galleryDir = path.join(revDir, 'gallery');
@@ -176,31 +177,15 @@ async function migrateLegacyToFolderStructure(
   }
 }
 
-/** Odczytuje listę projektów ze struktury katalogowej projects/. Przy braku danych uruchamia automatyczną migrację z legacy projects.json. */
-export async function getProjects(): Promise<Project[]> {
-  const dataDir = await getDataDir();
-  const projectsDir = await getProjectsBaseDir();
+// ==================== ODCZYT PROJEKTÓW Z KATALOGU ====================
+
+/** Czyta projekty z podanego katalogu bazowego (globalnego lub grupowego). */
+async function readProjectsFromDir(projectsDir: string, forGroupId?: string): Promise<Project[]> {
   let entries: string[] = [];
   try {
     entries = await fsp.readdir(projectsDir);
   } catch {
     return [];
-  }
-
-  if (entries.length === 0 && !legacyMigrationAttempted) {
-    legacyMigrationAttempted = true;
-    const legacyPath = path.join(dataDir, 'projects.json');
-    try {
-      const raw = await fsp.readFile(legacyPath, 'utf8');
-      const legacy = JSON.parse(raw) as unknown;
-      const legacyProjects = Array.isArray(legacy) ? (legacy as Project[]) : [];
-      if (legacyProjects.length > 0) {
-        await migrateLegacyToFolderStructure(dataDir, legacyProjects);
-        return getProjects();
-      }
-    } catch {
-      // brak lub błąd legacy – zwróć pustą listę
-    }
   }
 
   const projects: Project[] = [];
@@ -240,7 +225,7 @@ export async function getProjects(): Promise<Project[]> {
       name: meta.name,
       slug: meta.slug,
       description: meta.description,
-      groupId: meta.groupId,
+      groupId: forGroupId ?? meta.groupId,
       createdAt: meta.createdAt,
       revisions,
     });
@@ -248,14 +233,117 @@ export async function getProjects(): Promise<Project[]> {
   return projects;
 }
 
+/** Odczytuje projekty: grupowe (z groups/{groupId}/projects/) lub globalne (projects/). */
+export async function getProjects(groupId?: string): Promise<Project[]> {
+  const projectsDir = await getProjectsBaseDir(groupId);
+
+  // Legacy migration only for global (no group) projects
+  if (!groupId) {
+    let entries: string[] = [];
+    try {
+      entries = await fsp.readdir(projectsDir);
+    } catch {
+      entries = [];
+    }
+
+    if (entries.length === 0 && !legacyMigrationAttempted) {
+      legacyMigrationAttempted = true;
+      const dataDir = await getDataDir();
+      const legacyPath = path.join(dataDir, 'projects.json');
+      try {
+        const raw = await fsp.readFile(legacyPath, 'utf8');
+        const legacy = JSON.parse(raw) as unknown;
+        const legacyProjects = Array.isArray(legacy) ? (legacy as Project[]) : [];
+        if (legacyProjects.length > 0) {
+          await migrateLegacyToFolderStructure(dataDir, legacyProjects);
+          return getProjects();
+        }
+      } catch {
+        // brak lub błąd legacy – zwróć pustą listę
+      }
+    }
+  }
+
+  return readProjectsFromDir(projectsDir, groupId);
+}
+
+/** (Admin) Zwraca WSZYSTKIE projekty ze wszystkich grup + globalne. */
+export async function getAllProjects(): Promise<Project[]> {
+  const all: Project[] = [];
+
+  // Globalne projekty
+  const globalProjects = await getProjects();
+  all.push(...globalProjects);
+
+  // Projekty z każdej grupy
+  const groupsBase = await getGroupsBaseDir();
+  let groupDirs: string[] = [];
+  try {
+    groupDirs = await fsp.readdir(groupsBase);
+  } catch {
+    return all;
+  }
+
+  for (const groupDirName of groupDirs) {
+    // Pomijamy groups.json (plik, nie katalog)
+    if (groupDirName === 'groups.json') continue;
+    const groupProjectsDir = path.join(groupsBase, groupDirName, 'projects');
+    try {
+      const stat = await fsp.stat(groupProjectsDir);
+      if (!stat.isDirectory()) continue;
+    } catch {
+      continue;
+    }
+    const groupProjects = await readProjectsFromDir(groupProjectsDir, groupDirName);
+    all.push(...groupProjects);
+  }
+
+  return all;
+}
+
+/** Znajduje projekt wg ID przeszukując globalny folder i wszystkie grupy. Zwraca [project, groupId]. */
+export async function findProjectById(projectId: string): Promise<[Project | null, string | undefined]> {
+  // Szukaj w globalnych
+  const globalProjects = await getProjects();
+  const globalMatch = globalProjects.find((p) => p.id === projectId);
+  if (globalMatch) return [globalMatch, undefined];
+
+  // Szukaj w grupach
+  const groupsBase = await getGroupsBaseDir();
+  let groupDirs: string[] = [];
+  try {
+    groupDirs = await fsp.readdir(groupsBase);
+  } catch {
+    return [null, undefined];
+  }
+  for (const gid of groupDirs) {
+    if (gid === 'groups.json') continue;
+    const groupProjectsDir = path.join(groupsBase, gid, 'projects');
+    try {
+      const stat = await fsp.stat(groupProjectsDir);
+      if (!stat.isDirectory()) continue;
+    } catch {
+      continue;
+    }
+    const projects = await readProjectsFromDir(groupProjectsDir, gid);
+    const match = projects.find((p) => p.id === projectId);
+    if (match) return [match, gid];
+  }
+
+  return [null, undefined];
+}
+
+
+// ==================== ZAPIS / MODYFIKACJA ====================
 
 /** Zapisuje bufor jako miniaturkę rewizji. Zwraca nazwę pliku (thumbnail.webp). */
 export async function saveThumbnailFile(
   projectId: string,
   revisionId: string,
-  buffer: Buffer
+  buffer: Buffer,
+  groupId?: string
 ): Promise<string> {
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   const filePath = path.join(revDir, REVISION_THUMBNAIL_FILENAME);
   await fsp.writeFile(filePath, buffer);
   return REVISION_THUMBNAIL_FILENAME;
@@ -264,9 +352,10 @@ export async function saveThumbnailFile(
 /** Zwraca ścieżkę absolutną do pliku miniaturki lub null. */
 export async function getThumbnailFilePath(
   projectId: string,
-  revisionId: string
+  revisionId: string,
+  groupId?: string
 ): Promise<string | null> {
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   const filePath = path.join(revDir, REVISION_THUMBNAIL_FILENAME);
   try {
     await fsp.access(filePath);
@@ -280,9 +369,10 @@ export async function getThumbnailFilePath(
 /** Usuwa plik miniaturki rewizji. */
 export async function deleteThumbnailFile(
   projectId: string,
-  revisionId: string
+  revisionId: string,
+  groupId?: string
 ): Promise<void> {
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   const filePath = path.join(revDir, REVISION_THUMBNAIL_FILENAME);
   try {
     await fsp.unlink(filePath);
@@ -296,9 +386,10 @@ export async function saveGalleryFile(
   projectId: string,
   revisionId: string,
   buffer: Buffer,
-  extension: string = '.webp'
+  extension: string = '.webp',
+  groupId?: string
 ): Promise<string> {
-  const galleryDir = await getRevisionGalleryDir(projectId, revisionId);
+  const galleryDir = await getRevisionGalleryDir(projectId, revisionId, groupId);
   const name = `${crypto.randomUUID()}${extension}`;
   const filePath = path.join(galleryDir, name);
   await fsp.writeFile(filePath, buffer);
@@ -309,9 +400,10 @@ export async function saveGalleryFile(
 export async function getGalleryFilePath(
   projectId: string,
   revisionId: string,
-  filename: string
+  filename: string,
+  groupId?: string
 ): Promise<string | null> {
-  const galleryDir = await getRevisionGalleryDir(projectId, revisionId);
+  const galleryDir = await getRevisionGalleryDir(projectId, revisionId, groupId);
   const filePath = path.join(galleryDir, filename);
   const base = path.normalize(galleryDir);
   const full = path.normalize(filePath);
@@ -332,9 +424,10 @@ export async function getGalleryFilePath(
 export async function appendRevisionGalleryPaths(
   projectId: string,
   revisionId: string,
-  filenames: string[]
+  filenames: string[],
+  groupId?: string
 ): Promise<Revision | null> {
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   const revPath = path.join(revDir, 'revision.json');
   let raw: string;
   try {
@@ -356,10 +449,12 @@ export async function appendRevisionGalleryPaths(
 
 export async function addProject(
   name: string,
-  description?: string
+  description?: string,
+  groupId?: string
 ): Promise<Project> {
-  const projects = await getProjects();
-  const existingSlugs = projects.filter((p) => p.slug).map((p) => p.slug!);
+  const _projects = groupId ? await getProjects(groupId) : await getProjects();
+  const allProjects = await getAllProjects();
+  const existingSlugs = allProjects.filter((p) => p.slug).map((p) => p.slug!);
   const projectId = crypto.randomUUID();
   const slug = generateSlug(name.trim(), existingSlugs);
   const meta: ProjectMeta = {
@@ -367,10 +462,11 @@ export async function addProject(
     name: name.trim(),
     slug,
     description: description?.trim() || undefined,
+    groupId: groupId || undefined,
     createdAt: new Date().toISOString(),
     revisionIds: [],
   };
-  const projectDir = await getProjectDir(projectId);
+  const projectDir = await getProjectDir(projectId, groupId);
   await fsp.mkdir(projectDir, { recursive: true });
   await fsp.writeFile(
     path.join(projectDir, 'project.json'),
@@ -390,14 +486,19 @@ export async function addProject(
 
 export async function updateProject(
   id: string,
-  updates: { name?: string; description?: string; groupId?: string }
+  updates: { name?: string; description?: string; groupId?: string },
+  currentGroupId?: string
 ): Promise<Project | null> {
-  const dataDir = await getDataDir();
-  const projectPath = path.join(dataDir, 'projects', id, 'project.json');
+  const projectDir = await getProjectDir(id, currentGroupId);
+  const projectPath = path.join(projectDir, 'project.json');
   let raw: string;
   try {
     raw = await fsp.readFile(projectPath, 'utf8');
   } catch {
+    // Jeśli nie znaleziono w podanej grupie, spróbuj wyszukać globalnie
+    if (currentGroupId) {
+      return updateProject(id, updates);
+    }
     return null;
   }
   let meta: ProjectMeta;
@@ -408,8 +509,8 @@ export async function updateProject(
   }
   if (updates.name !== undefined) {
     meta.name = updates.name.trim();
-    const projects = await getProjects();
-    const existingSlugs = projects.filter((p) => p.id !== id && p.slug).map((p) => p.slug!);
+    const allProjects = await getAllProjects();
+    const existingSlugs = allProjects.filter((p) => p.id !== id && p.slug).map((p) => p.slug!);
     meta.slug = generateSlug(meta.name, existingSlugs);
   }
   if (updates.description !== undefined) {
@@ -422,17 +523,20 @@ export async function updateProject(
     meta.groupId = updates.groupId === '' ? undefined : updates.groupId;
   }
   await fsp.writeFile(projectPath, JSON.stringify(meta, null, 2), 'utf8');
-  const updated = (await getProjects()).find((p) => p.id === id) ?? null;
-  return updated;
+  // Refetch from disk to return full project
+  const projectsDir = path.dirname(projectDir);
+  const projects = await readProjectsFromDir(projectsDir, currentGroupId);
+  return projects.find((p) => p.id === id) ?? null;
 }
 
 export async function addProjectRevision(
   projectId: string,
   label?: string,
-  embedUrl?: string
+  embedUrl?: string,
+  groupId?: string
 ): Promise<Revision | null> {
-  const dataDir = await getDataDir();
-  const projectPath = path.join(dataDir, 'projects', projectId, 'project.json');
+  const projectDir = await getProjectDir(projectId, groupId);
+  const projectPath = path.join(projectDir, 'project.json');
   let raw: string;
   try {
     raw = await fsp.readFile(projectPath, 'utf8');
@@ -452,7 +556,7 @@ export async function addProjectRevision(
     embedUrl: embedUrl?.trim() || undefined,
     createdAt: new Date().toISOString(),
   };
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   await fsp.writeFile(
     path.join(revDir, 'revision.json'),
     JSON.stringify(revisionToMeta(revision), null, 2),
@@ -473,9 +577,10 @@ export async function updateProjectRevision(
     thumbnailDataUrl?: string;
     screenshotDataUrl?: string;
     thumbnailPath?: string;
-  }
+  },
+  groupId?: string
 ): Promise<Revision | null> {
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   const revPath = path.join(revDir, 'revision.json');
   let raw: string;
   try {
@@ -506,12 +611,12 @@ export async function updateProjectRevision(
   }
   if (updates.thumbnailDataUrl !== undefined) {
     if (updates.thumbnailDataUrl === '') {
-      await deleteThumbnailFile(projectId, revisionId);
+      await deleteThumbnailFile(projectId, revisionId, groupId);
       meta.thumbnailPath = undefined;
     } else {
       const buffer = decodeDataUrlToBuffer(updates.thumbnailDataUrl);
       if (buffer && buffer.length > 0) {
-        await saveThumbnailFile(projectId, revisionId, buffer);
+        await saveThumbnailFile(projectId, revisionId, buffer, groupId);
         meta.thumbnailPath = REVISION_THUMBNAIL_FILENAME;
       }
     }
@@ -522,11 +627,12 @@ export async function updateProjectRevision(
 
 export async function reorderProjectRevisions(
   projectId: string,
-  revisionIds: string[]
+  revisionIds: string[],
+  groupId?: string
 ): Promise<Project | null> {
   if (!Array.isArray(revisionIds) || revisionIds.length === 0) return null;
-  const dataDir = await getDataDir();
-  const projectPath = path.join(dataDir, 'projects', projectId, 'project.json');
+  const projectDir = await getProjectDir(projectId, groupId);
+  const projectPath = path.join(projectDir, 'project.json');
   let raw: string;
   try {
     raw = await fsp.readFile(projectPath, 'utf8');
@@ -546,22 +652,23 @@ export async function reorderProjectRevisions(
   }
   meta.revisionIds = ordered;
   await fsp.writeFile(projectPath, JSON.stringify(meta, null, 2), 'utf8');
-  return (await getProjects()).find((p) => p.id === projectId) ?? null;
+  return (await getProjects(groupId)).find((p) => p.id === projectId) ?? null;
 }
 
 export async function deleteProjectRevision(
   projectId: string,
-  revisionId: string
+  revisionId: string,
+  groupId?: string
 ): Promise<boolean> {
-  const revDir = await getRevisionDir(projectId, revisionId);
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
   try {
     await fsp.rm(revDir, { recursive: true, force: true });
   } catch {
     // ignoruj jeśli nie istnieje
   }
 
-  const dataDir = await getDataDir();
-  const projectPath = path.join(dataDir, 'projects', projectId, 'project.json');
+  const projectDir = await getProjectDir(projectId, groupId);
+  const projectPath = path.join(projectDir, 'project.json');
   let raw: string;
   try {
     raw = await fsp.readFile(projectPath, 'utf8');
@@ -579,12 +686,103 @@ export async function deleteProjectRevision(
   return true;
 }
 
-export async function deleteProject(id: string): Promise<boolean> {
-  const projectDir = path.join(await getDataDir(), 'projects', id);
+export async function deleteProject(id: string, groupId?: string): Promise<boolean> {
+  const projectDir = await getProjectDir(id, groupId);
   try {
     await fsp.rm(projectDir, { recursive: true, force: true });
     return true;
   } catch {
     return false;
+  }
+}
+
+// ==================== PRZENOSZENIE / KOPIOWANIE ====================
+
+/** Przenosi projekt z jednej grupy do drugiej (lub z/do globalnych). */
+export async function moveProject(
+  projectId: string,
+  fromGroupId: string | undefined,
+  toGroupId: string | undefined
+): Promise<boolean> {
+  const srcDir = await getProjectDir(projectId, fromGroupId);
+  const dstBase = await getProjectsBaseDir(toGroupId);
+  const dstDir = path.join(dstBase, projectId);
+
+  try {
+    await fsp.access(srcDir);
+  } catch {
+    return false;
+  }
+
+  // Kopiuj rekursywnie
+  await copyDirRecursive(srcDir, dstDir);
+
+  // Zaktualizuj groupId w project.json
+  const projectJsonPath = path.join(dstDir, 'project.json');
+  try {
+    const raw = await fsp.readFile(projectJsonPath, 'utf8');
+    const meta = JSON.parse(raw) as ProjectMeta;
+    meta.groupId = toGroupId || undefined;
+    await fsp.writeFile(projectJsonPath, JSON.stringify(meta, null, 2), 'utf8');
+  } catch {
+    // ignoruj
+  }
+
+  // Usuń źródło
+  await fsp.rm(srcDir, { recursive: true, force: true });
+  return true;
+}
+
+/** Kopiuje projekt z jednej grupy do drugiej (deep copy). */
+export async function copyProject(
+  projectId: string,
+  fromGroupId: string | undefined,
+  toGroupId: string | undefined
+): Promise<Project | null> {
+  const srcDir = await getProjectDir(projectId, fromGroupId);
+  const newId = crypto.randomUUID();
+  const dstBase = await getProjectsBaseDir(toGroupId);
+  const dstDir = path.join(dstBase, newId);
+
+  try {
+    await fsp.access(srcDir);
+  } catch {
+    return null;
+  }
+
+  await copyDirRecursive(srcDir, dstDir);
+
+  // Zaktualizuj id i groupId w project.json
+  const projectJsonPath = path.join(dstDir, 'project.json');
+  try {
+    const raw = await fsp.readFile(projectJsonPath, 'utf8');
+    const meta = JSON.parse(raw) as ProjectMeta;
+    meta.id = newId;
+    meta.groupId = toGroupId || undefined;
+    meta.name = meta.name + ' (kopia)';
+    const allProjects = await getAllProjects();
+    const existingSlugs = allProjects.filter((p) => p.slug).map((p) => p.slug!);
+    meta.slug = generateSlug(meta.name, existingSlugs);
+    await fsp.writeFile(projectJsonPath, JSON.stringify(meta, null, 2), 'utf8');
+  } catch {
+    return null;
+  }
+
+  const projects = await getProjects(toGroupId);
+  return projects.find((p) => p.id === newId) ?? null;
+}
+
+/** Rekursywne kopiowanie katalogu. */
+async function copyDirRecursive(src: string, dst: string): Promise<void> {
+  await fsp.mkdir(dst, { recursive: true });
+  const entries = await fsp.readdir(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const dstPath = path.join(dst, entry.name);
+    if (entry.isDirectory()) {
+      await copyDirRecursive(srcPath, dstPath);
+    } else {
+      await fsp.copyFile(srcPath, dstPath);
+    }
   }
 }

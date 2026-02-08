@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getProjects } from '@/src/utils/projectsStorage';
+import { getProjects, getAllProjects } from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,7 +7,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const projects = await getProjects();
+    const groupId = req.query.groupId as string | undefined;
+    const projects = groupId ? await getProjects(groupId) : await getAllProjects();
     return res.status(200).json({ success: true, projects });
   } catch (error) {
     console.error('Error fetching projects:', error);

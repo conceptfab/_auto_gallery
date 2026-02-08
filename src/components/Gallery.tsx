@@ -262,6 +262,11 @@ const Gallery: React.FC<GalleryProps> = ({
     y: number;
   } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [addingToMoodboard, setAddingToMoodboard] = useState(false);
+  const [addedToMoodboard, setAddedToMoodboard] = useState(false);
+  const [showMoodboardPicker, setShowMoodboardPicker] = useState(false);
+  const [moodboardBoards, setMoodboardBoards] = useState<{ id: string; name?: string }[]>([]);
+  const [loadingMoodboards, setLoadingMoodboards] = useState(false);
   const [currentFolderPath, setCurrentFolderPath] = useState<string | null>(
     null
   );
@@ -488,6 +493,8 @@ const Gallery: React.FC<GalleryProps> = ({
       setSelectedImage(imagesInFolder[safeIndex] || image);
       setCurrentFolderPath(folderPath ?? null);
       setImageLoaded(false); // Reset stanu załadowania przy zmianie obrazu
+      setAddedToMoodboard(false);
+      setShowMoodboardPicker(false);
 
       // Tracking wyświetlenia obrazu
       trackView('image', image.path, image.name);
@@ -510,14 +517,139 @@ const Gallery: React.FC<GalleryProps> = ({
       setCurrentImageIndex(newIndex);
       setSelectedImage(newImage);
       setImageLoaded(false); // Reset stanu załadowania przy zmianie obrazu
+      setAddedToMoodboard(false);
+      setShowMoodboardPicker(false);
     }
   };
 
   const closeModal = () => {
     setSelectedImage(null);
     setCurrentFolderPath(null);
+    setAddedToMoodboard(false);
+    setShowMoodboardPicker(false);
     setImageLoaded(false); // Reset stanu załadowania przy zamknięciu modala
   };
+
+  const handleOpenMoodboardPicker = useCallback(async () => {
+    if (loadingMoodboards || addingToMoodboard) return;
+    setLoadingMoodboards(true);
+    try {
+      const stateRes = await fetch('/api/moodboard/state', { credentials: 'same-origin' });
+      if (!stateRes.ok) throw new Error('Nie udało się pobrać stanu moodboarda');
+      const stateData = await stateRes.json();
+      const boards: { id: string; name?: string }[] = (stateData.state?.boards || []).map(
+        (b: { id: string; name?: string }) => ({ id: b.id, name: b.name })
+      );
+      setMoodboardBoards(boards);
+      setShowMoodboardPicker(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Błąd pobierania listy moodboardów');
+    } finally {
+      setLoadingMoodboards(false);
+    }
+  }, [loadingMoodboards, addingToMoodboard]);
+
+  const handleAddToMoodboard = useCallback(async (boardId: string) => {
+    if (!selectedImage || addingToMoodboard) return;
+    setAddingToMoodboard(true);
+    setShowMoodboardPicker(false);
+    try {
+      const imageId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+      // Save gallery image as moodboard image via API
+      const res = await fetch('/api/moodboard/add-from-gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedImage.url,
+          boardId,
+          imageId,
+        }),
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error((errData as { error?: string })?.error || 'Błąd dodawania');
+      }
+      const data = await res.json();
+
+      // Fetch current board state and add image + comment + group
+      const stateRes = await fetch('/api/moodboard/state', { credentials: 'same-origin' });
+      if (stateRes.ok) {
+        const stateData = await stateRes.json();
+        const board = stateData.state?.boards?.find((b: { id: string }) => b.id === boardId);
+        if (board) {
+          const imgW = selectedImage.width ? Math.min(selectedImage.width, 400) : 300;
+          const imgH = selectedImage.height ? Math.min(selectedImage.height, 300) : 200;
+          const baseX = 50 + Math.random() * 200;
+          const baseY = 50 + Math.random() * 200;
+
+          // 1. Image element
+          const newImage = {
+            id: imageId,
+            imagePath: data.imagePath,
+            x: baseX,
+            y: baseY,
+            width: imgW,
+            height: imgH,
+          };
+          board.images.push(newImage);
+
+          // 2. Comment with collection info
+          const commentId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+          const collectionName = currentFolderPath
+            ? currentFolderPath.split('/').filter(Boolean).join(' / ')
+            : 'Galeria';
+          const newComment = {
+            id: commentId,
+            text: `Kolekcja: ${collectionName}`,
+            color: 'none' as const,
+            font: 'sans' as const,
+            fontWeight: 'normal' as const,
+            fontSize: 12,
+            fontColor: '#888888',
+            x: baseX,
+            y: baseY + imgH + 4,
+            width: Math.max(imgW, 160),
+            height: 24,
+          };
+          board.comments.push(newComment);
+
+          // 3. Group wrapping image + comment, named after file
+          const groupId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+          const displayName = getDisplayName(selectedImage.name);
+          const groupPadding = 10;
+          const groupW = Math.max(imgW, newComment.width) + groupPadding * 2;
+          const groupH = imgH + newComment.height + 4 + groupPadding * 2;
+          const newGroup = {
+            id: groupId,
+            name: displayName,
+            x: baseX - groupPadding,
+            y: baseY - groupPadding,
+            width: groupW,
+            height: groupH,
+            memberIds: [imageId, commentId],
+          };
+          if (!board.groups) board.groups = [];
+          board.groups.push(newGroup);
+
+          // Save updated state
+          await fetch('/api/moodboard/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stateData.state),
+            credentials: 'same-origin',
+          });
+        }
+      }
+
+      setAddedToMoodboard(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Błąd dodawania do moodboarda');
+    } finally {
+      setAddingToMoodboard(false);
+    }
+  }, [selectedImage, addingToMoodboard, currentFolderPath]);
 
   if (loading) {
     return (
@@ -703,6 +835,78 @@ const Gallery: React.FC<GalleryProps> = ({
                 >
                   <i className="las la-download"></i>
                 </button>
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <button
+                    className="modal-download-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (addedToMoodboard) return;
+                      if (showMoodboardPicker) {
+                        setShowMoodboardPicker(false);
+                      } else {
+                        handleOpenMoodboardPicker();
+                      }
+                    }}
+                    disabled={addingToMoodboard}
+                    title={addedToMoodboard ? 'Dodano do moodboarda' : 'Dodaj do moodboarda'}
+                    style={addedToMoodboard ? { color: '#22c55e' } : undefined}
+                  >
+                    <i className={addingToMoodboard || loadingMoodboards ? 'las la-spinner la-spin' : addedToMoodboard ? 'las la-check' : 'las la-plus-circle'}></i>
+                  </button>
+                  {showMoodboardPicker && moodboardBoards.length > 0 && (
+                    <div
+                      className="moodboard-picker-dropdown"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position: 'absolute',
+                        bottom: '100%',
+                        right: 0,
+                        marginBottom: 8,
+                        background: 'rgba(30,30,30,0.95)',
+                        borderRadius: 8,
+                        padding: '6px 0',
+                        minWidth: 180,
+                        maxHeight: 240,
+                        overflowY: 'auto',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                        zIndex: 1000,
+                        backdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      <div style={{ padding: '4px 12px 6px', fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Dodaj do moodboarda
+                      </div>
+                      {moodboardBoards.map((board) => (
+                        <button
+                          key={board.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToMoodboard(board.id);
+                          }}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '8px 12px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#e0e0e0',
+                            fontSize: 13,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                          onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; }}
+                          onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
+                        >
+                          <i className="las la-th-large" style={{ marginRight: 6, opacity: 0.6 }}></i>
+                          {board.name || `Moodboard ${board.id.slice(0, 6)}`}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             {modalHoveredPreview && !isKolorystykaView && (

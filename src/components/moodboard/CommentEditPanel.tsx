@@ -25,6 +25,9 @@ interface CommentEditPanelProps {
   onFontSizeChange: (size: number) => void;
   onFontWeightChange: (weight: CommentFontWeightKey) => void;
   position: { x: number; y: number };
+  /** Opcja przenoszenia na inny moodboard */
+  otherBoards?: { id: string; name?: string }[];
+  onMoveToBoard?: (targetBoardId: string) => void;
 }
 
 export default function CommentEditPanel({
@@ -39,6 +42,8 @@ export default function CommentEditPanel({
   onFontSizeChange,
   onFontWeightChange,
   position,
+  otherBoards = [],
+  onMoveToBoard,
 }: CommentEditPanelProps) {
   const isNoBg = color === 'none';
 
@@ -119,6 +124,22 @@ export default function CommentEditPanel({
           ))}
         </div>
       </div>
+
+      {otherBoards.length > 0 && onMoveToBoard && (
+        <div className="moodboard-edit-panel-section">
+          <div className="sketch-label-menu-header">Przenieś na:</div>
+          {otherBoards.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              className="sketch-label-menu-item sketch-label-menu-item--move"
+              onClick={() => onMoveToBoard(b.id)}
+            >
+              {b.name?.trim() || 'Moodboard'}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

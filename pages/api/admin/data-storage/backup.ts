@@ -129,6 +129,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           // brak katalogu
         }
       }
+      // Backup group folders
+      if (scope === 'all') {
+        const groupsDir = path.join(dataDir, 'groups');
+        try {
+          const groupDirs = await fsp.readdir(groupsDir);
+          for (const gid of groupDirs) {
+            if (gid === 'groups.json') continue;
+            const groupPath = path.join(groupsDir, gid);
+            const gstat = await fsp.stat(groupPath).catch(() => null);
+            if (!gstat?.isDirectory()) continue;
+            archive.directory(groupPath, `groups/${gid}`);
+          }
+        } catch {
+          // brak katalogu groups
+        }
+      }
     }
     await archive.finalize();
   } catch (err) {

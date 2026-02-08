@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { reorderProjectRevisions } from '@/src/utils/projectsStorage';
+import { reorderProjectRevisions, findProjectById } from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,7 +7,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { projectId, revisionIds } = req.body;
+    const { projectId, revisionIds, groupId } = req.body;
     if (!projectId || typeof projectId !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
@@ -19,7 +19,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         .status(400)
         .json({ error: 'revisionIds musi być tablicą id (string)' });
     }
-    const project = await reorderProjectRevisions(projectId, revisionIds);
+    let resolvedGroupId = groupId as string | undefined;
+    if (!resolvedGroupId) {
+      const [, foundGroupId] = await findProjectById(projectId);
+      resolvedGroupId = foundGroupId;
+    }
+    const project = await reorderProjectRevisions(projectId, revisionIds, resolvedGroupId);
     if (!project) {
       return res.status(404).json({ error: 'Projekt nie znaleziony' });
     }

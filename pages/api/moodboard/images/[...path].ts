@@ -1,18 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
-import { getEmailFromCookie } from '@/src/utils/auth';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
+import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStoragePath';
+import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: GroupScopedRequest,
   res: NextApiResponse
 ) {
-  const email = getEmailFromCookie(req);
-  if (!email) {
-    return res.status(401).json({ error: 'Wymagane logowanie' });
-  }
-
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -33,23 +29,45 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid file type' });
     }
 
-    const baseDir = await getMoodboardImagesDir();
-    const fullPath = path.join(baseDir, relativePath);
+    // Admin może podać ?groupId=, user ma z middleware
+    const queryGroupId = req.query.groupId as string | undefined;
+    const groupId = req.isAdmin && queryGroupId ? queryGroupId : req.userGroupId;
 
-    // Sprawdź path traversal
-    const realBaseDir = await fsp.realpath(baseDir).catch(() => baseDir);
-    let realFullPath: string;
-    try {
-      realFullPath = await fsp.realpath(fullPath);
-    } catch {
+    // Próbuj najpierw z folderu grupy, potem z globalnego
+    const baseDirs: string[] = [];
+    if (groupId) {
+      baseDirs.push(await getMoodboardImagesDirByGroup(groupId));
+    }
+    baseDirs.push(await getMoodboardImagesDir());
+
+    let buffer: Buffer | null = null;
+    for (const baseDir of baseDirs) {
+      const fullPath = path.join(baseDir, relativePath);
+
+      // Sprawdź path traversal
+      const realBaseDir = await fsp.realpath(baseDir).catch(() => baseDir);
+      let realFullPath: string;
+      try {
+        realFullPath = await fsp.realpath(fullPath);
+      } catch {
+        continue;
+      }
+
+      if (!realFullPath.startsWith(realBaseDir)) {
+        continue;
+      }
+
+      try {
+        buffer = await fsp.readFile(realFullPath);
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!buffer) {
       return res.status(404).json({ error: 'Image not found' });
     }
-
-    if (!realFullPath.startsWith(realBaseDir)) {
-      return res.status(400).json({ error: 'Invalid path' });
-    }
-
-    const buffer = await fsp.readFile(realFullPath);
 
     const contentTypes: Record<string, string> = {
       '.webp': 'image/webp',
@@ -72,6 +90,8 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default withGroupAccess(handler);
 
 export const config = {
   api: {

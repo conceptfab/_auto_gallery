@@ -45,6 +45,13 @@ const ProjectsProjectPage: React.FC = () => {
   const [selectedGalleryImageIndex, setSelectedGalleryImageIndex] = useState<
     number | null
   >(null);
+  /** Moodboard projektu: czy istnieje, id tablicy (do „Dodaj do moodboardu”). */
+  const [projectMoodboardStatus, setProjectMoodboardStatus] = useState<{
+    exists: boolean;
+    boardId?: string;
+  } | null>(null);
+  const [creatingProjectMoodboard, setCreatingProjectMoodboard] = useState(false);
+  const [addingRevisionToMoodboardId, setAddingRevisionToMoodboardId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!project || !id || typeof id !== 'string') return;
@@ -53,6 +60,90 @@ const ProjectsProjectPage: React.FC = () => {
       projectName: project.name,
     });
   }, [project, id, trackDesignView]);
+
+  const fetchProjectMoodboardStatus = useCallback(async () => {
+    if (!id || typeof id !== 'string') return;
+    try {
+      const res = await fetch(`/api/projects/${id}/project-moodboard-status`, {
+        credentials: 'same-origin',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProjectMoodboardStatus({
+          exists: !!data.exists,
+          boardId: data.boardId,
+        });
+      } else {
+        setProjectMoodboardStatus({ exists: false });
+      }
+    } catch {
+      setProjectMoodboardStatus({ exists: false });
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || typeof id !== 'string') return;
+    fetchProjectMoodboardStatus();
+  }, [id, fetchProjectMoodboardStatus]);
+
+  const handleCreateProjectMoodboard = useCallback(async () => {
+    if (!id || typeof id !== 'string' || creatingProjectMoodboard) return;
+    setCreatingProjectMoodboard(true);
+    try {
+      const res = await fetch(`/api/projects/${id}/create-project-moodboard`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchProjectMoodboardStatus();
+      } else {
+        alert(data.error || 'Błąd tworzenia moodboarda');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Błąd tworzenia moodboarda');
+    } finally {
+      setCreatingProjectMoodboard(false);
+    }
+  }, [id, creatingProjectMoodboard, fetchProjectMoodboardStatus]);
+
+  const handleAddRevisionToMoodboard = useCallback(
+    async (revisionId: string) => {
+      if (
+        !id ||
+        typeof id !== 'string' ||
+        !projectMoodboardStatus?.exists ||
+        !projectMoodboardStatus?.boardId ||
+        addingRevisionToMoodboardId !== null
+      )
+        return;
+      setAddingRevisionToMoodboardId(revisionId);
+      try {
+        const res = await fetch(`/api/projects/${id}/add-revision-to-moodboard`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId,
+            boardId: projectMoodboardStatus.boardId,
+          }),
+          credentials: 'same-origin',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Błąd dodawania do moodboarda');
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Błąd dodawania do moodboarda');
+      } finally {
+        setAddingRevisionToMoodboardId(null);
+      }
+    },
+    [
+      id,
+      projectMoodboardStatus?.exists,
+      projectMoodboardStatus?.boardId,
+      addingRevisionToMoodboardId,
+    ]
+  );
 
   const handleAddRevision = async () => {
     if (!project) return;
@@ -486,8 +577,28 @@ const ProjectsProjectPage: React.FC = () => {
               <p className="design-project-desc">{project.description}</p>
             )}
           </div>
-          {authStatus.isAdmin && (
-            <div className="design-project-admin-actions">
+          <div className="design-project-admin-actions">
+            <button
+              type="button"
+              onClick={handleCreateProjectMoodboard}
+              disabled={
+                creatingProjectMoodboard ||
+                projectMoodboardStatus?.exists === true
+              }
+              className="design-add-revision-btn design-create-moodboard-btn"
+              title={
+                projectMoodboardStatus?.exists
+                  ? 'Moodboard projektu już istnieje'
+                  : 'Utwórz moodboard o nazwie projektu (dostępny dla wszystkich w grupie)'
+              }
+            >
+              {creatingProjectMoodboard
+                ? 'Tworzenie…'
+                : projectMoodboardStatus?.exists
+                  ? 'Moodboard projektu'
+                  : 'Utwórz moodboard projektu'}
+            </button>
+            {authStatus.isAdmin && (
               <button
                 type="button"
                 onClick={handleAddRevision}
@@ -496,8 +607,8 @@ const ProjectsProjectPage: React.FC = () => {
               >
                 {addingRevision ? 'Dodawanie…' : 'Dodaj rewizję'}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         {project.revisions && project.revisions.length > 0 && (
           <section className="design-revisions">
@@ -656,6 +767,27 @@ const ProjectsProjectPage: React.FC = () => {
                   </div>
                   <div className="design-revision-footer">
                     <div className="design-revision-footer-left">
+                      {projectMoodboardStatus?.exists && projectMoodboardStatus?.boardId && (
+                        <button
+                          type="button"
+                          className="design-revision-toolbar-btn design-revision-moodboard-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddRevisionToMoodboard(rev.id);
+                          }}
+                          disabled={addingRevisionToMoodboardId === rev.id}
+                          title="Dodaj do moodboardu"
+                        >
+                          <i
+                            className={
+                              addingRevisionToMoodboardId === rev.id
+                                ? 'las la-spinner la-spin'
+                                : 'las la-plus-circle'
+                            }
+                            aria-hidden
+                          />
+                        </button>
+                      )}
                       {rev.galleryPaths && rev.galleryPaths.length > 0 ? (
                         <button
                           type="button"
@@ -798,7 +930,7 @@ const ProjectsProjectPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div className="design-edit-modal-actions">
+              <div className="design-edit-modal-actions design-edit-modal-actions--with-moodboard">
                 <button
                   type="button"
                   onClick={closeEditRevision}
@@ -817,6 +949,21 @@ const ProjectsProjectPage: React.FC = () => {
                     : 'Zapisz'}
                 </button>
               </div>
+              {projectMoodboardStatus?.exists && projectMoodboardStatus?.boardId && (
+                <div className="design-edit-modal-moodboard-action">
+                  <button
+                    type="button"
+                    onClick={() => handleAddRevisionToMoodboard(editingRevision.id)}
+                    disabled={addingRevisionToMoodboardId === editingRevision.id}
+                    className="design-revision-toolbar-btn"
+                    title="Tworzy na moodboardzie projektu grupę o nazwie rewizji; jeśli jest miniaturka – dodaje ją do grupy oraz komentarz z nazwą rewizji"
+                  >
+                    {addingRevisionToMoodboardId === editingRevision.id
+                      ? 'Dodawanie…'
+                      : 'Dodaj do moodboardu'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

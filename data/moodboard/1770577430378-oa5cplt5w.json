@@ -1,0 +1,33 @@
+{
+  "id": "1770577430378-oa5cplt5w",
+  "name": "EXE",
+  "images": [],
+  "comments": [
+    {
+      "id": "1770577987788-wdar3szo3",
+      "text": "R18\ncx xcbxcbxcbxzxzxzzxxzxcbxcb",
+      "color": "none",
+      "font": "sans",
+      "fontWeight": "normal",
+      "fontSize": 12,
+      "fontColor": "#888888",
+      "x": 221.9101218607441,
+      "y": 247.78444469321164,
+      "width": 200,
+      "height": 60
+    }
+  ],
+  "groups": [
+    {
+      "id": "1770577987788-u6y5l1kse",
+      "name": "R18",
+      "x": 211.9101218607441,
+      "y": 237.78444469321164,
+      "width": 220,
+      "height": 80,
+      "memberIds": [
+        "1770577987788-wdar3szo3"
+      ]
+    }
+  ]
+}

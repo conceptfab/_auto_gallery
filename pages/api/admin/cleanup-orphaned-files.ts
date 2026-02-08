@@ -2,9 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
-import { getProjects } from '@/src/utils/projectsStorage';
+import { getAllProjects } from '@/src/utils/projectsStorage';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
 import { getDataDir } from '@/src/utils/dataDir';
+import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStoragePath';
 
 interface OrphanedFile {
   path: string;
@@ -54,17 +55,12 @@ async function scanDirectory(
   return results;
 }
 
-async function getMoodboardImagePaths(): Promise<Set<string>> {
+async function getMoodboardImagePathsFromDir(moodboardDir: string): Promise<Set<string>> {
   const paths = new Set<string>();
-
   try {
-    const dataDir = await getDataDir();
-    const moodboardDir = path.join(dataDir, 'moodboard');
     const indexPath = path.join(moodboardDir, 'index.json');
-
     const indexRaw = await fsp.readFile(indexPath, 'utf8');
     const index = JSON.parse(indexRaw) as { boardIds: string[] };
-
     for (const boardId of index.boardIds) {
       const boardPath = path.join(moodboardDir, `${boardId}.json`);
       try {
@@ -82,12 +78,11 @@ async function getMoodboardImagePaths(): Promise<Set<string>> {
   } catch {
     // Ignoruj błędy
   }
-
   return paths;
 }
 
 async function scanOrphanedFiles(): Promise<ScanResult> {
-  const projects = await getProjects();
+  const projects = await getAllProjects();
   const dataDir = await getDataDir();
   const orphanedFiles: OrphanedFile[] = [];
 
@@ -168,9 +163,10 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
     // brak katalogu projects
   }
 
+  // Global moodboard images
   const moodboardDir = await getMoodboardImagesDir();
   const moodboardFiles = await scanDirectory(moodboardDir);
-  const usedMoodboardPaths = await getMoodboardImagePaths();
+  const usedMoodboardPaths = await getMoodboardImagePathsFromDir(path.join(dataDir, 'moodboard'));
   let scannedMoodboardFiles = 0;
 
   for (const file of moodboardFiles) {
@@ -182,6 +178,35 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
         size: file.size,
       });
     }
+  }
+
+  // Group moodboard images
+  const groupsDir = path.join(dataDir, 'groups');
+  try {
+    const groupDirs = await fsp.readdir(groupsDir);
+    for (const gid of groupDirs) {
+      if (gid === 'groups.json') continue;
+      const groupMoodboardDir = path.join(groupsDir, gid, 'moodboard');
+      try {
+        const gImagesDir = await getMoodboardImagesDirByGroup(gid);
+        const gFiles = await scanDirectory(gImagesDir);
+        const gUsedPaths = await getMoodboardImagePathsFromDir(groupMoodboardDir);
+        for (const file of gFiles) {
+          scannedMoodboardFiles++;
+          if (!gUsedPaths.has(file.relativePath)) {
+            orphanedFiles.push({
+              path: `groups/${gid}/moodboard/images/${file.relativePath}`,
+              type: 'moodboard',
+              size: file.size,
+            });
+          }
+        }
+      } catch {
+        // brak katalogu
+      }
+    }
+  } catch {
+    // brak groups
   }
 
   const totalSize = orphanedFiles.reduce((sum, f) => sum + f.size, 0);

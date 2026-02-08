@@ -1,14 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
-import { getEmailFromCookie } from '@/src/utils/auth';
-import { getDataDir } from '@/src/utils/dataDir';
 import type { MoodboardAppState, MoodboardBoard, MoodboardViewport } from '@/src/types/moodboard';
 import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
 } from '@/src/utils/moodboardStorage';
+import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
 import { sseBroker } from '@/src/lib/sse-broker';
+import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
 /** Jeden moodboard = jeden plik JSON. index.json trzyma listę id i activeId. */
 
@@ -29,9 +29,9 @@ interface MoodboardIndex {
   activeId: string;
 }
 
-async function getMoodboardDir(): Promise<string> {
-  const dataDir = await getDataDir();
-  return path.join(dataDir, 'moodboard');
+/** Zwraca folder moodboarda z uwzględnieniem grupy. */
+async function getMoodboardDir(groupId?: string): Promise<string> {
+  return getMoodboardBaseDir(groupId);
 }
 
 function getBoardFilename(boardId: string): string {
@@ -213,16 +213,15 @@ function normalizeAppState(body: unknown): MoodboardAppState {
   return { boards: [{ id, name, images, comments, groups, viewport }], activeId: id };
 }
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: GroupScopedRequest,
   res: NextApiResponse
 ) {
-  const email = getEmailFromCookie(req);
-  if (!email) {
-    return res.status(401).json({ error: 'Wymagane logowanie' });
-  }
+  // Ustal groupId: admin może podać ?groupId=, user ma z middleware
+  const queryGroupId = req.query.groupId as string | undefined;
+  const groupId = req.isAdmin && queryGroupId ? queryGroupId : req.userGroupId;
 
-  const dir = await getMoodboardDir();
+  const dir = await getMoodboardDir(groupId);
 
   if (req.method === 'GET') {
     try {
@@ -231,32 +230,37 @@ export default async function handler(
       let appState = await loadAppStateFromFiles(dir);
 
       if (!appState) {
-        const legacyPath = path.join(dir, LEGACY_STATE_FILENAME);
-        try {
-          const raw = await fsp.readFile(legacyPath, 'utf8');
-          const parsed = JSON.parse(raw) as unknown;
-          appState = toAppState(parsed);
-          await migrateLegacyToPerFile(dir, appState);
-        } catch (legacyErr: unknown) {
-          if ((legacyErr as NodeJS.ErrnoException)?.code === 'ENOENT') {
-            const id = generateId();
-            appState = {
-              boards: [{ id, images: [], comments: [] }],
-              activeId: id,
-            };
-            await fsp.writeFile(
-              path.join(dir, getBoardFilename(id)),
-              JSON.stringify(appState.boards[0], null, 2),
-              'utf8'
-            );
-            await fsp.writeFile(
-              path.join(dir, INDEX_FILENAME),
-              JSON.stringify({ boardIds: [id], activeId: id }, null, 2),
-              'utf8'
-            );
-          } else {
-            throw legacyErr;
+        // Legacy migration only for global (no group) moodboard
+        if (!groupId) {
+          const legacyPath = path.join(dir, LEGACY_STATE_FILENAME);
+          try {
+            const raw = await fsp.readFile(legacyPath, 'utf8');
+            const parsed = JSON.parse(raw) as unknown;
+            appState = toAppState(parsed);
+            await migrateLegacyToPerFile(dir, appState);
+          } catch (legacyErr: unknown) {
+            if ((legacyErr as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+              throw legacyErr;
+            }
           }
+        }
+
+        if (!appState) {
+          const id = generateId();
+          appState = {
+            boards: [{ id, images: [], comments: [] }],
+            activeId: id,
+          };
+          await fsp.writeFile(
+            path.join(dir, getBoardFilename(id)),
+            JSON.stringify(appState.boards[0], null, 2),
+            'utf8'
+          );
+          await fsp.writeFile(
+            path.join(dir, INDEX_FILENAME),
+            JSON.stringify({ boardIds: [id], activeId: id }, null, 2),
+            'utf8'
+          );
         }
       }
 
@@ -290,7 +294,7 @@ export default async function handler(
       // Notify other SSE clients that board state changed
       sseBroker.broadcast(appState.activeId, 'board:updated', {
         timestamp: Date.now(),
-        updatedBy: email,
+        updatedBy: req.userEmail ?? '',
       });
 
       return res.status(200).json({ success: true });
@@ -302,3 +306,5 @@ export default async function handler(
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
+
+export default withGroupAccess(handler);

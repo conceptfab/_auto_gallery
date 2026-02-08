@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
   deleteProjectRevision,
-  getProjects,
+  findProjectById,
 } from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
@@ -11,23 +11,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
   try {
     const body = req.body ?? {};
-    const { projectId, revisionId } = body;
+    const { projectId, revisionId, groupId } = body;
     if (!projectId || typeof projectId !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
     if (!revisionId || typeof revisionId !== 'string') {
       return res.status(400).json({ error: 'Id rewizji jest wymagane' });
     }
-    const projects = await getProjects();
-    const project = projects.find((p) => p.id === projectId);
-    if (!project) {
-      return res.status(404).json({ error: 'Projekt nie znaleziony' });
+    let resolvedGroupId = groupId as string | undefined;
+    if (!resolvedGroupId) {
+      const [foundProject, foundGroupId] = await findProjectById(projectId);
+      if (!foundProject) {
+        return res.status(404).json({ error: 'Projekt nie znaleziony' });
+      }
+      resolvedGroupId = foundGroupId;
+      const revisionExists = (foundProject.revisions ?? []).some((r) => r.id === revisionId);
+      if (!revisionExists) {
+        return res.status(404).json({ error: 'Rewizja nie znaleziona' });
+      }
     }
-    const revisionExists = (project.revisions ?? []).some((r) => r.id === revisionId);
-    if (!revisionExists) {
-      return res.status(404).json({ error: 'Rewizja nie znaleziona' });
-    }
-    const deleted = await deleteProjectRevision(projectId, revisionId);
+    const deleted = await deleteProjectRevision(projectId, revisionId, resolvedGroupId);
     if (!deleted) {
       return res
         .status(404)

@@ -4189,6 +4189,9 @@ a {
 
 .design-revision-footer-left {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .design-revision-footer-right {
@@ -4219,6 +4222,12 @@ a {
 
 .design-revision-gallery-btn:hover {
   text-decoration: underline;
+}
+
+.design-revision-footer-left .design-revision-moodboard-btn {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  min-width: 0;
 }
 
 /* Overlay galerii rewizji */
@@ -4479,6 +4488,17 @@ a {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.design-edit-modal-moodboard-action {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.design-create-moodboard-btn:disabled {
+  opacity: 0.8;
+  cursor: default;
 }
 
 .design-revision-embed-empty {
@@ -5724,6 +5744,26 @@ a {
   position: fixed;
   inset: 0;
   z-index: -1;
+}
+
+.sketch-label-menu-sep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 0;
+}
+
+.sketch-label-menu-header {
+  padding: 6px 18px 2px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.sketch-label-menu-item--move {
+  padding-left: 26px;
+  font-size: 13px;
 }
 
 /* Sketch inline draw-bar — 8px zaokrąglenia (wszystkie 4 narożniki) */

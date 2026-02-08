@@ -78,6 +78,8 @@ export default function Canvas() {
     addSketch,
     setSelected,
     activeId,
+    boards,
+    moveItemToBoard,
     viewport,
     updateViewport,
     drawingMode,
@@ -458,6 +460,11 @@ export default function Canvas() {
         return;
       }
 
+      // Images and sketches handle their own context menus
+      const imageItem = target.closest('.moodboard-image-item');
+      const sketchItem = target.closest('.moodboard-sketch-item');
+      if (imageItem || sketchItem) return;
+
       if (groupItem) {
         // Find group ID. GroupItem doesn't have data-id yet, but let's assume we'll add it or find it.
         // Actually, let's check GroupItem.tsx, it might need data-id.
@@ -811,10 +818,11 @@ export default function Canvas() {
             <div className="moodboard-help-panel">
               <div className="moodboard-help-panel-title">Funkcje moodboardu</div>
               <ul className="moodboard-help-list">
-                <li><strong>Obrazki:</strong> przeciągnij pliki na kanwę; kliknij — zaznaczenie, przesuwanie, 8 uchwytów do zmiany rozmiaru; przycisk × usuwa; „Rysuj” (D) — adnotacje na obrazku.</li>
-                <li><strong>Komentarze:</strong> prawy przycisk na pustym miejscu → „Dodaj komentarz”; kliknij — edycja tekstu. Kolor, czcionka, rozmiar tylko przez ikonę ołówka (po zaznaczeniu); kosz usuwa.</li>
-                <li><strong>Szkice:</strong> prawy przycisk → „Dodaj szkic”; kliknij — pasek rysowania (D), narzędzia, kolory; prawy przycisk na etykiecie — zmiana nazwy, usunięcie.</li>
-                <li><strong>Grupy:</strong> Shift + przeciągnij zaznaczenie na pustym obszarze obejmujące elementy. Prawy przycisk na grupie lub ikona ołówka po zaznaczeniu — menu (nazwa, kolory, rozgrupuj, dodaj komentarz); kosz — usuwa grupę.</li>
+                <li><strong>Obrazki:</strong> przeciągnij pliki na kanwę; kliknij — zaznaczenie, przesuwanie, 8 uchwytów do zmiany rozmiaru; przycisk × usuwa; „Rysuj” (D) — adnotacje na obrazku. Prawy przycisk → „Przenieś na” (inny moodboard).</li>
+                <li><strong>Komentarze:</strong> prawy przycisk na pustym miejscu → „Dodaj komentarz”; kliknij — edycja tekstu. Kolor, czcionka, rozmiar tylko przez ikonę ołówka (po zaznaczeniu); kosz usuwa. Prawy przycisk → „Przenieś na”, „Edytuj”, „Usuń”.</li>
+                <li><strong>Szkice:</strong> prawy przycisk → „Dodaj szkic”; kliknij — pasek rysowania (D), narzędzia, kolory; prawy przycisk na etykiecie lub na szkicu — zmiana nazwy, „Przenieś na” (inny moodboard), usunięcie.</li>
+                <li><strong>Grupy:</strong> Shift + przeciągnij zaznaczenie na pustym obszarze obejmujące elementy. Prawy przycisk na grupie lub ikona ołówka po zaznaczeniu — menu (nazwa, kolory, „Przenieś na”, rozgrupuj, dodaj komentarz); kosz — usuwa grupę.</li>
+                <li><strong>Przenoszenie na inny moodboard:</strong> prawy przycisk na obrazku, szkicu, komentarzu lub w menu edycji grupy → „Przenieś na” i wybór zakładki; element (lub grupa z zawartością) trafia na wybrany moodboard.</li>
                 <li><strong>Widok:</strong> lewy przycisk na pustym miejscu — przesuwanie kanwy; Ctrl + scroll — zoom; przyciski +/−, ⌂ (reset), ⛶ (pokaż wszystko).</li>
               </ul>
             </div>
@@ -871,6 +879,11 @@ export default function Canvas() {
               onFontSizeChange={(s) => updateComment(comment.id, { fontSize: s })}
               onFontWeightChange={(w) => updateComment(comment.id, { fontWeight: w })}
               position={{ x: editingComment.x, y: editingComment.y }}
+              otherBoards={boards.filter((b) => b.id !== activeId)}
+              onMoveToBoard={(targetBoardId) => {
+                moveItemToBoard('comment', comment.id, targetBoardId);
+                setEditingComment(null);
+              }}
             />
           );
         })()
@@ -921,6 +934,11 @@ export default function Canvas() {
               onUngroup={handleUngroup}
               onAddComment={handleAddCommentToGroup}
               position={{ x: editingGroup.x, y: editingGroup.y }}
+              otherBoards={boards.filter((b) => b.id !== activeId)}
+              onMoveToBoard={(targetBoardId) => {
+                moveItemToBoard('group', group.id, targetBoardId);
+                setEditingGroup(null);
+              }}
             />
           );
         })()

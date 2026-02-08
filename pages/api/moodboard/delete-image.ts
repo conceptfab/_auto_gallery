@@ -1,23 +1,19 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie } from '@/src/utils/auth';
+import type { NextApiResponse } from 'next';
 import { deleteMoodboardImage } from '@/src/utils/moodboardStorage';
+import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: GroupScopedRequest,
   res: NextApiResponse
 ) {
-  const email = getEmailFromCookie(req);
-  if (!email) {
-    return res.status(401).json({ error: 'Wymagane logowanie' });
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { boardId, imageId } = req.body as {
+  const { boardId, imageId, groupId: bodyGroupId } = req.body as {
     boardId?: string;
     imageId?: string;
+    groupId?: string;
   };
 
   if (!boardId || typeof boardId !== 'string') {
@@ -28,11 +24,15 @@ export default async function handler(
     return res.status(400).json({ error: 'Brak imageId' });
   }
 
+  const groupId = req.isAdmin && bodyGroupId ? bodyGroupId : req.userGroupId;
+
   try {
-    await deleteMoodboardImage(boardId, imageId);
+    await deleteMoodboardImage(boardId, imageId, groupId);
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('Moodboard delete-image error:', err);
     return res.status(500).json({ error: 'Błąd usuwania obrazu' });
   }
 }
+
+export default withGroupAccess(handler);

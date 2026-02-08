@@ -42,6 +42,13 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
   const [editClient, setEditClient] = useState('');
   const [editFolder, setEditFolder] = useState('');
   const [editColor, setEditColor] = useState('');
+  const [migrating, setMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<{
+    projectsMoved: number;
+    moodboardsMoved: number;
+    errors: string[];
+    details: string[];
+  } | null>(null);
 
   const handleGroupNameChange = (name: string) => {
     setNewGroupName(name);
@@ -213,6 +220,45 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
 
       {isExpanded && (
         <>
+          <div className="admin-form-box" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                setMigrating(true);
+                setMigrationResult(null);
+                try {
+                  const res = await fetch('/api/admin/migrate-to-group-folders', {
+                    method: 'POST',
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    setMigrationResult(data.report);
+                    await onGroupsChange();
+                  } else {
+                    alert(data.error || 'Błąd migracji');
+                  }
+                } catch (err) {
+                  logger.error('Migration error', err);
+                  alert('Błąd migracji');
+                } finally {
+                  setMigrating(false);
+                }
+              }}
+              disabled={migrating}
+              className="admin-btn admin-btn--purple"
+            >
+              {migrating ? 'Migracja...' : 'Migruj dane do folderów grup'}
+            </button>
+            {migrationResult && (
+              <span style={{ fontSize: '12px', color: '#374151' }}>
+                Przeniesiono: {migrationResult.projectsMoved} projektów, {migrationResult.moodboardsMoved} moodboardów
+                {migrationResult.errors.length > 0 && (
+                  <span style={{ color: '#dc2626' }}> ({migrationResult.errors.length} błędów)</span>
+                )}
+              </span>
+            )}
+          </div>
+
           <div className="admin-form-box">
             <h3>Utwórz nową grupę</h3>
             <div className="admin-form-grid">

@@ -25,9 +25,102 @@ export interface ProjectTreeItem {
   revisions: RevisionInfo[];
 }
 
+export interface GroupTreeItem {
+  groupId: string;
+  moodboard: { boards: MoodboardBoardInfo[] };
+  projects: ProjectTreeItem[];
+}
+
 export interface DataStorageTree {
   moodboard: { boards: MoodboardBoardInfo[] };
   projects: ProjectTreeItem[];
+  groups: GroupTreeItem[];
+}
+
+async function readMoodboardBoards(moodboardDir: string): Promise<MoodboardBoardInfo[]> {
+  const boards: MoodboardBoardInfo[] = [];
+  try {
+    const indexRaw = await fsp.readFile(path.join(moodboardDir, 'index.json'), 'utf8');
+    const index = JSON.parse(indexRaw) as { boardIds?: string[] };
+    const boardIds = index.boardIds || [];
+    for (const boardId of boardIds) {
+      try {
+        const boardPath = path.join(moodboardDir, `${boardId}.json`);
+        const boardRaw = await fsp.readFile(boardPath, 'utf8');
+        const board = JSON.parse(boardRaw) as { name?: string; images?: unknown[]; sketches?: unknown[] };
+        boards.push({
+          id: boardId,
+          name: board.name,
+          imagesCount: board.images?.length ?? 0,
+          sketchesCount: board.sketches?.length ?? 0,
+        });
+      } catch {
+        boards.push({ id: boardId, imagesCount: 0, sketchesCount: 0 });
+      }
+    }
+  } catch {
+    // brak moodboard
+  }
+  return boards;
+}
+
+async function readProjects(projectsDir: string): Promise<ProjectTreeItem[]> {
+  const projects: ProjectTreeItem[] = [];
+  try {
+    const projectIds = await fsp.readdir(projectsDir);
+    for (const projectId of projectIds) {
+      const projectPath = path.join(projectsDir, projectId);
+      const stat = await fsp.stat(projectPath).catch(() => null);
+      if (!stat?.isDirectory()) continue;
+      const projectJsonPath = path.join(projectPath, 'project.json');
+      let meta: { id: string; name: string; slug?: string; revisionIds?: string[] };
+      try {
+        const raw = await fsp.readFile(projectJsonPath, 'utf8');
+        meta = JSON.parse(raw) as typeof meta;
+      } catch {
+        continue;
+      }
+      const revisionIds = meta.revisionIds || [];
+      const revisions: RevisionInfo[] = [];
+      const rewizjeDir = path.join(projectPath, 'rewizje');
+      for (const revId of revisionIds) {
+        const revDir = path.join(rewizjeDir, revId);
+        let thumbnailPresent = false;
+        let galleryCount = 0;
+        let label: string | undefined;
+        try {
+          await fsp.access(path.join(revDir, 'thumbnail.webp'));
+          thumbnailPresent = true;
+        } catch {
+          // brak
+        }
+        try {
+          const revRaw = await fsp.readFile(path.join(revDir, 'revision.json'), 'utf8');
+          const revMeta = JSON.parse(revRaw) as { label?: string; galleryPaths?: string[] };
+          label = revMeta.label;
+          galleryCount = revMeta.galleryPaths?.length ?? 0;
+        } catch {
+          try {
+            const galleryDir = path.join(revDir, 'gallery');
+            const files = await fsp.readdir(galleryDir);
+            galleryCount = files.filter((f) => /\.(webp|jpg|jpeg|png|gif)$/i.test(f)).length;
+          } catch {
+            // brak
+          }
+        }
+        revisions.push({ id: revId, label, thumbnailPresent, galleryCount });
+      }
+      projects.push({
+        id: meta.id,
+        name: meta.name || projectId,
+        slug: meta.slug,
+        revisions,
+      });
+    }
+  } catch {
+    // brak projects
+  }
+  return projects;
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -37,101 +130,36 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const dataDir = await getDataDir();
-    const moodboardDir = path.join(dataDir, 'moodboard');
-    const projectsDir = path.join(dataDir, 'projects');
 
-    const moodboardBoards: MoodboardBoardInfo[] = [];
-    try {
-      const indexRaw = await fsp.readFile(path.join(moodboardDir, 'index.json'), 'utf8');
-      const index = JSON.parse(indexRaw) as { boardIds?: string[] };
-      const boardIds = index.boardIds || [];
-      for (const boardId of boardIds) {
-        let imagesCount = 0;
-        let sketchesCount = 0;
-        try {
-          const boardPath = path.join(moodboardDir, `${boardId}.json`);
-          const boardRaw = await fsp.readFile(boardPath, 'utf8');
-          const board = JSON.parse(boardRaw) as { name?: string; images?: unknown[]; sketches?: unknown[] };
-          imagesCount = board.images?.length ?? 0;
-          sketchesCount = board.sketches?.length ?? 0;
-          moodboardBoards.push({
-            id: boardId,
-            name: board.name,
-            imagesCount,
-            sketchesCount,
-          });
-        } catch {
-          moodboardBoards.push({ id: boardId, imagesCount: 0, sketchesCount: 0 });
-        }
-      }
-    } catch {
-      // brak moodboard
-    }
+    const moodboardBoards = await readMoodboardBoards(path.join(dataDir, 'moodboard'));
+    const projects = await readProjects(path.join(dataDir, 'projects'));
 
-    const projects: ProjectTreeItem[] = [];
+    // Scan group folders
+    const groupItems: GroupTreeItem[] = [];
+    const groupsDir = path.join(dataDir, 'groups');
     try {
-      const projectIds = await fsp.readdir(projectsDir);
-      for (const projectId of projectIds) {
-        const projectPath = path.join(projectsDir, projectId);
-        const stat = await fsp.stat(projectPath).catch(() => null);
-        if (!stat?.isDirectory()) continue;
-        const projectJsonPath = path.join(projectPath, 'project.json');
-        let meta: { id: string; name: string; slug?: string; revisionIds?: string[] };
-        try {
-          const raw = await fsp.readFile(projectJsonPath, 'utf8');
-          meta = JSON.parse(raw) as typeof meta;
-        } catch {
-          continue;
-        }
-        const revisionIds = meta.revisionIds || [];
-        const revisions: RevisionInfo[] = [];
-        const rewizjeDir = path.join(projectPath, 'rewizje');
-        for (const revId of revisionIds) {
-          const revDir = path.join(rewizjeDir, revId);
-          let thumbnailPresent = false;
-          let galleryCount = 0;
-          let label: string | undefined;
-          try {
-            await fsp.access(path.join(revDir, 'thumbnail.webp'));
-            thumbnailPresent = true;
-          } catch {
-            // brak
-          }
-          try {
-            const revRaw = await fsp.readFile(path.join(revDir, 'revision.json'), 'utf8');
-            const revMeta = JSON.parse(revRaw) as { label?: string; galleryPaths?: string[] };
-            label = revMeta.label;
-            galleryCount = revMeta.galleryPaths?.length ?? 0;
-          } catch {
-            try {
-              const galleryDir = path.join(revDir, 'gallery');
-              const files = await fsp.readdir(galleryDir);
-              galleryCount = files.filter((f) => /\.(webp|jpg|jpeg|png|gif)$/i.test(f)).length;
-            } catch {
-              // brak
-            }
-          }
-          revisions.push({
-            id: revId,
-            label,
-            thumbnailPresent,
-            galleryCount,
-          });
-        }
-        projects.push({
-          id: meta.id,
-          name: meta.name || projectId,
-          slug: meta.slug,
-          revisions,
+      const groupDirs = await fsp.readdir(groupsDir);
+      for (const gid of groupDirs) {
+        if (gid === 'groups.json') continue;
+        const groupPath = path.join(groupsDir, gid);
+        const gstat = await fsp.stat(groupPath).catch(() => null);
+        if (!gstat?.isDirectory()) continue;
+        const gMoodboard = await readMoodboardBoards(path.join(groupPath, 'moodboard'));
+        const gProjects = await readProjects(path.join(groupPath, 'projects'));
+        groupItems.push({
+          groupId: gid,
+          moodboard: { boards: gMoodboard },
+          projects: gProjects,
         });
       }
     } catch {
-      // brak projects
+      // brak groups
     }
 
     const tree: DataStorageTree = {
       moodboard: { boards: moodboardBoards },
       projects,
+      groups: groupItems,
     };
     return res.status(200).json(tree);
   } catch (err) {

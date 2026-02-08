@@ -4,7 +4,7 @@ import fsp from 'fs/promises';
 import sharp from 'sharp';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import {
-  getProjects,
+  findProjectById,
   saveGalleryFile,
   appendRevisionGalleryPaths,
 } from '@/src/utils/projectsStorage';
@@ -49,6 +49,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const revisionId = Array.isArray(fields.revisionId)
     ? fields.revisionId[0]
     : fields.revisionId;
+  const groupIdField = Array.isArray(fields.groupId)
+    ? fields.groupId[0]
+    : fields.groupId;
 
   if (!projectId || !revisionId) {
     return res
@@ -62,9 +65,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Brak obrazów do zapisania' });
   }
 
-  const projects = await getProjects();
-  const project = projects.find((p) => p.id === projectId);
-  const revision = project?.revisions?.find((r) => r.id === revisionId);
+  let resolvedGroupId = groupIdField || undefined;
+  const [foundProject, foundGroupId] = await findProjectById(projectId);
+  if (!resolvedGroupId) resolvedGroupId = foundGroupId;
+  const revision = foundProject?.revisions?.find((r) => r.id === revisionId);
   if (!revision) {
     for (const f of fileList) await fsp.unlink(f.filepath).catch(() => {});
     return res
@@ -86,7 +90,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         projectId,
         revisionId,
         buffer,
-        '.webp'
+        '.webp',
+        resolvedGroupId
       );
       relativePaths.push(relativePath);
     } catch (e) {
@@ -105,7 +110,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const updated = await appendRevisionGalleryPaths(
     projectId,
     revisionId,
-    relativePaths
+    relativePaths,
+    resolvedGroupId
   );
 
   return res.status(200).json({

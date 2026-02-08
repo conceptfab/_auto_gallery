@@ -1,8 +1,9 @@
 import path from 'path';
 import fsp from 'fs/promises';
 import { getDataDir } from './dataDir';
+import { getMoodboardImagesDirByGroup } from './moodboardStoragePath';
 
-/** Zwraca katalog na obrazy moodboardu: /data-storage/moodboard/images */
+/** Zwraca katalog na obrazy moodboardu: /data-storage/moodboard/images (globalny) */
 export async function getMoodboardImagesDir(): Promise<string> {
   const dataDir = await getDataDir();
   return path.join(dataDir, 'moodboard', 'images');
@@ -24,9 +25,12 @@ export async function saveMoodboardImage(
   boardId: string,
   imageId: string,
   buffer: Buffer,
-  extension: string = '.webp'
+  extension: string = '.webp',
+  groupId?: string
 ): Promise<string> {
-  const baseDir = await getMoodboardImagesDir();
+  const baseDir = groupId
+    ? await getMoodboardImagesDirByGroup(groupId)
+    : await getMoodboardImagesDir();
   const boardDir = path.join(baseDir, boardId);
   await fsp.mkdir(boardDir, { recursive: true });
   const filename = `${imageId}${extension}`;
@@ -38,9 +42,12 @@ export async function saveMoodboardImage(
 /** Usuwa plik obrazu moodboardu. */
 export async function deleteMoodboardImage(
   boardId: string,
-  imageId: string
+  imageId: string,
+  groupId?: string
 ): Promise<void> {
-  const baseDir = await getMoodboardImagesDir();
+  const baseDir = groupId
+    ? await getMoodboardImagesDirByGroup(groupId)
+    : await getMoodboardImagesDir();
   const boardDir = path.join(baseDir, boardId);
 
   try {
@@ -56,9 +63,12 @@ export async function deleteMoodboardImage(
 
 /** Zwraca ścieżkę absolutną do pliku obrazu lub null jeśli nie istnieje. */
 export async function getMoodboardImageAbsolutePath(
-  relativePath: string
+  relativePath: string,
+  groupId?: string
 ): Promise<string | null> {
-  const baseDir = await getMoodboardImagesDir();
+  const baseDir = groupId
+    ? await getMoodboardImagesDirByGroup(groupId)
+    : await getMoodboardImagesDir();
   const fullPath = path.join(baseDir, relativePath);
 
   // Sprawdź path traversal
@@ -77,8 +87,13 @@ export async function getMoodboardImageAbsolutePath(
 }
 
 /** Usuwa wszystkie obrazy danego moodboardu (przy usuwaniu całego boardu). */
-export async function deleteAllBoardImages(boardId: string): Promise<void> {
-  const baseDir = await getMoodboardImagesDir();
+export async function deleteAllBoardImages(
+  boardId: string,
+  groupId?: string
+): Promise<void> {
+  const baseDir = groupId
+    ? await getMoodboardImagesDirByGroup(groupId)
+    : await getMoodboardImagesDir();
   const boardDir = path.join(baseDir, boardId);
 
   try {

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 import type { MoodboardBoard } from '@/src/types/moodboard';
 import type { UserGroup } from '@/src/types/admin';
+import { logger } from '@/src/utils/logger';
 
 const DEFAULT_NAME = 'Moodboard';
 
@@ -99,6 +100,7 @@ function TabMenu({
   onClose,
   groups,
   onGroupChange,
+  onCopyToGroup,
 }: {
   board: MoodboardBoard;
   isActive: boolean;
@@ -110,6 +112,7 @@ function TabMenu({
   onClose: () => void;
   groups?: UserGroup[];
   onGroupChange?: (boardId: string, groupId: string) => void;
+  onCopyToGroup?: (boardId: string, toGroupId: string) => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -152,24 +155,47 @@ function TabMenu({
       {isOpen && (
         <div className="moodboard-tab-menu-dropdown">
           {groups && groups.length > 0 && (
-            <div className="moodboard-tab-menu-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px' }}>
-              <label htmlFor={`moodboard-group-${board.id}`} style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>Grupa:</label>
-              <select
-                id={`moodboard-group-${board.id}`}
-                value={board.groupId ?? ''}
-                onChange={(e) => {
-                  onGroupChange?.(board.id, e.target.value);
-                  onClose();
-                }}
-                onClick={(e) => e.stopPropagation()}
-                style={{ fontSize: '12px', padding: '2px 6px', minWidth: '100px' }}
-              >
-                <option value="">—</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
-                ))}
-              </select>
-            </div>
+            <>
+              <div className="moodboard-tab-menu-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px' }}>
+                <label htmlFor={`moodboard-group-${board.id}`} style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>Przenieś do:</label>
+                <select
+                  id={`moodboard-group-${board.id}`}
+                  value={board.groupId ?? ''}
+                  onChange={(e) => {
+                    onGroupChange?.(board.id, e.target.value);
+                    onClose();
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ fontSize: '12px', padding: '2px 6px', minWidth: '100px' }}
+                >
+                  <option value="">— globalne —</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="moodboard-tab-menu-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px' }}>
+                <label htmlFor={`moodboard-copy-${board.id}`} style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>Kopiuj do:</label>
+                <select
+                  id={`moodboard-copy-${board.id}`}
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      onCopyToGroup?.(board.id, e.target.value === '__global__' ? '' : e.target.value);
+                      onClose();
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ fontSize: '12px', padding: '2px 6px', minWidth: '100px' }}
+                >
+                  <option value="">wybierz…</option>
+                  <option value="__global__">— globalne —</option>
+                  {groups.filter((g) => g.id !== board.groupId).map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
           <button
             type="button"
@@ -257,6 +283,56 @@ export default function MoodboardTab({ isAdmin = false, groups = [] }: Moodboard
     [submitEdit, activeBoard?.name]
   );
 
+  const handleMoveBoard = useCallback(async (boardId: string, toGroupId: string) => {
+    const board = boards.find((b) => b.id === boardId);
+    if (!board) return;
+    const fromGroupId = board.groupId || '';
+    if (fromGroupId === toGroupId) return;
+    try {
+      const res = await fetch('/api/admin/moodboard/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          boardId,
+          fromGroupId: fromGroupId || undefined,
+          toGroupId: toGroupId || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateBoard(boardId, { groupId: toGroupId || undefined });
+      } else {
+        alert(data.error || 'Błąd przenoszenia moodboarda');
+      }
+    } catch (error) {
+      logger.error('Error moving moodboard', error);
+      alert('Błąd przenoszenia moodboarda');
+    }
+  }, [boards, updateBoard]);
+
+  const handleCopyBoard = useCallback(async (boardId: string, toGroupId: string) => {
+    const board = boards.find((b) => b.id === boardId);
+    if (!board) return;
+    try {
+      const res = await fetch('/api/admin/moodboard/copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          boardId,
+          fromGroupId: board.groupId || undefined,
+          toGroupId: toGroupId || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || 'Błąd kopiowania moodboarda');
+      }
+    } catch (error) {
+      logger.error('Error copying moodboard', error);
+      alert('Błąd kopiowania moodboarda');
+    }
+  }, [boards]);
+
   const menuFor = (b: MoodboardBoard) => (
     <TabMenu
       board={b}
@@ -274,7 +350,8 @@ export default function MoodboardTab({ isAdmin = false, groups = [] }: Moodboard
       }}
       onClose={() => setOpenMenuId(null)}
       groups={isAdmin && groups.length > 0 ? groups : undefined}
-      onGroupChange={isAdmin ? (boardId, groupId) => updateBoard(boardId, { groupId: groupId || undefined }) : undefined}
+      onGroupChange={isAdmin ? (boardId, groupId) => handleMoveBoard(boardId, groupId) : undefined}
+      onCopyToGroup={isAdmin ? (boardId, toGroupId) => handleCopyBoard(boardId, toGroupId) : undefined}
     />
   );
 

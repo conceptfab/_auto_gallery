@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { deleteProject } from '@/src/utils/projectsStorage';
+import { deleteProject, findProjectById } from '@/src/utils/projectsStorage';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,11 +7,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { id } = req.body;
+    const { id, groupId } = req.body;
     if (!id || typeof id !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
-    const deleted = await deleteProject(id);
+    let resolvedGroupId = groupId as string | undefined;
+    if (!resolvedGroupId) {
+      const [, foundGroupId] = await findProjectById(id);
+      resolvedGroupId = foundGroupId;
+    }
+    const deleted = await deleteProject(id, resolvedGroupId);
     if (!deleted) {
       return res.status(404).json({ error: 'Projekt nie znaleziony' });
     }

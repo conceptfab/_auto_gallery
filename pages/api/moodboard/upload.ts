@@ -1,9 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getEmailFromCookie } from '@/src/utils/auth';
+import type { NextApiResponse } from 'next';
 import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
 } from '@/src/utils/moodboardStorage';
+import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
 export const config = {
   api: {
@@ -13,23 +13,19 @@ export const config = {
   },
 };
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: GroupScopedRequest,
   res: NextApiResponse
 ) {
-  const email = getEmailFromCookie(req);
-  if (!email) {
-    return res.status(401).json({ error: 'Wymagane logowanie' });
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { boardId, imageId, dataUrl } = req.body as {
+  const { boardId, imageId, dataUrl, groupId: bodyGroupId } = req.body as {
     boardId?: string;
     imageId?: string;
     dataUrl?: string;
+    groupId?: string;
   };
 
   if (!boardId || typeof boardId !== 'string') {
@@ -50,6 +46,9 @@ export default async function handler(
     return res.status(400).json({ error: 'Brak dataUrl' });
   }
 
+  // Ustal groupId: admin może podać jawnie, user ma z middleware
+  const groupId = req.isAdmin && bodyGroupId ? bodyGroupId : req.userGroupId;
+
   try {
     const buffer = decodeDataUrlToBuffer(dataUrl);
     if (!buffer || buffer.length === 0) {
@@ -66,7 +65,7 @@ export default async function handler(
       ext = '.gif';
     }
 
-    const imagePath = await saveMoodboardImage(boardId, imageId, buffer, ext);
+    const imagePath = await saveMoodboardImage(boardId, imageId, buffer, ext, groupId);
 
     return res.status(200).json({
       success: true,
@@ -77,3 +76,5 @@ export default async function handler(
     return res.status(500).json({ error: 'Błąd zapisu obrazu' });
   }
 }
+
+export default withGroupAccess(handler);
