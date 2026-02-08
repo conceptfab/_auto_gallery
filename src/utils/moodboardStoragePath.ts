@@ -7,13 +7,15 @@ import path from 'path';
 import fsp from 'fs/promises';
 import { getDataDir } from './dataDir';
 
-/** Zwraca katalog moodboard: globalny lub grupowy. */
+/** Zwraca katalog moodboard: globalny lub grupowy. Dla grupy tworzy folder; dla globalnego (bez grupy) nie tworzy – żeby po usunięciu w adminie się nie odtwarzał. */
 export async function getMoodboardBaseDir(groupId?: string): Promise<string> {
   const dataDir = await getDataDir();
   const base = groupId
     ? path.join(dataDir, 'groups', groupId, 'moodboard')
     : path.join(dataDir, 'moodboard');
-  await fsp.mkdir(base, { recursive: true });
+  if (groupId) {
+    await fsp.mkdir(base, { recursive: true });
+  }
   return base;
 }
 

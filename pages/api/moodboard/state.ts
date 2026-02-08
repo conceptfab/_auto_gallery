@@ -122,9 +122,10 @@ async function migrateLegacyToPerFile(
   );
 }
 
-/** GET: odczyt index.json + ładowanie każdego boarda z osobnego pliku. */
+/** GET: odczyt index.json + ładowanie każdego boarda z osobnego pliku. skipWriteWhenEmpty: dla globalnego moodboarda nie zapisuj na dysk przy pustych boardach. */
 async function loadAppStateFromFiles(
-  dir: string
+  dir: string,
+  options?: { skipWriteWhenEmpty?: boolean }
 ): Promise<MoodboardAppState | null> {
   const indexPath = path.join(dir, INDEX_FILENAME);
   let rawIndex: string;
@@ -173,20 +174,22 @@ async function loadAppStateFromFiles(
       groups: [],
     };
     boards.push(newBoard);
-    await fsp.writeFile(
-      path.join(dir, getBoardFilename(newBoard.id)),
-      JSON.stringify(newBoard, null, 2),
-      'utf8'
-    );
-    await fsp.writeFile(
-      path.join(dir, INDEX_FILENAME),
-      JSON.stringify(
-        { boardIds: [newBoard.id], activeId: newBoard.id },
-        null,
-        2
-      ),
-      'utf8'
-    );
+    if (!options?.skipWriteWhenEmpty) {
+      await fsp.writeFile(
+        path.join(dir, getBoardFilename(newBoard.id)),
+        JSON.stringify(newBoard, null, 2),
+        'utf8'
+      );
+      await fsp.writeFile(
+        path.join(dir, INDEX_FILENAME),
+        JSON.stringify(
+          { boardIds: [newBoard.id], activeId: newBoard.id },
+          null,
+          2
+        ),
+        'utf8'
+      );
+    }
   }
   return { boards, activeId: validActiveId };
 }
@@ -302,9 +305,12 @@ async function handler(
         return res.status(200).json({ success: true, state: appState });
       }
 
-      await fsp.mkdir(dir, { recursive: true });
+      // Dla moodboarda globalnego (bez grupy) nie twórz folderu – żeby po usunięciu w adminie się nie odtwarzał.
+      if (groupId) {
+        await fsp.mkdir(dir, { recursive: true });
+      }
 
-      let appState = await loadAppStateFromFiles(dir);
+      let appState = await loadAppStateFromFiles(dir, { skipWriteWhenEmpty: !groupId });
 
       if (!appState) {
         // Legacy migration only for global (no group) moodboard
