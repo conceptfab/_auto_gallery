@@ -43,6 +43,9 @@ interface StorageData {
     historyRetentionDays?: number;
     thumbnailAnimationDelay?: number;
     sessionDurationHours?: number;
+    autoBackupEnabled?: boolean;
+    autoBackupIntervalHours?: number;
+    autoBackupMaxFiles?: number;
   };
   // Statystyki użytkowników
   stats?: StatsData;
@@ -106,6 +109,9 @@ interface SettingsFile {
   historyRetentionDays?: number;
   thumbnailAnimationDelay?: number;
   sessionDurationHours?: number;
+  autoBackupEnabled?: boolean;
+  autoBackupIntervalHours?: number;
+  autoBackupMaxFiles?: number;
 }
 
 // Normalizacja LoginCode z pliku (daty jako string) do LoginCode (Date)
@@ -137,6 +143,9 @@ const defaultData: StorageData = {
     thumbnailAnimationDelay: 55,
     autoCleanupDays: 7,
     historyRetentionDays: 7,
+    autoBackupEnabled: false,
+    autoBackupIntervalHours: 24,
+    autoBackupMaxFiles: 7,
   },
   stats: {
     logins: [],

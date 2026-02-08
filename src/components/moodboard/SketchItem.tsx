@@ -43,6 +43,9 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
     setToolColor,
     toolWidth,
     setToolWidth,
+    drawingUsers,
+    notifyDrawing,
+    notifyIdle,
   } = useMoodboard();
   const isSelected = selectedId === sketch.id && selectedType === 'sketch';
   const [isDragging, setIsDragging] = useState(false);
@@ -165,6 +168,11 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
   const isDrawingThis = drawingMode && isSelected;
   const displayName = sketch.name || 'Szkic';
 
+  // Remote drawing presence indicator
+  const otherDrawing = Array.from(drawingUsers.values()).find(
+    d => d.sketchId === sketch.id
+  );
+
   return (
     <div
       className={`moodboard-item moodboard-sketch-item${
@@ -239,7 +247,7 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
       {isSelected && (
         <div className="sketch-drawbar" onPointerDown={(e) => e.stopPropagation()}>
           {!drawingMode ? (
-            <button type="button" className="sketch-drawbar-draw-btn" onClick={() => setDrawingMode(true)} title="Rysuj (D)">
+            <button type="button" className="sketch-drawbar-draw-btn" onClick={() => { setDrawingMode(true); notifyDrawing(sketch.id, activeTool); }} title="Rysuj (D)">
               Rysuj
             </button>
           ) : (
@@ -261,11 +269,21 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
                 </button>
               ))}
               <span className="sketch-drawbar-sep" />
-              <button type="button" className="sketch-drawbar-done" onClick={() => setDrawingMode(false)}>
+              <button type="button" className="sketch-drawbar-done" onClick={() => { setDrawingMode(false); notifyIdle(); }}>
                 Gotowe
               </button>
             </>
           )}
+        </div>
+      )}
+
+      {/* Remote drawing indicator */}
+      {otherDrawing && (
+        <div
+          className="sketch-remote-drawing-indicator"
+          style={{ borderColor: otherDrawing.color, color: otherDrawing.color }}
+        >
+          {otherDrawing.email.split('@')[0]} rysuje...
         </div>
       )}
 

@@ -43,6 +43,9 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
     setToolColor,
     toolWidth,
     setToolWidth,
+    drawingUsers,
+    notifyDrawing,
+    notifyIdle,
   } = useMoodboard();
   const isSelected = selectedId === image.id && selectedType === 'image';
   const [isDragging, setIsDragging] = useState(false);
@@ -204,6 +207,11 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
 
   const showDrawingOverlay = drawingMode && isSelected;
 
+  // Remote drawing presence indicator
+  const otherDrawing = Array.from(drawingUsers.values()).find(
+    d => d.sketchId === image.id
+  );
+
   return (
     <div
       className={`moodboard-item moodboard-image-item${
@@ -247,7 +255,7 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
       {isSelected && (
         <div className="sketch-drawbar" onPointerDown={(e) => e.stopPropagation()}>
           {!drawingMode ? (
-            <button type="button" className="sketch-drawbar-draw-btn" onClick={() => setDrawingMode(true)} title="Rysuj (D)">
+            <button type="button" className="sketch-drawbar-draw-btn" onClick={() => { setDrawingMode(true); notifyDrawing(image.id, activeTool); }} title="Rysuj (D)">
               Rysuj
             </button>
           ) : (
@@ -269,7 +277,7 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
                 </button>
               ))}
               <span className="sketch-drawbar-sep" />
-              <button type="button" className="sketch-drawbar-done" onClick={() => setDrawingMode(false)}>
+              <button type="button" className="sketch-drawbar-done" onClick={() => { setDrawingMode(false); notifyIdle(); }}>
                 Gotowe
               </button>
             </>
@@ -277,6 +285,15 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
           <button type="button" className="sketch-drawbar-delete" onClick={onDelete} title="Usuń obrazek">
             ×
           </button>
+        </div>
+      )}
+      {/* Remote drawing indicator */}
+      {otherDrawing && (
+        <div
+          className="sketch-remote-drawing-indicator"
+          style={{ borderColor: otherDrawing.color, color: otherDrawing.color }}
+        >
+          {otherDrawing.email.split('@')[0]} rysuje...
         </div>
       )}
       {/* Resize handles — only when selected and NOT drawing */}

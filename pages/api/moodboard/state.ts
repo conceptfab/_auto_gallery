@@ -8,6 +8,7 @@ import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
 } from '@/src/utils/moodboardStorage';
+import { sseBroker } from '@/src/lib/sse-broker';
 
 /** Jeden moodboard = jeden plik JSON. index.json trzyma listę id i activeId. */
 
@@ -285,6 +286,12 @@ export default async function handler(
         JSON.stringify(index, null, 2),
         'utf8'
       );
+
+      // Notify other SSE clients that board state changed
+      sseBroker.broadcast(appState.activeId, 'board:updated', {
+        timestamp: Date.now(),
+        updatedBy: email,
+      });
 
       return res.status(200).json({ success: true });
     } catch (err) {

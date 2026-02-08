@@ -20,6 +20,8 @@ import {
   DrawingTool,
   MOODBOARD_STORAGE_KEY,
 } from '@/src/types/moodboard';
+import { useBoardSSE, OnlineUser, DrawingPresence } from '@/src/hooks/useBoardSSE';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 type SelectableType = 'image' | 'comment' | 'group' | 'sketch' | null;
 
@@ -63,6 +65,11 @@ interface MoodboardContextValue extends MoodboardBoard {
   setToolColor: (color: string) => void;
   toolWidth: number;
   setToolWidth: (width: number) => void;
+  onlineUsers: OnlineUser[];
+  drawingUsers: Map<string, DrawingPresence>;
+  myColor: string;
+  notifyDrawing: (sketchId: string, tool: string) => void;
+  notifyIdle: () => void;
 }
 
 const MoodboardContext = createContext<MoodboardContextValue | null>(null);
@@ -130,6 +137,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
   const [toolWidth, setToolWidth] = useState(3);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // SSE presence
+  const { authStatus } = useAuth();
+  const boardSSE = useBoardSSE({
+    boardId: appState.activeId,
+    enabled: !!authStatus?.isLoggedIn,
+  });
+
   const activeBoard =
     useMemo(
       () => appState.boards.find((b) => b.id === appState.activeId),
@@ -180,6 +194,23 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // Auto-refetch when another user updates the board (SSE board:updated)
+  useEffect(() => {
+    if (!boardSSE.boardUpdated) return;
+    fetch(API_STATE, { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.state) {
+          setAppState(prev => {
+            const remote = data.state as MoodboardAppState;
+            if (!remote.boards || !remote.activeId) return prev;
+            return { boards: remote.boards, activeId: prev.activeId };
+          });
+        }
+      })
+      .catch(() => {});
+  }, [boardSSE.boardUpdated]);
 
   const setSelected = useCallback(
     (id: string | null, type: SelectableType) => {
@@ -769,6 +800,11 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       setToolColor,
       toolWidth,
       setToolWidth,
+      onlineUsers: boardSSE.onlineUsers,
+      drawingUsers: boardSSE.drawingUsers,
+      myColor: boardSSE.myColor,
+      notifyDrawing: boardSSE.notifyDrawing,
+      notifyIdle: boardSSE.notifyIdle,
     }),
     [
       activeBoard,
@@ -807,6 +843,11 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       activeTool,
       toolColor,
       toolWidth,
+      boardSSE.onlineUsers,
+      boardSSE.drawingUsers,
+      boardSSE.myColor,
+      boardSSE.notifyDrawing,
+      boardSSE.notifyIdle,
     ]
   );
 

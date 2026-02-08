@@ -11,6 +11,7 @@ import ContextMenu from './ContextMenu';
 import GroupItem from './GroupItem';
 import CommentEditPanel from './CommentEditPanel';
 import GroupEditPanel from './GroupEditPanel';
+import PresenceBar from './PresenceBar';
 
 const DEFAULT_IMAGE_WIDTH = 200;
 const DEFAULT_IMAGE_HEIGHT = 150;
@@ -82,6 +83,8 @@ export default function Canvas() {
     drawingMode,
     setDrawingMode,
     setActiveTool,
+    onlineUsers,
+    drawingUsers,
   } = useMoodboard();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -748,6 +751,7 @@ export default function Canvas() {
           );
         })}
       </div>
+      <PresenceBar onlineUsers={onlineUsers} drawingUsers={drawingUsers} />
       <div className="moodboard-canvas-hint">Przeciągnij obrazki tutaj</div>
       <div className="moodboard-canvas-zoom-controls" onPointerDown={(e) => e.stopPropagation()}>
         <button

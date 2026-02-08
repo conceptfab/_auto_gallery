@@ -35,6 +35,37 @@ interface VerifyRepairReport {
   errors: string[];
 }
 
+interface AutoBackupSettings {
+  autoBackupEnabled: boolean;
+  autoBackupIntervalHours: number;
+  autoBackupMaxFiles: number;
+}
+
+interface BackupFileInfo {
+  name: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString('pl-PL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export const DataStorageSection: React.FC = () => {
   const [tree, setTree] = useState<DataStorageTree | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +82,18 @@ export const DataStorageSection: React.FC = () => {
   const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  // Auto-backup state
+  const [abSettings, setAbSettings] = useState<AutoBackupSettings>({
+    autoBackupEnabled: false,
+    autoBackupIntervalHours: 24,
+    autoBackupMaxFiles: 7,
+  });
+  const [abBackups, setAbBackups] = useState<BackupFileInfo[]>([]);
+  const [abLoading, setAbLoading] = useState(true);
+  const [abSaving, setAbSaving] = useState(false);
+  const [abTriggering, setAbTriggering] = useState(false);
+  const [abMessage, setAbMessage] = useState<string | null>(null);
 
   const toggleBoard = (id: string) => {
     setSelectedBoardIds((prev) => {
@@ -91,9 +134,94 @@ export const DataStorageSection: React.FC = () => {
     }
   }, []);
 
+  const fetchAutoBackup = useCallback(async () => {
+    setAbLoading(true);
+    try {
+      const res = await fetch('/api/admin/data-storage/auto-backup', { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        setAbSettings(data.settings);
+        setAbBackups(data.backups || []);
+      }
+    } catch (err) {
+      logger.error('Auto-backup fetch error', err);
+    } finally {
+      setAbLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTree();
-  }, [fetchTree]);
+    fetchAutoBackup();
+  }, [fetchTree, fetchAutoBackup]);
+
+  const handleAbSettingsUpdate = async (updates: Partial<AutoBackupSettings>) => {
+    setAbSaving(true);
+    try {
+      const res = await fetch('/api/admin/data-storage/auto-backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAbSettings(data.settings);
+      }
+    } catch (err) {
+      logger.error('Auto-backup settings update error', err);
+    } finally {
+      setAbSaving(false);
+    }
+  };
+
+  const handleAbTrigger = async () => {
+    setAbTriggering(true);
+    setAbMessage(null);
+    try {
+      const res = await fetch('/api/admin/data-storage/auto-backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: 'trigger' }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAbMessage(`Backup utworzony: ${data.file} (${formatBytes(data.sizeBytes)})`);
+        await fetchAutoBackup();
+      } else {
+        setAbMessage(`Błąd: ${data.error || 'Nieznany'}`);
+      }
+    } catch (err) {
+      logger.error('Auto-backup trigger error', err);
+      setAbMessage('Błąd połączenia');
+    } finally {
+      setAbTriggering(false);
+    }
+  };
+
+  const handleAbDownload = (name: string) => {
+    const url = `/api/admin/data-storage/auto-backup?action=download&file=${encodeURIComponent(name)}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+  };
+
+  const handleAbDelete = async (name: string) => {
+    if (!confirm(`Usunąć backup ${name}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/data-storage/auto-backup?file=${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+      if (res.ok) {
+        setAbBackups((prev) => prev.filter((b) => b.name !== name));
+      }
+    } catch (err) {
+      logger.error('Auto-backup delete error', err);
+    }
+  };
 
   const handleVerifyRepair = async () => {
     setVerifyRepairReport(null);
@@ -370,6 +498,158 @@ export const DataStorageSection: React.FC = () => {
         </button>
       </div>
 
+      {/* Auto-backup section */}
+      <div style={{ marginBottom: '20px', padding: '14px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
+        <div style={{ fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="las la-clock" style={{ color: '#6366f1' }} />
+          Automatyczny backup cykliczny
+        </div>
+        <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#6b7280' }}>
+          Backupy zapisywane na serwerze w <code>/data-storage/backups/</code>. Wymaga skonfigurowanego crona (Railway / zewnętrzny) na endpoint <code>POST /api/cron/backup</code> z nagłówkiem <code>x-cron-secret</code>.
+        </p>
+
+        {abLoading ? (
+          <div style={{ color: '#9ca3af', fontSize: '13px' }}>Ładowanie ustawień...</div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', marginBottom: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={abSettings.autoBackupEnabled}
+                  onChange={(e) => handleAbSettingsUpdate({ autoBackupEnabled: e.target.checked })}
+                  disabled={abSaving}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                  {abSettings.autoBackupEnabled ? 'Włączony' : 'Wyłączony'}
+                </span>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                Interwał:
+                <select
+                  value={abSettings.autoBackupIntervalHours}
+                  onChange={(e) => handleAbSettingsUpdate({ autoBackupIntervalHours: parseInt(e.target.value, 10) })}
+                  disabled={abSaving}
+                  style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                >
+                  <option value={6}>6h</option>
+                  <option value={12}>12h</option>
+                  <option value={24}>24h (codziennie)</option>
+                  <option value={48}>48h (co 2 dni)</option>
+                  <option value={168}>168h (tygodniowo)</option>
+                </select>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                Max plików:
+                <select
+                  value={abSettings.autoBackupMaxFiles}
+                  onChange={(e) => handleAbSettingsUpdate({ autoBackupMaxFiles: parseInt(e.target.value, 10) })}
+                  disabled={abSaving}
+                  style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                >
+                  <option value={3}>3</option>
+                  <option value={5}>5</option>
+                  <option value={7}>7</option>
+                  <option value={14}>14</option>
+                  <option value={30}>30</option>
+                </select>
+              </label>
+
+              <button
+                type="button"
+                className="admin-btn"
+                disabled={abTriggering}
+                onClick={handleAbTrigger}
+                title="Utwórz backup teraz (zapisuje na serwerze)"
+              >
+                <i className="las la-play" style={{ marginRight: '4px' }} />
+                {abTriggering ? 'Tworzenie...' : 'Utwórz backup teraz'}
+              </button>
+            </div>
+
+            {abMessage && (
+              <div style={{
+                marginBottom: '12px',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                fontSize: '13px',
+                backgroundColor: abMessage.startsWith('Błąd') ? '#fef2f2' : '#ecfdf5',
+                border: `1px solid ${abMessage.startsWith('Błąd') ? '#fecaca' : '#a7f3d0'}`,
+                color: abMessage.startsWith('Błąd') ? '#b91c1c' : '#059669',
+              }}>
+                {abMessage}
+              </div>
+            )}
+
+            {abBackups.length > 0 ? (
+              <div style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                overflow: 'hidden',
+                fontSize: '13px',
+              }}>
+                <div style={{
+                  padding: '6px 12px',
+                  backgroundColor: '#f3f4f6',
+                  fontWeight: 600,
+                  display: 'flex',
+                  gap: '12px',
+                  borderBottom: '1px solid #e5e7eb',
+                }}>
+                  <span style={{ flex: 1 }}>Plik</span>
+                  <span style={{ width: '80px', textAlign: 'right' }}>Rozmiar</span>
+                  <span style={{ width: '140px', textAlign: 'right' }}>Data</span>
+                  <span style={{ width: '100px', textAlign: 'right' }}>Akcje</span>
+                </div>
+                {abBackups.map((b) => (
+                  <div
+                    key={b.name}
+                    style={{
+                      padding: '6px 12px',
+                      display: 'flex',
+                      gap: '12px',
+                      alignItems: 'center',
+                      borderBottom: '1px solid #f3f4f6',
+                    }}
+                  >
+                    <span style={{ flex: 1, fontFamily: 'monospace', fontSize: '12px' }}>{b.name}</span>
+                    <span style={{ width: '80px', textAlign: 'right', color: '#6b7280' }}>{formatBytes(b.sizeBytes)}</span>
+                    <span style={{ width: '140px', textAlign: 'right', color: '#6b7280' }}>{formatDate(b.createdAt)}</span>
+                    <span style={{ width: '100px', textAlign: 'right', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleAbDownload(b.name)}
+                        className="admin-btn"
+                        style={{ padding: '2px 8px', fontSize: '12px' }}
+                        title="Pobierz"
+                      >
+                        <i className="las la-download" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAbDelete(b.name)}
+                        className="admin-btn admin-btn--danger"
+                        style={{ padding: '2px 8px', fontSize: '12px' }}
+                        title="Usuń"
+                      >
+                        <i className="las la-trash" />
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ color: '#9ca3af', fontSize: '13px' }}>
+                Brak zapisanych backupów na serwerze.
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
       <div style={{ marginBottom: '20px', padding: '14px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
         <div style={{ fontWeight: 600, marginBottom: '10px' }}>Przywróć z ZIP (moodboard lub projekt)</div>
         <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#6b7280' }}>
@@ -449,7 +729,7 @@ export const DataStorageSection: React.FC = () => {
         )}
         {restoreConflict && (
           <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px', color: '#b91c1c' }}>
-            Element o tym ID już istnieje. Wpisz nową nazwę powyżej i kliknij „Przywróć” – zostanie utworzony z nowym ID.
+            Element o tym ID już istnieje. Wpisz nową nazwę powyżej i kliknij „Przywróć" – zostanie utworzony z nowym ID.
           </div>
         )}
         {restoreSuccess && (
