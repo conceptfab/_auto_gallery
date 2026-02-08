@@ -48,6 +48,8 @@ interface FolderSectionProps {
     fileName: string
   ) => Promise<void> | void;
   isAdmin?: boolean;
+  /** Grupy (tylko w widoku admina) – kolor dla folderów głównych */
+  groups?: { id: string; name: string; galleryFolder: string; color?: string }[];
   /** Status cache z batch API: path -> (image name -> cached) */
   cacheStatusByFolder?: Record<string, Record<string, boolean>>;
 }
@@ -62,8 +64,20 @@ function FolderSectionInner({
   onFolderView,
   onTrackDownload,
   isAdmin = false,
+  groups = [],
   cacheStatusByFolder,
 }: FolderSectionProps) {
+  const groupColorForFolder = (folderPath: string, folderName: string) => {
+    if (!isAdmin || groups.length === 0) return undefined;
+    const normalized = (s: string) => s.replace(/\/$/, '').trim().toLowerCase();
+    const match = groups.find(
+      (g) =>
+        normalized(g.galleryFolder) === normalized(folderPath) ||
+        normalized(g.galleryFolder) === normalized(folderName)
+    );
+    return match?.color;
+  };
+
   const toggleFolder = (currentFolder: GalleryFolder) => {
     const newCollapsed = new Set(globalCollapsedFolders);
     const isCurrentlyCollapsed = newCollapsed.has(currentFolder.path);
@@ -79,7 +93,6 @@ function FolderSectionInner({
   };
 
   const renderFolder = (currentFolder: GalleryFolder, depth: number = 0) => {
-    // kolorystykaImages przekazane z góry (zbierane z folderów Kolorystyka w drzewie)
     const indentClass = `level-${Math.min(depth, 4)}`;
     const categoryClass = currentFolder.isCategory
       ? 'category'
@@ -88,6 +101,13 @@ function FolderSectionInner({
     const hasCollapsibleContent =
       currentFolder.subfolders ||
       (!currentFolder.isCategory && currentFolder.images.length > 0);
+    const groupColor =
+      depth === 0
+        ? groupColorForFolder(currentFolder.path, currentFolder.name)
+        : undefined;
+    const wrapperStyle = groupColor
+      ? { borderLeft: `4px solid ${groupColor}` as const }
+      : undefined;
 
     return (
       <div
@@ -95,6 +115,7 @@ function FolderSectionInner({
         className={`folder-wrapper ${categoryClass} ${indentClass} ${
           !isCollapsed ? 'expanded' : ''
         }`}
+        style={wrapperStyle}
       >
         {currentFolder.isCategory ? (
           <div className="category-header">
@@ -200,6 +221,7 @@ const FolderSection = memo(
     prev.globalCollapsedFolders === next.globalCollapsedFolders &&
     prev.kolorystykaImages === next.kolorystykaImages &&
     prev.isAdmin === next.isAdmin &&
+    prev.groups === next.groups &&
     prev.cacheStatusByFolder === next.cacheStatusByFolder
 );
 
@@ -219,6 +241,7 @@ const Gallery: React.FC<GalleryProps> = ({
   const router = useRouter();
   const redirectingToLoginRef = useRef(false);
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
+  const [groups, setGroups] = useState<{ id: string; name: string; galleryFolder: string; color?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -327,6 +350,14 @@ const Gallery: React.FC<GalleryProps> = ({
     fetchGalleryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refreshKey is the intended trigger
   }, [refreshKey]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetch('/api/auth/admin/groups/list', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((data) => setGroups(data.groups ?? []))
+      .catch(() => setGroups([]));
+  }, [isAdmin]);
 
   const fetchGalleryData = async () => {
     if (redirectingToLoginRef.current) return;
@@ -529,6 +560,7 @@ const Gallery: React.FC<GalleryProps> = ({
               onFolderView={(f) => trackView('folder', f.path, f.name)}
               onTrackDownload={trackDownload}
               isAdmin={isAdmin}
+              groups={groups}
               cacheStatusByFolder={cacheStatusByFolder}
             />
           ))}

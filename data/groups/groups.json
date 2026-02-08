@@ -8,5 +8,13 @@
       "micz@kleniewski.com"
     ],
     "color": "#1f22d1"
+  },
+  {
+    "id": "grp_bee329c72",
+    "name": "test",
+    "clientName": "test",
+    "galleryFolder": "test/",
+    "color": "#C6E2BE",
+    "users": []
   }
 ]
