@@ -2,6 +2,12 @@ import path from 'path';
 import fsp from 'fs/promises';
 import crypto from 'crypto';
 import type { StatsData } from '../types/stats';
+import type {
+  DrawingTool,
+  MoodboardDrawingConfig,
+  MoodboardDrawingConfigMap,
+} from '../types/moodboard';
+import { DEFAULT_MOODBOARD_DRAWING_CONFIG } from '../types/moodboard';
 import { getDataDir } from './dataDir';
 
 // Trwałe przechowywanie danych w plikach JSON
@@ -89,6 +95,10 @@ function getCodesPath(coreDir: string): string {
 
 function getSettingsPath(coreDir: string): string {
   return path.join(coreDir, 'settings.json');
+}
+
+function getMoodboardDrawingConfigPath(coreDir: string): string {
+  return path.join(coreDir, 'moodboard-drawing-config.json');
 }
 
 type SerializedLoginCode = Omit<LoginCode, 'expiresAt' | 'createdAt'> & {
@@ -301,6 +311,72 @@ async function loadSettings(): Promise<SettingsFile> {
 async function saveSettings(settings: SettingsFile): Promise<void> {
   const dir = await getCoreDir();
   await saveJsonFile(dir, getSettingsPath(dir), settings);
+}
+
+// ==================== KONFIGURACJA PASKA RYSOWANIA MOODBOARD ====================
+
+export async function getMoodboardDrawingConfig(): Promise<MoodboardDrawingConfigMap> {
+  const raw = await loadJsonFile(
+    getMoodboardDrawingConfigPath(await getCoreDir()),
+    'moodboard-drawing-config'
+  );
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return {
+      default: { ...DEFAULT_MOODBOARD_DRAWING_CONFIG },
+      byGroup: {},
+    };
+  }
+  const obj = raw as Record<string, unknown>;
+  const defaultConfig = (obj.default && typeof obj.default === 'object' && !Array.isArray(obj.default))
+    ? normalizeDrawingConfig(obj.default as Record<string, unknown>)
+    : { ...DEFAULT_MOODBOARD_DRAWING_CONFIG };
+  const byGroup: Record<string, MoodboardDrawingConfig> = {};
+  if (obj.byGroup && typeof obj.byGroup === 'object' && !Array.isArray(obj.byGroup)) {
+    for (const [groupId, cfg] of Object.entries(obj.byGroup as Record<string, unknown>)) {
+      if (cfg && typeof cfg === 'object' && !Array.isArray(cfg)) {
+        byGroup[groupId] = normalizeDrawingConfig(cfg as Record<string, unknown>);
+      }
+    }
+  }
+  return { default: defaultConfig, byGroup };
+}
+
+function normalizeDrawingConfig(raw: Record<string, unknown>): MoodboardDrawingConfig {
+  const tools = Array.isArray(raw.tools)
+    ? (raw.tools as string[]).filter((t): t is DrawingTool =>
+        ['pen', 'rect', 'circle', 'line', 'eraser'].includes(t))
+    : [...DEFAULT_MOODBOARD_DRAWING_CONFIG.tools];
+  const strokeColors = Array.isArray(raw.strokeColors)
+    ? (raw.strokeColors as string[]).filter((c) => typeof c === 'string')
+    : [...DEFAULT_MOODBOARD_DRAWING_CONFIG.strokeColors];
+  const strokeWidths = Array.isArray(raw.strokeWidths)
+    ? (raw.strokeWidths as number[]).filter((w) => typeof w === 'number' && w > 0)
+    : [...DEFAULT_MOODBOARD_DRAWING_CONFIG.strokeWidths];
+  return {
+    tools: tools.length ? tools : DEFAULT_MOODBOARD_DRAWING_CONFIG.tools,
+    strokeColors: strokeColors.length ? strokeColors : DEFAULT_MOODBOARD_DRAWING_CONFIG.strokeColors,
+    strokeWidths: strokeWidths.length ? strokeWidths : DEFAULT_MOODBOARD_DRAWING_CONFIG.strokeWidths,
+    defaultTool: typeof raw.defaultTool === 'string' && tools.includes(raw.defaultTool as DrawingTool)
+      ? (raw.defaultTool as DrawingTool)
+      : undefined,
+    defaultColor: typeof raw.defaultColor === 'string' && strokeColors.includes(raw.defaultColor)
+      ? raw.defaultColor
+      : undefined,
+    defaultWidth: typeof raw.defaultWidth === 'number' && strokeWidths.includes(raw.defaultWidth)
+      ? raw.defaultWidth
+      : undefined,
+  };
+}
+
+export async function saveMoodboardDrawingConfig(
+  config: MoodboardDrawingConfigMap
+): Promise<void> {
+  const dir = await getCoreDir();
+  const payload = {
+    default: config.default,
+    byGroup: config.byGroup,
+  };
+  await saveJsonFile(dir, getMoodboardDrawingConfigPath(dir), payload);
 }
 
 // Cache danych w pamięci (składany z list, groups, core – bez odczytu storage.json w głównej ścieżce)

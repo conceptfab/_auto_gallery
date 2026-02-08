@@ -384,7 +384,7 @@ export default function Canvas() {
       !node.closest('.moodboard-sketch-item') &&
       !node.closest('.moodboard-comment-edit-panel') &&
       !node.closest('.moodboard-group-edit-panel') &&
-      !node.closest('.moodboard-canvas-zoom-controls')
+      !node.closest('.moodboard-canvas-bottom-controls')
     );
   }, []);
 
@@ -454,18 +454,8 @@ export default function Canvas() {
       const content = clientToContent(e.clientX, e.clientY);
 
       if (commentItem) {
-        const id = (commentItem as HTMLElement).getAttribute('data-id');
-        if (id) {
-          setSelected(id, 'comment');
-          setEditingComment({
-            id,
-            x: e.clientX,
-            y: e.clientY,
-          });
-          setEditingGroup(null);
-          setContextMenu(null);
-          return;
-        }
+        e.preventDefault();
+        return;
       }
 
       if (groupItem) {
@@ -527,6 +517,20 @@ export default function Canvas() {
       drawing: { strokes: [], shapes: [] },
     });
   }, [contextMenu, addSketch, sketches.length]);
+
+  const handleOpenCommentEdit = useCallback((id: string, pos: { x: number; y: number }) => {
+    setSelected(id, 'comment');
+    setEditingComment({ id, x: pos.x, y: pos.y });
+    setEditingGroup(null);
+    setContextMenu(null);
+  }, [setSelected]);
+
+  const handleOpenGroupEdit = useCallback((groupId: string, pos: { x: number; y: number }) => {
+    setSelected(groupId, 'group');
+    setEditingGroup({ id: groupId, x: pos.x, y: pos.y });
+    setEditingComment(null);
+    setContextMenu(null);
+  }, [setSelected]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -711,7 +715,7 @@ export default function Canvas() {
           <ImageItem key={img.id} image={img} />
         ))}
         {standaloneComments.map((c) => (
-          <CommentItem key={c.id} comment={c} />
+          <CommentItem key={c.id} comment={c} onOpenEditMenu={handleOpenCommentEdit} />
         ))}
         {standaloneSketches.map((sk) => (
           <SketchItem key={sk.id} sketch={sk} />
@@ -722,7 +726,11 @@ export default function Canvas() {
           const groupSketches = sketches.filter((sk) => g.memberIds.includes(sk.id));
 
           return (
-            <GroupItem key={g.id} group={g}>
+            <GroupItem
+              key={g.id}
+              group={g}
+              onOpenEditMenu={(pos) => handleOpenGroupEdit(g.id, pos)}
+            >
               {groupImages.map((img) => (
                 <ImageItem
                   key={img.id}
@@ -737,6 +745,7 @@ export default function Canvas() {
                   comment={c}
                   parentX={g.x}
                   parentY={g.y}
+                  onOpenEditMenu={handleOpenCommentEdit}
                 />
               ))}
               {groupSketches.map((sk) => (
@@ -752,45 +761,73 @@ export default function Canvas() {
         })}
       </div>
       <PresenceBar onlineUsers={onlineUsers} drawingUsers={drawingUsers} />
-      <div className="moodboard-canvas-hint">Przeciągnij obrazki tutaj</div>
-      <div className="moodboard-canvas-zoom-controls" onPointerDown={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          className="moodboard-zoom-btn"
-          onClick={() => setScale((s) => Math.min(MAX_SCALE, s * 1.25))}
-          title="Powiększ (Ctrl + scroll up)"
-        >
-          +
-        </button>
-        <span className="moodboard-zoom-level">{Math.round(scale * 100)}%</span>
-        <button
-          type="button"
-          className="moodboard-zoom-btn"
-          onClick={() => setScale((s) => Math.max(MIN_SCALE, s / 1.25))}
-          title="Pomniejsz (Ctrl + scroll down)"
-        >
-          −
-        </button>
-        <button
-          type="button"
-          className="moodboard-zoom-btn moodboard-zoom-btn--reset"
-          onClick={() => {
-            setScale(1);
-            setTranslateX(0);
-            setTranslateY(0);
-          }}
-          title="Resetuj widok (100%)"
-        >
-          ⌂
-        </button>
-        <button
-          type="button"
-          className="moodboard-zoom-btn moodboard-zoom-btn--fit"
-          onClick={handleFitToView}
-          title="Pokaż wszystko"
-        >
-          ⛶
-        </button>
+      {/* Zoom na środku, pomoc po prawej stronie ekranu */}
+      <div className="moodboard-canvas-bottom-controls" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="moodboard-canvas-bottom-controls__spacer" aria-hidden="true" />
+        <div className="moodboard-canvas-zoom-controls">
+          <button
+            type="button"
+            className="moodboard-zoom-btn"
+            onClick={() => setScale((s) => Math.min(MAX_SCALE, s * 1.25))}
+            title="Powiększ (Ctrl + scroll up)"
+          >
+            +
+          </button>
+          <span className="moodboard-zoom-level">{Math.round(scale * 100)}%</span>
+          <button
+            type="button"
+            className="moodboard-zoom-btn"
+            onClick={() => setScale((s) => Math.max(MIN_SCALE, s / 1.25))}
+            title="Pomniejsz (Ctrl + scroll down)"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            className="moodboard-zoom-btn moodboard-zoom-btn--reset"
+            onClick={() => {
+              setScale(1);
+              setTranslateX(0);
+              setTranslateY(0);
+            }}
+            title="Resetuj widok (100%)"
+          >
+            ⌂
+          </button>
+          <button
+            type="button"
+            className="moodboard-zoom-btn moodboard-zoom-btn--fit"
+            onClick={handleFitToView}
+            title="Pokaż wszystko"
+          >
+            ⛶
+          </button>
+        </div>
+        <div className="moodboard-canvas-bottom-controls__right">
+          <div
+            className="moodboard-help-wrapper"
+            aria-label="Pomoc"
+          >
+            <div className="moodboard-help-panel">
+              <div className="moodboard-help-panel-title">Funkcje moodboardu</div>
+              <ul className="moodboard-help-list">
+                <li><strong>Obrazki:</strong> przeciągnij pliki na kanwę; kliknij — zaznaczenie, przesuwanie, 8 uchwytów do zmiany rozmiaru; przycisk × usuwa; „Rysuj” (D) — adnotacje na obrazku.</li>
+                <li><strong>Komentarze:</strong> prawy przycisk na pustym miejscu → „Dodaj komentarz”; kliknij — edycja tekstu. Kolor, czcionka, rozmiar tylko przez ikonę ołówka (po zaznaczeniu); kosz usuwa.</li>
+                <li><strong>Szkice:</strong> prawy przycisk → „Dodaj szkic”; kliknij — pasek rysowania (D), narzędzia, kolory; prawy przycisk na etykiecie — zmiana nazwy, usunięcie.</li>
+                <li><strong>Grupy:</strong> Shift + przeciągnij zaznaczenie na pustym obszarze obejmujące elementy. Prawy przycisk na grupie lub ikona ołówka po zaznaczeniu — menu (nazwa, kolory, rozgrupuj, dodaj komentarz); kosz — usuwa grupę.</li>
+                <li><strong>Widok:</strong> lewy przycisk na pustym miejscu — przesuwanie kanwy; Ctrl + scroll — zoom; przyciski +/−, ⌂ (reset), ⛶ (pokaż wszystko).</li>
+              </ul>
+            </div>
+            <button
+              type="button"
+              className="moodboard-help-btn"
+              title="Pomoc — funkcje moodboardu"
+              aria-label="Pomoc"
+            >
+              ?
+            </button>
+          </div>
+        </div>
       </div>
       {/* Selection box for Shift+drag */}
       {selectionBox && (

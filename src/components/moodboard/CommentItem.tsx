@@ -37,9 +37,10 @@ interface CommentItemProps {
   comment: MoodboardComment;
   parentX?: number;
   parentY?: number;
+  onOpenEditMenu?: (id: string, pos: { x: number; y: number }) => void;
 }
 
-const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, parentY = 0 }: CommentItemProps) {
+const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, parentY = 0, onOpenEditMenu }: CommentItemProps) {
   const {
     updateComment,
     removeComment,
@@ -51,9 +52,8 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
   } = useMoodboard();
   const isSelected = selectedId === comment.id && selectedType === 'comment';
   const [isDragging, setIsDragging] = useState(false);
-  const [resizing, setResizing] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(
-    null
-  );
+  type ResizeHandle = 'se' | 'sw' | 'ne' | 'nw' | 'n' | 's' | 'e' | 'w';
+  const [resizing, setResizing] = useState<ResizeHandle | null>(null);
   const itemRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const resizeStartRef = useRef({
@@ -69,7 +69,7 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
     (e: React.PointerEvent) => {
       if (resizing) return;
       const target = e.target as HTMLElement;
-      if (target.closest('.moodboard-item-delete')) return;
+      if (target.closest('.moodboard-item-delete') || target.closest('.moodboard-item-edit')) return;
       if (target.closest('.moodboard-resize-handle')) return;
       e.stopPropagation();
       setSelected(comment.id, 'comment');
@@ -170,9 +170,9 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
   }, [isDragging, autoGroupItem, setHoveredGroup, comment.id, comment.x, comment.y, comment.width, comment.height]);
 
   const onResizeHandlePointerDown = useCallback(
-    (e: React.PointerEvent, corner: 'se' | 'sw' | 'ne' | 'nw') => {
+    (e: React.PointerEvent, handle: ResizeHandle) => {
       e.stopPropagation();
-      setResizing(corner);
+      setResizing(handle);
       resizeStartRef.current = {
         x: e.clientX,
         y: e.clientY,
@@ -249,30 +249,37 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
       </div>
       {isSelected && (
         <>
+          {onOpenEditMenu && (
+            <button
+              type="button"
+              className="moodboard-item-edit"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenEditMenu(comment.id, { x: e.clientX, y: e.clientY });
+              }}
+              aria-label="Menu edycji"
+              title="Menu edycji"
+            >
+              <i className="las la-pen" aria-hidden />
+            </button>
+          )}
           <button
             type="button"
             className="moodboard-item-delete"
             onClick={onDelete}
-            aria-label="Usuń"
+            aria-label="Usuń komentarz"
+            title="Usuń komentarz"
           >
-            ×
+            <i className="las la-trash-alt" aria-hidden />
           </button>
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--se"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'se')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--sw"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'sw')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--ne"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'ne')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--nw"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')}
-          />
+          <div className="moodboard-resize-handle moodboard-resize-handle--nw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--n" onPointerDown={(e) => onResizeHandlePointerDown(e, 'n')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--ne" onPointerDown={(e) => onResizeHandlePointerDown(e, 'ne')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--e" onPointerDown={(e) => onResizeHandlePointerDown(e, 'e')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--se" onPointerDown={(e) => onResizeHandlePointerDown(e, 'se')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--s" onPointerDown={(e) => onResizeHandlePointerDown(e, 's')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--sw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'sw')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--w" onPointerDown={(e) => onResizeHandlePointerDown(e, 'w')} />
         </>
       )}
     </div>

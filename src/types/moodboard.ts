@@ -1,6 +1,38 @@
 /** Tryb narzedzia rysowania */
 export type DrawingTool = 'pen' | 'rect' | 'circle' | 'line' | 'eraser';
 
+/** Konfiguracja paska rysowania (narzędzia, kolory, grubości) – domyślna lub dla grupy */
+export interface MoodboardDrawingConfig {
+  /** Dostępne narzędzia w kolejności wyświetlania */
+  tools: DrawingTool[];
+  /** Dostępne kolory obrysu (hex) */
+  strokeColors: string[];
+  /** Dostępne grubości linii (px) */
+  strokeWidths: number[];
+  /** Domyślne narzędzie przy wejściu w tryb rysowania (opcjonalne) */
+  defaultTool?: DrawingTool;
+  /** Domyślny kolor (opcjonalne) */
+  defaultColor?: string;
+  /** Domyślna grubość (opcjonalne) */
+  defaultWidth?: number;
+}
+
+/** Pełna konfiguracja paska rysowania: domyślna + nadpisania per grupa */
+export interface MoodboardDrawingConfigMap {
+  default: MoodboardDrawingConfig;
+  byGroup: Record<string, MoodboardDrawingConfig>;
+}
+
+/** Domyślna konfiguracja paska rysowania (zgodna z obecnym Toolbar) */
+export const DEFAULT_MOODBOARD_DRAWING_CONFIG: MoodboardDrawingConfig = {
+  tools: ['pen', 'rect', 'circle', 'line', 'eraser'],
+  strokeColors: ['#000000', '#ef4444', '#3b82f6', '#22c55e', '#f97316', '#ffffff'],
+  strokeWidths: [1, 3, 5, 10, 20],
+  defaultTool: 'pen',
+  defaultColor: '#000000',
+  defaultWidth: 3,
+};
+
 /** Pojedyncza kreska (freehand lub eraser) */
 export interface MoodboardStroke {
   id: string;

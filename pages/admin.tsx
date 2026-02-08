@@ -12,13 +12,14 @@ import { CacheMonitorSection } from '../src/components/admin/CacheMonitorSection
 import { VolumeBrowserSection } from '../src/components/admin/VolumeBrowserSection';
 import { DataStorageSection } from '../src/components/admin/DataStorageSection';
 import { ProjectsSection } from '../src/components/admin/ProjectsSection';
+import { MoodboardDrawingConfigSection } from '../src/components/admin/MoodboardDrawingConfigSection';
 import { useAdminData } from '../src/hooks/useAdminData';
 import { useAdminGroups } from '../src/hooks/useAdminGroups';
 import { useAdminSettings } from '../src/hooks/useAdminSettings';
 import type { AdminAuthStatus } from '../src/types/admin';
 import { logger } from '../src/utils/logger';
 
-type AdminTab = 'overview' | 'users' | 'settings' | 'files' | 'data';
+type AdminTab = 'overview' | 'users' | 'settings' | 'files' | 'data' | 'moodboard';
 
 const ADMIN_TABS: { id: AdminTab; label: string; icon: string }[] = [
   { id: 'overview', label: 'Przegląd', icon: 'la-chart-bar' },
@@ -26,6 +27,7 @@ const ADMIN_TABS: { id: AdminTab; label: string; icon: string }[] = [
   { id: 'settings', label: 'Ustawienia', icon: 'la-cog' },
   { id: 'files', label: 'Pliki', icon: 'la-folder-open' },
   { id: 'data', label: 'Dane', icon: 'la-database' },
+  { id: 'moodboard', label: 'Moodboardy', icon: 'la-palette' },
 ];
 
 const AdminPanel: React.FC = () => {
@@ -77,6 +79,7 @@ const AdminPanel: React.FC = () => {
       'files',
       'volume',
       'data-storage',
+      'moodboard-drawing',
     ])
   );
 
@@ -1061,6 +1064,15 @@ const AdminPanel: React.FC = () => {
             </h2>
             {expandedSections.has('data-storage') && <DataStorageSection />}
           </section>
+        )}
+
+        {/* Tab: Moodboardy – konfiguracja paska rysowania */}
+        {activeTab === 'moodboard' && (
+          <MoodboardDrawingConfigSection
+            isExpanded={expandedSections.has('moodboard-drawing')}
+            onToggleSection={() => toggleSection('moodboard-drawing')}
+            groups={groups}
+          />
         )}
       </div>
     </>

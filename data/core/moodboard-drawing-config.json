@@ -1,0 +1,58 @@
+{
+  "default": {
+    "tools": [
+      "pen",
+      "rect",
+      "circle",
+      "line",
+      "eraser"
+    ],
+    "strokeColors": [
+      "#000000",
+      "#ef4444",
+      "#3b82f6",
+      "#22c55e",
+      "#f97316",
+      "#ffffff"
+    ],
+    "strokeWidths": [
+      1,
+      3,
+      5,
+      10,
+      20
+    ],
+    "defaultTool": "pen",
+    "defaultColor": "#000000",
+    "defaultWidth": 3
+  },
+  "byGroup": {
+    "grp_fha6gymci": {
+      "tools": [
+        "pen",
+        "rect",
+        "circle",
+        "line",
+        "eraser"
+      ],
+      "strokeColors": [
+        "#000000",
+        "#ffa200",
+        "#3b82f6",
+        "#22c55e",
+        "#f915e6",
+        "#00d5ff"
+      ],
+      "strokeWidths": [
+        3,
+        6,
+        9,
+        12,
+        20
+      ],
+      "defaultTool": "pen",
+      "defaultColor": "#000000",
+      "defaultWidth": 3
+    }
+  }
+}

@@ -19,8 +19,11 @@ import {
   DrawingData,
   DrawingTool,
   MOODBOARD_STORAGE_KEY,
+  DEFAULT_MOODBOARD_DRAWING_CONFIG,
+  type MoodboardDrawingConfig,
 } from '@/src/types/moodboard';
 import { useBoardSSE, OnlineUser, DrawingPresence } from '@/src/hooks/useBoardSSE';
+import { useMoodboardDrawingConfig } from '@/src/hooks/useMoodboardDrawingConfig';
 import { useAuth } from '@/src/contexts/AuthContext';
 
 type SelectableType = 'image' | 'comment' | 'group' | 'sketch' | null;
@@ -71,6 +74,8 @@ interface MoodboardContextValue extends MoodboardBoard {
   myColor: string;
   notifyDrawing: (sketchId: string, tool: string) => void;
   notifyIdle: () => void;
+  /** Konfiguracja paska rysowania dla bieżącego moodboarda (wg groupId) */
+  drawingConfig: MoodboardDrawingConfig;
 }
 
 const MoodboardContext = createContext<MoodboardContextValue | null>(null);
@@ -151,6 +156,29 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       [appState.boards, appState.activeId]
     ) ?? appState.boards[0];
   const activeId = activeBoard?.id ?? appState.activeId;
+
+  const { getConfigForGroup } = useMoodboardDrawingConfig();
+  const drawingConfig = useMemo<MoodboardDrawingConfig>(
+    () => getConfigForGroup(activeBoard?.groupId) ?? DEFAULT_MOODBOARD_DRAWING_CONFIG,
+    [getConfigForGroup, activeBoard?.groupId]
+  );
+
+  // Dopasuj narzędzie/kolor/grubość do konfiguracji gdy zmieni się grupa lub konfiguracja
+  useEffect(() => {
+    if (!drawingConfig) return;
+    setActiveTool((prev) => {
+      if (drawingConfig.tools.includes(prev)) return prev;
+      return drawingConfig.defaultTool ?? drawingConfig.tools[0] ?? 'pen';
+    });
+    setToolColor((prev) => {
+      if (drawingConfig.strokeColors.includes(prev)) return prev;
+      return drawingConfig.defaultColor ?? drawingConfig.strokeColors[0] ?? '#000000';
+    });
+    setToolWidth((prev) => {
+      if (drawingConfig.strokeWidths.includes(prev)) return prev;
+      return drawingConfig.defaultWidth ?? drawingConfig.strokeWidths[0] ?? 3;
+    });
+  }, [drawingConfig]);
 
   useEffect(() => {
     let cancelled = false;
@@ -821,6 +849,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       myColor: boardSSE.myColor,
       notifyDrawing: boardSSE.notifyDrawing,
       notifyIdle: boardSSE.notifyIdle,
+      drawingConfig,
     }),
     [
       activeBoard,
@@ -865,6 +894,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       boardSSE.myColor,
       boardSSE.notifyDrawing,
       boardSSE.notifyIdle,
+      drawingConfig,
     ]
   );
 

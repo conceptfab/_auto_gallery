@@ -26,16 +26,13 @@ const FONT_WEIGHT_OPTIONS: { value: CommentFontWeightKey; label: string }[] = [
   { value: 'bold', label: 'Bold' },
 ];
 
-const DRAWING_TOOLS: { value: DrawingTool; label: string; shortcut: string }[] = [
-  { value: 'pen', label: 'Pen', shortcut: 'P' },
-  { value: 'rect', label: 'Rect', shortcut: 'R' },
-  { value: 'circle', label: 'Circle', shortcut: 'C' },
-  { value: 'line', label: 'Line', shortcut: 'L' },
-  { value: 'eraser', label: 'Eraser', shortcut: 'E' },
-];
-
-const STROKE_COLORS = ['#000000', '#ef4444', '#3b82f6', '#22c55e', '#f97316', '#ffffff'];
-const STROKE_WIDTHS = [1, 3, 5, 10, 20];
+const TOOL_LABELS: Record<DrawingTool, { label: string; shortcut: string }> = {
+  pen: { label: 'Pen', shortcut: 'P' },
+  rect: { label: 'Rect', shortcut: 'R' },
+  circle: { label: 'Circle', shortcut: 'C' },
+  line: { label: 'Line', shortcut: 'L' },
+  eraser: { label: 'Eraser', shortcut: 'E' },
+};
 
 export default function Toolbar() {
   const {
@@ -49,7 +46,11 @@ export default function Toolbar() {
     setToolColor,
     toolWidth,
     setToolWidth,
+    drawingConfig,
   } = useMoodboard();
+  const tools = drawingConfig.tools;
+  const strokeColors = drawingConfig.strokeColors;
+  const strokeWidths = drawingConfig.strokeWidths;
   const [color, setColor] = useState<CommentColorKey>(DEFAULT_COMMENT.color);
   const [fontWeight, setFontWeight] = useState<CommentFontWeightKey>(
     DEFAULT_COMMENT.fontWeight
@@ -155,24 +156,27 @@ export default function Toolbar() {
       {drawingMode && (
         <div className="moodboard-toolbar-row moodboard-toolbar-drawing">
           <div className="moodboard-toolbar-drawing-tools">
-            {DRAWING_TOOLS.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                className="moodboard-toolbar-tool-btn"
-                aria-pressed={activeTool === t.value}
-                title={`${t.label} (${t.shortcut})`}
-                onClick={() => setActiveTool(t.value)}
-              >
-                {t.label}
-              </button>
-            ))}
+            {tools.map((t) => {
+              const meta = TOOL_LABELS[t];
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  className="moodboard-toolbar-tool-btn"
+                  aria-pressed={activeTool === t}
+                  title={meta ? `${meta.label} (${meta.shortcut})` : t}
+                  onClick={() => setActiveTool(t)}
+                >
+                  {meta ? meta.label : t}
+                </button>
+              );
+            })}
           </div>
 
           <div className="moodboard-toolbar-separator" />
 
           <div className="moodboard-toolbar-drawing-colors">
-            {STROKE_COLORS.map((c) => (
+            {strokeColors.map((c) => (
               <button
                 key={c}
                 type="button"
@@ -195,7 +199,7 @@ export default function Toolbar() {
           <div className="moodboard-toolbar-separator" />
 
           <div className="moodboard-toolbar-drawing-widths">
-            {STROKE_WIDTHS.map((w) => (
+            {strokeWidths.map((w) => (
               <button
                 key={w}
                 type="button"

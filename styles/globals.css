@@ -260,7 +260,7 @@ a {
   font-size: 0.85rem;
   font-weight: 500;
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: 2px;
   transition: background-color 0.3s ease;
 }
 
@@ -295,7 +295,7 @@ a {
 /* Wrapper for all folder types */
 .folder-wrapper {
   margin-bottom: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -1178,7 +1178,7 @@ a {
   margin-bottom: 40px;
   padding: 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -1207,7 +1207,7 @@ a {
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.3s ease;
@@ -1284,7 +1284,7 @@ a {
   padding: 40px 20px;
   background: #fff5f5;
   border: 2px solid #fed7d7;
-  border-radius: 12px;
+  border-radius: 6px;
   margin: 20px 0;
 }
 
@@ -1302,7 +1302,7 @@ a {
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
 }
@@ -1335,7 +1335,7 @@ a {
   text-align: center;
   padding: 60px 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -1508,7 +1508,7 @@ a {
   min-height: 26px !important;
   flex-shrink: 0 !important;
   border: 2px solid #ff0000 !important;
-  border-radius: 4px;
+  border-radius: 2px;
   background: #ffcccc !important;
   display: block !important;
   visibility: visible !important;
@@ -1529,7 +1529,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 2px;
   transition: all 0.2s ease;
 }
 
@@ -1633,7 +1633,7 @@ a {
   position: relative;
   background: #f8f8f8;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
@@ -1740,7 +1740,7 @@ a {
   min-width: 52px;
   min-height: 52px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   background-size: cover;
   background-position: center;
@@ -1766,7 +1766,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 3px;
   transition: all 0.2s ease;
 }
 
@@ -1783,7 +1783,7 @@ a {
   z-index: 9999;
   pointer-events: none;
   border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   background: #fff;
@@ -1920,7 +1920,7 @@ a {
 .cache-progress-modal {
   background: white;
   border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: 6px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   padding: 30px;
   max-width: 500px;
@@ -1970,7 +1970,7 @@ a {
   width: 100%;
   height: 8px;
   background: #f0f0f0;
-  border-radius: 4px;
+  border-radius: 2px;
   overflow: hidden;
   margin-bottom: 15px;
 }
@@ -1980,7 +1980,7 @@ a {
   height: 100%;
   background: linear-gradient(90deg, #007bff, #0056b3);
   transition: width 0.3s ease;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 /* Current file being processed */
@@ -2005,7 +2005,7 @@ a {
   padding: 10px;
   background: #fff5f5;
   border: 1px solid #fed7d7;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 
 /* ========================================
@@ -2119,7 +2119,7 @@ a {
   /* Mobile - proporcje obrazka */
   .modal-content {
     max-width: calc(100vw - 16px);
-    border-radius: 6px;
+    border-radius: 3px;
   }
 
   .modal-image-wrapper {
@@ -2185,7 +2185,7 @@ a {
     color: #111827;
     width: 29px;
     height: 29px;
-    border-radius: 6px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2211,7 +2211,7 @@ a {
   margin: 1rem 0;
   padding: 1rem;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 4px;
   background: #f9f9f9;
 }
 
@@ -2242,7 +2242,7 @@ a {
   color: white;
   border: none;
   padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   font-size: 0.9rem;
   display: flex;
@@ -2277,7 +2277,7 @@ a {
 .confirm-content {
   background: white;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 4px;
   max-width: 400px;
   width: 90%;
 }
@@ -2296,7 +2296,7 @@ a {
   background: #fff3cd;
   border: 1px solid #ffeaa7;
   padding: 0.75rem;
-  border-radius: 4px;
+  border-radius: 2px;
   margin: 1rem 0;
   display: flex;
   align-items: center;
@@ -2320,7 +2320,7 @@ a {
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
 }
 
@@ -2333,7 +2333,7 @@ a {
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
 }
 
@@ -2345,7 +2345,7 @@ a {
 .conversion-progress {
   padding: 1rem;
   border: 1px solid #007bff;
-  border-radius: 6px;
+  border-radius: 3px;
   background: #f8f9fa;
 }
 
@@ -2370,7 +2370,7 @@ a {
 .progress-bar {
   position: relative;
   background: #e9ecef;
-  border-radius: 4px;
+  border-radius: 2px;
   height: 24px;
   margin-bottom: 0.5rem;
 }
@@ -2378,7 +2378,7 @@ a {
 .progress-fill {
   background: #007bff;
   height: 100%;
-  border-radius: 4px;
+  border-radius: 2px;
   transition: width 0.3s ease;
   min-width: 2px;
 }
@@ -2455,7 +2455,7 @@ a {
   padding: 1rem;
   background: #d4edda;
   border: 1px solid #c3e6cb;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .completion-message {
@@ -2477,7 +2477,7 @@ a {
   padding: 1rem;
   background: #f8d7da;
   border: 1px solid #f5c6cb;
-  border-radius: 4px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2497,7 +2497,7 @@ a {
   margin-top: 1rem;
   padding: 1rem;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #e9ecef;
 }
 
@@ -2540,7 +2540,7 @@ a {
 .current-file {
   background: #fff;
   border: 1px solid #e9ecef;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 1rem;
   margin-bottom: 1rem;
 }
@@ -2582,13 +2582,13 @@ a {
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   background: #f8f9fa;
-  border-radius: 20px;
+  border-radius: 10px;
   border: 1px solid #dee2e6;
 }
 
 .format {
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
@@ -2645,7 +2645,7 @@ a {
   max-height: 200px;
   overflow-y: auto;
   border: 1px solid #e9ecef;
-  border-radius: 6px;
+  border-radius: 3px;
   background: #fff;
 }
 
@@ -2685,7 +2685,7 @@ a {
   background: #007bff;
   color: white;
   padding: 0.2rem 0.5rem;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 0.7rem;
   font-weight: bold;
   text-transform: uppercase;
@@ -2801,7 +2801,7 @@ a {
 .detail-card {
   background: #fff;
   border: 1px solid #e9ecef;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 1rem;
   text-align: center;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -2856,7 +2856,7 @@ a {
   background: #ffffff;
   color: #111827;
   padding: 16px 18px;
-  border-radius: 10px;
+  border-radius: 5px;
   text-align: left;
   border: 1px solid #e5e7eb;
 }
@@ -2947,7 +2947,7 @@ a {
   padding: 8px 16px;
   border: 1px solid #ddd;
   background: white;
-  border-radius: 20px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 12.8px;
@@ -2963,7 +2963,7 @@ a {
 .stats-section {
   background: white;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 20px;
   border: 1px solid #e5e7eb;
 }
@@ -2998,7 +2998,7 @@ a {
   padding: 1.5rem;
   background: #f8d7da;
   border: 1px solid #f5c6cb;
-  border-radius: 8px;
+  border-radius: 4px;
   text-align: center;
 }
 
@@ -3106,7 +3106,7 @@ a {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  border-radius: 6px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transform: translateX(100%);
@@ -3248,7 +3248,7 @@ a {
   width: 100%;
   height: auto;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .modal-image {
@@ -3282,7 +3282,7 @@ a {
 .login-box {
   background: white;
   padding: 40px;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
@@ -3343,7 +3343,7 @@ a {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 16px;
   box-sizing: border-box;
 }
@@ -3359,7 +3359,7 @@ a {
   width: 100%;
   padding: 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 16px;
   cursor: pointer;
 }
@@ -3413,7 +3413,7 @@ a {
   padding: 10px;
   background-color: #fff3cd;
   border: 1px solid #ffeaa7;
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 14px;
   color: #856404;
   text-align: left;
@@ -3433,7 +3433,7 @@ a {
 .login-message {
   margin-top: 20px;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 14px;
 }
 
@@ -3454,7 +3454,7 @@ a {
   margin-top: 30px;
   padding: 15px;
   background-color: #f9f9f9;
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 12px;
   color: #666;
 }
@@ -3605,7 +3605,7 @@ a {
 .admin-card {
   background: #ffffff;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -3615,7 +3615,7 @@ a {
 }
 
 .admin-btn {
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
   font-size: 14px;
   padding: 8px 14px;
@@ -3672,7 +3672,7 @@ a {
 
 .admin-list-item {
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 3px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -3691,7 +3691,7 @@ a {
 .admin-form-box {
   background: #ffffff;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   margin-bottom: 20px;
   border: 1px solid #e5e7eb;
 }
@@ -3711,7 +3711,7 @@ a {
 
 .admin-input {
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: 2px;
   border: 1px solid #d1d5db;
   font-size: 14px;
 }
@@ -3740,7 +3740,7 @@ a {
   flex-direction: column;
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 }
@@ -3894,7 +3894,7 @@ a {
   text-align: center;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 24px 16px;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
@@ -3963,7 +3963,7 @@ a {
   color: #fff;
   background: #6366f1;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
 }
@@ -4001,7 +4001,7 @@ a {
 .design-revision-card {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 6px;
   overflow: hidden;
   min-width: 0;
   max-width: 400px;
@@ -4072,7 +4072,7 @@ a {
   color: rgba(255, 255, 255, 0.95);
   background: rgba(0, 0, 0, 0.5);
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
@@ -4125,7 +4125,7 @@ a {
   color: #374151;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
 }
@@ -4237,7 +4237,7 @@ a {
 
 .design-gallery-inner {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
@@ -4249,7 +4249,7 @@ a {
 .design-gallery-inner--single {
   display: block;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   width: fit-content;
   height: fit-content;
   max-width: 90vw;
@@ -4292,7 +4292,7 @@ a {
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   text-align: left;
 }
@@ -4306,7 +4306,7 @@ a {
   width: 100%;
   height: 180px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   display: block;
 }
@@ -4356,7 +4356,7 @@ a {
   margin: 0;
   padding: 8px 14px;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .design-gallery-single-counter {
@@ -4377,7 +4377,7 @@ a {
   background: rgba(0, 0, 0, 0.2);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   text-decoration: none;
   cursor: pointer;
   font-size: 20px;
@@ -4404,7 +4404,7 @@ a {
 
 .design-edit-modal {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 24px;
   width: 100%;
   max-width: 480px;
@@ -4471,7 +4471,7 @@ a {
   height: auto;
   max-height: 120px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 3px;
   border: 1px solid #e5e7eb;
 }
 
@@ -4516,7 +4516,7 @@ a {
   color: #6366f1;
   background: transparent;
   border: 1px solid #6366f1;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
 }
@@ -4582,7 +4582,7 @@ a {
   color: #9ca3af;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: color 0.2s ease, background 0.2s ease;
 }
@@ -4655,7 +4655,7 @@ a {
   gap: 2px;
   padding: 3px 4px 3px 10px;
   border: none;
-  border-radius: 5px 5px 0 0;
+  border-radius: 2px 2px 0 0;
   background: transparent;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.78rem;
@@ -4705,7 +4705,7 @@ a {
   height: 20px;
   padding: 0;
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   background: transparent;
   color: #666;
   font-size: 0.95rem;
@@ -4736,7 +4736,7 @@ a {
   padding: 4px 0;
   background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   z-index: 50;
 }
@@ -4840,7 +4840,7 @@ a {
   max-width: 320px;
   padding: 4px 8px;
   border: 1px solid #333;
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 0.8rem;
   font-weight: 500;
   font-family: inherit;
@@ -4891,13 +4891,13 @@ a {
   flex: 1 1 auto;
   min-height: 0;
   padding-bottom: 64px;
-  background-color: #fafafa;
-  background-image: linear-gradient(
-      rgba(150, 150, 150, 0.15) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(150, 150, 150, 0.15) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: #fff;
+  background-image: radial-gradient(
+    circle,
+    rgba(180, 180, 180, 0.35) 1px,
+    transparent 1px
+  );
+  background-size: 12px 12px;
   position: relative;
   overflow: hidden;
   cursor: grab;
@@ -4929,71 +4929,181 @@ a {
   min-height: 100%;
 }
 
-.moodboard-canvas-hint {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.9rem;
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.moodboard-canvas--drag-over .moodboard-canvas-hint {
-  color: #6366f1;
-}
-
-.moodboard-canvas-zoom-controls {
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
+/* Pasek dolny: zoom na środku, pomoc po prawej stronie ekranu */
+.moodboard-canvas-bottom-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  padding: 6px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  z-index: 85;
+  height: fit-content;
+  min-height: 0;
+  pointer-events: auto;
 }
 
+.moodboard-canvas-bottom-controls__spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.moodboard-canvas-bottom-controls__right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Kontrolki zoomu — czarne tło, delikatne zaokrąglenie (25%) */
+.moodboard-canvas-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1e1e20 !important;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.moodboard-canvas-zoom-controls .moodboard-zoom-btn,
 .moodboard-zoom-btn {
   width: 28px;
   height: 28px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #fff;
-  color: #374151;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 8px;
+  background: transparent !important;
+  color: #fff;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .moodboard-zoom-btn:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .moodboard-zoom-btn:active {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .moodboard-zoom-btn--reset {
   font-size: 14px;
 }
 
+.moodboard-canvas-zoom-controls .moodboard-zoom-level,
 .moodboard-zoom-level {
   font-size: 12px;
   font-weight: 500;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.9);
   min-width: 40px;
   text-align: center;
+}
+
+/* Wymuszenie czarnego tła — żadne dziedziczenie ani reset nie nadpisze */
+.moodboard-canvas .moodboard-canvas-zoom-controls,
+.moodboard-canvas-zoom-controls {
+  background-color: #1e1e20 !important;
+  background: #1e1e20 !important;
+}
+
+/* Ikona pomocy — obok zoomu, okno przy najechaniu (zwarte, nie na całą wysokość) */
+.moodboard-help-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  height: fit-content;
+  flex-shrink: 0;
+}
+
+.moodboard-help-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: #1e1e20;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: background 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+.moodboard-help-btn:hover {
+  background: #2d2d30;
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.moodboard-help-panel {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: max-content;
+  max-width: 320px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #1e1e20;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  padding: 10px 14px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.moodboard-help-wrapper:hover .moodboard-help-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.moodboard-help-panel-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.moodboard-help-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.moodboard-help-list li {
+  margin-bottom: 6px;
+  padding-left: 0;
+}
+
+.moodboard-help-list li:last-child {
+  margin-bottom: 0;
+}
+
+.moodboard-help-list strong {
+  color: #fff;
+  font-weight: 600;
 }
 
 .moodboard-drop-error {
@@ -5005,7 +5115,7 @@ a {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.9rem;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -5014,7 +5124,7 @@ a {
 .moodboard-item {
   position: absolute;
   cursor: move;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 
@@ -5023,9 +5133,20 @@ a {
 }
 
 .moodboard-item--selected {
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 1px #7c3aed;
   z-index: 10;
+}
+
+/* Obrazki i szkice: delikatny cień (60% delikatniejszy niż w trybie zaznaczenia) */
+.moodboard-image-item,
+.moodboard-sketch-item {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.moodboard-image-item.moodboard-item--selected,
+.moodboard-sketch-item.moodboard-item--selected {
+  box-shadow: 0 0 0 1px #7c3aed, 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .moodboard-item--dragging {
@@ -5043,8 +5164,33 @@ a {
   object-fit: cover;
   display: block;
   pointer-events: none;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
+}
+
+.moodboard-item-edit {
+  position: absolute;
+  top: 4px;
+  right: 36px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.moodboard-item-edit:hover {
+  background: #7c3aed;
 }
 
 .moodboard-item-delete {
@@ -5054,7 +5200,7 @@ a {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 6px;
+  border-radius: 3px;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   font-size: 1.25rem;
@@ -5074,37 +5220,66 @@ a {
 
 .moodboard-resize-handle {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #6366f1;
-  border: 1px solid #fff;
-  border-radius: 2px;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 1px solid #7c3aed;
+  border-radius: 0;
+  box-shadow: none;
   cursor: nwse-resize;
   z-index: 2;
 }
 
-.moodboard-resize-handle--se {
-  bottom: -2px;
-  right: -2px;
-  cursor: se-resize;
+.moodboard-resize-handle--nw {
+  top: -4px;
+  left: -4px;
+  cursor: nw-resize;
 }
 
-.moodboard-resize-handle--sw {
-  bottom: -2px;
-  left: -2px;
-  cursor: sw-resize;
+.moodboard-resize-handle--n {
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: n-resize;
 }
 
 .moodboard-resize-handle--ne {
-  top: -2px;
-  right: -2px;
+  top: -4px;
+  right: -4px;
   cursor: ne-resize;
 }
 
-.moodboard-resize-handle--nw {
-  top: -2px;
-  left: -2px;
-  cursor: nw-resize;
+.moodboard-resize-handle--e {
+  top: 50%;
+  right: -4px;
+  transform: translateY(-50%);
+  cursor: e-resize;
+}
+
+.moodboard-resize-handle--se {
+  bottom: -4px;
+  right: -4px;
+  cursor: se-resize;
+}
+
+.moodboard-resize-handle--s {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: s-resize;
+}
+
+.moodboard-resize-handle--sw {
+  bottom: -4px;
+  left: -4px;
+  cursor: sw-resize;
+}
+
+.moodboard-resize-handle--w {
+  top: 50%;
+  left: -4px;
+  transform: translateY(-50%);
+  cursor: w-resize;
 }
 
 .moodboard-comment-item {
@@ -5150,7 +5325,7 @@ a {
   background: #b91c1c;
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 3px;
   font-size: 0.875rem;
   cursor: pointer;
 }
@@ -5184,51 +5359,69 @@ a {
   z-index: 999;
 }
 
-/* Context Menu */
+/* Context Menu — 8px zaokrąglenia */
 .moodboard-context-menu {
   position: fixed;
   z-index: 1000;
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: #1e1e20;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  padding: 4px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  padding: 6px 4px;
   min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .moodboard-context-menu-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 10px 20px;
   border: none;
   background: none;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.875rem;
-  color: #333;
+  color: #fff;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s;
+  border-radius: 8px;
+}
+
+.moodboard-context-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.moodboard-context-menu-icon svg {
+  display: block;
 }
 
 .moodboard-context-menu-item:hover {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Comment Edit Panel */
+/* Comment / Group Edit Panel — 8px zaokrąglenia */
 .moodboard-comment-edit-panel {
   position: absolute;
   z-index: 100;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  padding: 12px 14px;
+  background: #1e1e20;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  padding: 14px 18px;
   min-width: 200px;
   max-width: 280px;
 }
 
 .moodboard-edit-panel-section {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .moodboard-edit-panel-section:last-child {
@@ -5239,7 +5432,7 @@ a {
   display: block;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.85);
   margin-bottom: 6px;
 }
 
@@ -5252,8 +5445,8 @@ a {
 .moodboard-edit-panel-color-btn {
   width: 22px;
   height: 22px;
-  border: 2px solid transparent;
-  border-radius: 5px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
   cursor: pointer;
   padding: 0;
   transition: border-color 0.15s, transform 0.12s;
@@ -5261,11 +5454,12 @@ a {
 
 .moodboard-edit-panel-color-btn:hover {
   transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .moodboard-edit-panel-color-btn[aria-pressed='true'] {
-  border-color: #333;
-  box-shadow: 0 0 0 1px #333;
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #fff;
 }
 
 .moodboard-edit-panel-color-btn--none {
@@ -5282,18 +5476,37 @@ a {
 .moodboard-edit-panel-color-input {
   width: 32px;
   height: 24px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
   cursor: pointer;
   padding: 0;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .moodboard-edit-panel-slider {
   width: 100%;
   height: 6px;
-  border-radius: 3px;
+  border-radius: 8px;
   cursor: pointer;
-  accent-color: #6366f1;
+  accent-color: rgba(255, 255, 255, 0.9);
+}
+
+.moodboard-comment-edit-panel .moodboard-edit-panel-input,
+.moodboard-comment-edit-panel input[type="text"],
+.moodboard-comment-edit-panel input[type="number"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 8px;
+  color: #fff !important;
+}
+
+.moodboard-comment-edit-panel input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.moodboard-comment-edit-panel label,
+.moodboard-comment-edit-panel .moodboard-edit-panel-section span {
+  color: rgba(255, 255, 255, 0.85) !important;
 }
 
 .moodboard-edit-panel-weights {
@@ -5305,25 +5518,25 @@ a {
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
   font-size: 0.75rem;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #fff;
-  color: #333;
+  background: transparent;
+  color: #fff;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 }
 
 .moodboard-edit-panel-weight-btn:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .moodboard-edit-panel-weight-btn[aria-pressed='true'] {
-  background: #6366f1;
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
-  border-color: #6366f1;
+  border-color: #fff;
 }
 
 .moodboard-edit-panel-weight-btn[data-weight='normal'] {
@@ -5354,7 +5567,7 @@ a {
 .moodboard-group-item {
   border: 1px dashed #6366f1;
   background: rgba(99, 102, 241, 0.05);
-  border-radius: 4px;
+  border-radius: 2px;
   pointer-events: auto;
   z-index: 10;
 }
@@ -5368,7 +5581,7 @@ a {
   padding: 2px 8px;
   font-size: 0.75rem;
   font-weight: 500;
-  border-radius: 4px 4px 0 0;
+  border-radius: 2px 2px 0 0;
   white-space: nowrap;
 }
 
@@ -5434,7 +5647,7 @@ a {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 7px;
+  border-radius: 1px;
 }
 
 /* Sketch label (above sketch, like group label) */
@@ -5449,7 +5662,7 @@ a {
   color: #fff;
   background: #6366f1;
   padding: 2px 10px;
-  border-radius: 6px 6px 0 0;
+  border-radius: 1px 1px 0 0;
   line-height: 1.3;
   z-index: 20;
   cursor: default;
@@ -5466,44 +5679,45 @@ a {
   color: #fff;
   font: inherit;
   padding: 0 4px;
-  border-radius: 3px;
+  border-radius: 1px;
   outline: none;
   min-width: 60px;
 }
 
-/* Sketch label context menu */
+/* Sketch label context menu — 8px zaokrąglenia */
 .sketch-label-menu {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: #1e1e20;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 4px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  padding: 6px 4px;
   min-width: 140px;
 }
 
 .sketch-label-menu-item {
   display: block;
   width: 100%;
-  padding: 8px 14px;
+  padding: 8px 18px;
   border: none;
   background: none;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.8rem;
-  color: #333;
+  color: #fff;
   text-align: left;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 .sketch-label-menu-item:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .sketch-label-menu-item--danger {
-  color: #b91c1c;
+  color: #fca5a5;
 }
 
 .sketch-label-menu-item--danger:hover {
-  background: rgba(185, 28, 28, 0.08);
+  background: rgba(239, 68, 68, 0.25);
 }
 
 .sketch-label-menu-backdrop {
@@ -5512,47 +5726,60 @@ a {
   z-index: -1;
 }
 
-/* Sketch inline draw-bar — attached below sketch */
+/* Sketch inline draw-bar — 8px zaokrąglenia (wszystkie 4 narożniki) */
 .sketch-drawbar {
   position: absolute;
   left: 0;
   top: 100%;
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 4px 6px;
-  background: #1e1e1e;
-  border: 1px solid #444;
-  border-top: none;
-  border-radius: 0 0 6px 6px;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #1e1e20;
+  border: none;
+  border-radius: 8px;
   white-space: nowrap;
   z-index: 10;
   pointer-events: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
+/* Przycisk Rysuj — kwadrat 28px, padding 6px ze wszystkich stron, SVG wyśrodkowany */
 .sketch-drawbar-draw-btn {
-  padding: 3px 10px;
-  border: 1px solid #6366f1;
-  background: #6366f1;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: #1e1e20;
   color: #fff;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+}
+
+.sketch-drawbar-draw-btn-svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .sketch-drawbar-draw-btn:hover {
-  background: #4f46e5;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .sketch-drawbar-tool {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #555;
-  background: #2a2a2a;
-  color: #ccc;
-  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  color: #fff;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
   display: flex;
@@ -5562,98 +5789,101 @@ a {
 }
 
 .sketch-drawbar-tool:hover {
-  background: #3a3a3a;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .sketch-drawbar-tool[aria-pressed='true'] {
-  background: #6366f1;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #fff;
   color: #fff;
-  border-color: #6366f1;
 }
 
 .sketch-drawbar-sep {
   width: 1px;
   height: 18px;
-  background: #444;
+  background: rgba(255, 255, 255, 0.25);
   margin: 0 2px;
   flex-shrink: 0;
 }
 
 .sketch-drawbar-color {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 2px solid #555;
+  border: 2px solid rgba(255, 255, 255, 0.45);
   padding: 0;
   cursor: pointer;
   transition: transform 0.1s;
+  background: transparent;
 }
 
 .sketch-drawbar-color:hover {
-  transform: scale(1.15);
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .sketch-drawbar-color[aria-pressed='true'] {
   border-color: #fff;
-  box-shadow: 0 0 0 2px #6366f1;
+  box-shadow: 0 0 0 1px #1e1e20, 0 0 0 3px #fff;
 }
 
 .sketch-drawbar-picker {
-  width: 18px;
-  height: 18px;
-  border: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
   padding: 0;
-  background: none;
+  background: transparent;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 8px;
 }
 
 .sketch-drawbar-width {
-  min-width: 22px;
-  height: 22px;
-  border: 1px solid #555;
-  background: #2a2a2a;
-  color: #ccc;
-  border-radius: 4px;
+  min-width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  color: #fff;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.65rem;
-  padding: 0 3px;
+  padding: 0 4px;
   text-align: center;
 }
 
 .sketch-drawbar-width:hover {
-  background: #3a3a3a;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .sketch-drawbar-width[aria-pressed='true'] {
-  background: #6366f1;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #fff;
   color: #fff;
-  border-color: #6366f1;
 }
 
 .sketch-drawbar-done {
-  padding: 3px 8px;
-  border: 1px solid #22c55e;
-  background: #22c55e;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
   color: #fff;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 0.7rem;
   cursor: pointer;
   font-family: inherit;
 }
 
 .sketch-drawbar-done:hover {
-  background: #16a34a;
+  background: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.8);
 }
 
 .sketch-drawbar-delete {
   margin-left: 2px;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #555;
-  background: #2a2a2a;
-  color: #ef4444;
-  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  color: #fca5a5;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
   display: flex;
@@ -5663,7 +5893,7 @@ a {
 }
 
 .sketch-drawbar-delete:hover {
-  background: #ef4444;
+  background: rgba(239, 68, 68, 0.25);
   color: #fff;
   border-color: #ef4444;
 }
@@ -5753,7 +5983,7 @@ a {
   position: absolute;
   inset: -3px;
   border: 2px dashed;
-  border-radius: 10px;
+  border-radius: 5px;
   pointer-events: none;
   z-index: 20;
   display: flex;

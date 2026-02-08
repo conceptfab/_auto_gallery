@@ -9,9 +9,10 @@ const MIN_SIZE = 40;
 interface GroupItemProps {
   group: MoodboardGroup;
   children?: React.ReactNode;
+  onOpenEditMenu?: (pos: { x: number; y: number }) => void;
 }
 
-const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemProps) {
+const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMenu }: GroupItemProps) {
   const {
     updateGroup,
     removeGroup,
@@ -24,7 +25,8 @@ const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemPr
 
   const isSelected = selectedId === group.id && selectedType === 'group';
   const [isDragging, setIsDragging] = useState(false);
-  const [resizing, setResizing] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(null);
+  type ResizeHandle = 'se' | 'sw' | 'ne' | 'nw' | 'n' | 's' | 'e' | 'w';
+  const [resizing, setResizing] = useState<ResizeHandle | null>(null);
   const dragStartRef = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const resizeStartRef = useRef({
     x: 0,
@@ -39,7 +41,7 @@ const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemPr
     (e: React.PointerEvent) => {
       if (resizing) return;
       const target = e.target as HTMLElement;
-      if (target.closest('.moodboard-item-delete')) return;
+      if (target.closest('.moodboard-item-delete') || target.closest('.moodboard-item-edit')) return;
       if (target.closest('.moodboard-resize-handle')) return;
       
       e.stopPropagation();
@@ -132,9 +134,9 @@ const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemPr
   }, []);
 
   const onResizeHandlePointerDown = useCallback(
-    (e: React.PointerEvent, corner: 'se' | 'sw' | 'ne' | 'nw') => {
+    (e: React.PointerEvent, handle: ResizeHandle) => {
       e.stopPropagation();
-      setResizing(corner);
+      setResizing(handle);
       resizeStartRef.current = {
         x: e.clientX,
         y: e.clientY,
@@ -209,6 +211,21 @@ const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemPr
       
       {isSelected && (
         <>
+          {onOpenEditMenu && (
+            <button
+              type="button"
+              className="moodboard-item-edit"
+              style={{ zIndex: 10 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenEditMenu({ x: e.clientX, y: e.clientY });
+              }}
+              aria-label="Menu edycji"
+              title="Menu edycji"
+            >
+              <i className="las la-pen" aria-hidden />
+            </button>
+          )}
           <button
             type="button"
             className="moodboard-item-delete"
@@ -218,22 +235,14 @@ const GroupItem = React.memo(function GroupItem({ group, children }: GroupItemPr
           >
             ×
           </button>
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--se"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'se')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--sw"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'sw')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--ne"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'ne')}
-          />
-          <div
-            className="moodboard-resize-handle moodboard-resize-handle--nw"
-            onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')}
-          />
+          <div className="moodboard-resize-handle moodboard-resize-handle--nw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--n" onPointerDown={(e) => onResizeHandlePointerDown(e, 'n')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--ne" onPointerDown={(e) => onResizeHandlePointerDown(e, 'ne')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--e" onPointerDown={(e) => onResizeHandlePointerDown(e, 'e')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--se" onPointerDown={(e) => onResizeHandlePointerDown(e, 'se')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--s" onPointerDown={(e) => onResizeHandlePointerDown(e, 's')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--sw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'sw')} />
+          <div className="moodboard-resize-handle moodboard-resize-handle--w" onPointerDown={(e) => onResizeHandlePointerDown(e, 'w')} />
         </>
       )}
     </div>
