@@ -7,6 +7,7 @@ import {
   saveMoodboardImage,
 } from '@/src/utils/moodboardStorage';
 import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
+import { getGroupsBaseDir } from '@/src/utils/projectsStoragePath';
 import { sseBroker } from '@/src/lib/sse-broker';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
@@ -190,6 +191,76 @@ async function loadAppStateFromFiles(
   return { boards, activeId: validActiveId };
 }
 
+/** Odczyt boardów z katalogu z przypisaniem groupId (bez migracji obrazów). */
+async function loadBoardsWithGroupId(
+  dir: string,
+  groupIdForBoards: string | undefined
+): Promise<MoodboardBoard[]> {
+  const indexPath = path.join(dir, INDEX_FILENAME);
+  let rawIndex: string;
+  try {
+    rawIndex = await fsp.readFile(indexPath, 'utf8');
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') return [];
+    throw err;
+  }
+  const index = JSON.parse(rawIndex) as unknown;
+  if (
+    !index ||
+    typeof index !== 'object' ||
+    !Array.isArray((index as MoodboardIndex).boardIds)
+  ) {
+    return [];
+  }
+  const { boardIds } = index as MoodboardIndex;
+  const boards: MoodboardBoard[] = [];
+  for (const id of boardIds) {
+    const boardPath = path.join(dir, getBoardFilename(id));
+    try {
+      const raw = await fsp.readFile(boardPath, 'utf8');
+      const board = JSON.parse(raw) as unknown;
+      if (isValidBoard(board)) {
+        boards.push({ ...board, groupId: groupIdForBoards });
+      }
+    } catch {
+      // pomijamy
+    }
+  }
+  return boards;
+}
+
+/** (Admin) Ładuje połączony stan moodboardów ze wszystkich grup + global. */
+async function loadAllGroupsMoodboardState(): Promise<MoodboardAppState> {
+  const allBoards: MoodboardBoard[] = [];
+  const globalDir = await getMoodboardDir(undefined);
+  const globalBoards = await loadBoardsWithGroupId(globalDir, undefined);
+  allBoards.push(...globalBoards);
+
+  const groupsBase = await getGroupsBaseDir();
+  let groupDirs: string[] = [];
+  try {
+    groupDirs = await fsp.readdir(groupsBase);
+  } catch {
+    // brak katalogu grup
+  }
+  for (const gid of groupDirs) {
+    if (gid === 'groups.json') continue;
+    const groupMoodboardDir = path.join(groupsBase, gid, 'moodboard');
+    try {
+      const stat = await fsp.stat(groupMoodboardDir);
+      if (!stat.isDirectory()) continue;
+    } catch {
+      continue;
+    }
+    const groupBoards = await loadBoardsWithGroupId(groupMoodboardDir, gid);
+    allBoards.push(...groupBoards);
+  }
+
+  const boardIds = allBoards.map((b) => b.id);
+  const activeId = boardIds.length > 0 ? boardIds[0] : generateId();
+  return { boards: allBoards, activeId };
+}
+
 function normalizeAppState(body: unknown): MoodboardAppState {
   const obj =
     body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
@@ -219,12 +290,18 @@ async function handler(
 ) {
   // Ustal groupId: admin może podać ?groupId=, user ma z middleware
   const queryGroupId = req.query.groupId as string | undefined;
+  const allGroups = req.isAdmin && req.query.allGroups === '1';
   const groupId = req.isAdmin && queryGroupId ? queryGroupId : req.userGroupId;
 
   const dir = await getMoodboardDir(groupId);
 
   if (req.method === 'GET') {
     try {
+      if (allGroups) {
+        const appState = await loadAllGroupsMoodboardState();
+        return res.status(200).json({ success: true, state: appState });
+      }
+
       await fsp.mkdir(dir, { recursive: true });
 
       let appState = await loadAppStateFromFiles(dir);

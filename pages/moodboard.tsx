@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
 import { useStatsTracker } from '@/src/hooks/useStatsTracker';
@@ -65,9 +66,18 @@ function MoodboardContent({ isAdmin = false }: { isAdmin?: boolean }) {
   );
 }
 
+const ALL_GROUPS_ID = '__all__';
+
 const MoodboardPage: React.FC = () => {
+  const router = useRouter();
   const { authStatus, authLoading } = useProtectedAuth();
   const { trackDesignView } = useStatsTracker();
+  const queryGroupId = router.query.groupId as string | undefined;
+  // Admin bez wyboru grupy w URL = domyślnie widzi WSZYSTKIE moodboardy
+  const selectedGroupId =
+    authStatus?.isAdmin && queryGroupId === undefined
+      ? ALL_GROUPS_ID
+      : queryGroupId;
 
   useEffect(() => {
     if (!authStatus?.isLoggedIn || authLoading) return;
@@ -103,7 +113,7 @@ const MoodboardPage: React.FC = () => {
       </Head>
 
       <main className="design-page moodboard-page">
-        <MoodboardProvider>
+        <MoodboardProvider selectedGroupId={selectedGroupId}>
           <MoodboardContent isAdmin={authStatus?.isAdmin ?? false} />
         </MoodboardProvider>
       </main>

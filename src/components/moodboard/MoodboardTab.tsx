@@ -223,7 +223,10 @@ function TabMenu({
   );
 }
 
-export default function MoodboardTab({ isAdmin = false, groups = [] }: MoodboardTabProps) {
+export default function MoodboardTab({
+  isAdmin = false,
+  groups = [],
+}: MoodboardTabProps) {
   const {
     boards,
     activeId,

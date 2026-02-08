@@ -50,6 +50,11 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
     activeId,
     moveItemToBoard,
   } = useMoodboard();
+  const activeBoard = boards.find((b) => b.id === activeId);
+  const imageGroupId = activeBoard?.groupId;
+  const imageSrc = image.imagePath
+    ? `/api/moodboard/images/${image.imagePath}${imageGroupId ? `?groupId=${encodeURIComponent(imageGroupId)}` : ''}`
+    : image.url;
   const tools = drawingConfig.tools;
   const strokeColors = drawingConfig.strokeColors;
   const strokeWidths = drawingConfig.strokeWidths;
@@ -288,7 +293,7 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
         document.body
       )}
       <img
-        src={image.imagePath ? `/api/moodboard/images/${image.imagePath}` : image.url}
+        src={imageSrc}
         alt=""
         className="moodboard-image-img"
         draggable={false}

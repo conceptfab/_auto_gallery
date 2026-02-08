@@ -4792,6 +4792,386 @@
         "screenHeight": 1200,
         "language": "pl"
       }
+    },
+    {
+      "id": "view_1770580643698_y24g3g",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:57:23.698Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580648791_m5wsfu",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:57:28.791Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580671620_pcqeth",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:57:51.620Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580676784_23dgtw",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:57:56.784Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580680305_qfbkef",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:00.306Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580690044_z4lq39",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:10.044Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580695359_wujgvn",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:15.359Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580699638_roqqei",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:19.638Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580722466_gbzycl",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:42.466Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580734371_7e2myi",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:54.371Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580738985_lcmpuj",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:58:58.985Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580750087_gef9ms",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:59:10.087Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580762480_7f13dl",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T19:59:22.480Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580779599_cz2xtj",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770496873190_h19b54",
+      "timestamp": "2026-02-08T19:59:39.599Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580783952_b7g3ru",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770496873190_h19b54",
+      "timestamp": "2026-02-08T19:59:43.952Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770580790283_yhb4gq",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770496873190_h19b54",
+      "timestamp": "2026-02-08T19:59:50.283Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+      "deviceInfo": {
+        "browser": "Edge",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770581048859_8og5dw",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T20:04:08.859Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770581050170_cnkpa5",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T20:04:10.170Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770581087231_ngw3xw",
+      "email": "michal@conceptfab.com",
+      "sessionId": "sess_1770393424031_d50kyh",
+      "timestamp": "2026-02-08T20:04:47.231Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 1920,
+        "screenHeight": 1200,
+        "language": "pl"
+      }
     }
   ],
   "downloadEvents": []

@@ -22,9 +22,16 @@ interface ProjectTreeItem {
   revisions: RevisionInfo[];
 }
 
+interface GroupTreeItem {
+  groupId: string;
+  moodboard: { boards: MoodboardBoardInfo[] };
+  projects: ProjectTreeItem[];
+}
+
 interface DataStorageTree {
   moodboard: { boards: MoodboardBoardInfo[] };
   projects: ProjectTreeItem[];
+  groups?: GroupTreeItem[];
 }
 
 interface VerifyRepairReport {
@@ -744,80 +751,169 @@ export const DataStorageSection: React.FC = () => {
           /data-storage
         </div>
 
-        {tree?.moodboard?.boards?.length ? (
+        {/* Global (bez grupy) */}
+        {(tree?.moodboard?.boards?.length || tree?.projects?.length) ? (
           <div style={{ borderBottom: '1px solid #e5e7eb' }}>
-            <div style={{ padding: '10px 16px', backgroundColor: '#eff6ff', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="las la-th-large" style={{ color: '#2563eb' }} />
-              moodboard/
+            <div style={{ padding: '10px 16px', backgroundColor: '#e0e7ff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="las la-globe" style={{ color: '#3730a3' }} />
+              Global
             </div>
-            <ul style={{ margin: 0, paddingLeft: '24px', paddingBottom: '8px', listStyle: 'none' }}>
-              {tree.moodboard.boards.map((board) => (
-                <li key={board.id} style={{ padding: '8px 0', fontSize: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedBoardIds.has(board.id)}
-                        onChange={() => toggleBoard(board.id)}
-                        style={{ margin: 0, cursor: 'pointer' }}
-                      />
-                    </label>
-                    <span style={{ color: '#6b7280' }}>—</span>
-                    <span>{board.name || 'Moodboard'}</span>
-                    <span style={{ color: '#9ca3af', fontSize: '12px' }}>({board.id})</span>
-                    <span style={{ color: '#6b7280', fontSize: '12px' }}>
-                      ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'}, {(board.sketchesCount ?? 0)} {(board.sketchesCount ?? 0) === 1 ? 'szkic' : (board.sketchesCount ?? 0) >= 2 && (board.sketchesCount ?? 0) <= 4 ? 'szkice' : 'szkiców'})
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {tree?.moodboard?.boards?.length ? (
+              <div style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ padding: '8px 16px 8px 24px', backgroundColor: '#eff6ff', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="las la-th-large" style={{ color: '#2563eb' }} />
+                  moodboard/
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '40px', paddingBottom: '8px', listStyle: 'none' }}>
+                  {tree.moodboard.boards.map((board) => (
+                    <li key={`global:${board.id}`} style={{ padding: '8px 0', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedBoardIds.has(board.id)}
+                            onChange={() => toggleBoard(board.id)}
+                            style={{ margin: 0, cursor: 'pointer' }}
+                          />
+                        </label>
+                        <span style={{ color: '#6b7280' }}>—</span>
+                        <span>{board.name || 'Moodboard'}</span>
+                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>({board.id})</span>
+                        <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                          ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'}, {(board.sketchesCount ?? 0)} {(board.sketchesCount ?? 0) === 1 ? 'szkic' : (board.sketchesCount ?? 0) >= 2 && (board.sketchesCount ?? 0) <= 4 ? 'szkice' : 'szkiców'})
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {tree?.projects?.length ? (
+              <div>
+                <div style={{ padding: '8px 16px 8px 24px', backgroundColor: '#f0fdf4', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="las la-folder" style={{ color: '#16a34a' }} />
+                  projects/
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '40px', paddingBottom: '12px', listStyle: 'none' }}>
+                  {tree.projects.map((project) => (
+                    <li key={`global:${project.id}`} style={{ padding: '8px 0', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedProjectIds.has(project.id)}
+                            onChange={() => toggleProject(project.id)}
+                            style={{ margin: 0, cursor: 'pointer' }}
+                          />
+                        </label>
+                        <span style={{ color: '#6b7280' }}>—</span>
+                        {project.name}
+                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>({project.id})</span>
+                      </div>
+                      {project.revisions?.length ? (
+                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', listStyle: 'none', color: '#6b7280', fontSize: '13px' }}>
+                          <li style={{ padding: '2px 0' }}>rewizje/</li>
+                          {project.revisions.map((rev) => (
+                            <li key={rev.id} style={{ padding: '2px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span>— {rev.label || rev.id.slice(0, 8)}</span>
+                              {rev.thumbnailPresent && <span title="Miniaturka">🖼</span>}
+                              <span>(galeria: {rev.galleryCount})</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div style={{ paddingLeft: '20px', color: '#9ca3af', fontSize: '12px' }}>Brak rewizji</div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
-        {tree?.projects?.length ? (
-          <div>
-            <div style={{ padding: '10px 16px', backgroundColor: '#f0fdf4', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="las la-folder" style={{ color: '#16a34a' }} />
-              projects/
+        {/* Grupy */}
+        {tree?.groups?.map((group) => (
+          <div key={group.groupId} style={{ borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '10px 16px', backgroundColor: '#fef3c7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="las la-users" style={{ color: '#b45309' }} />
+              Grupa: {group.groupId}
             </div>
-            <ul style={{ margin: 0, paddingLeft: '24px', paddingBottom: '12px', listStyle: 'none' }}>
-              {tree.projects.map((project) => (
-                <li key={project.id} style={{ padding: '8px 0', fontSize: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedProjectIds.has(project.id)}
-                        onChange={() => toggleProject(project.id)}
-                        style={{ margin: 0, cursor: 'pointer' }}
-                      />
-                    </label>
-                    <span style={{ color: '#6b7280' }}>—</span>
-                    {project.name}
-                    <span style={{ color: '#9ca3af', fontSize: '12px' }}>({project.id})</span>
-                  </div>
-                  {project.revisions?.length ? (
-                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', listStyle: 'none', color: '#6b7280', fontSize: '13px' }}>
-                      <li style={{ padding: '2px 0' }}>rewizje/</li>
-                      {project.revisions.map((rev) => (
-                        <li key={rev.id} style={{ padding: '2px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>— {rev.label || rev.id.slice(0, 8)}</span>
-                          {rev.thumbnailPresent && <span title="Miniaturka">🖼</span>}
-                          <span>(galeria: {rev.galleryCount})</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div style={{ paddingLeft: '20px', color: '#9ca3af', fontSize: '12px' }}>Brak rewizji</div>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {group.moodboard?.boards?.length ? (
+              <div style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ padding: '8px 16px 8px 24px', backgroundColor: '#eff6ff', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="las la-th-large" style={{ color: '#2563eb' }} />
+                  moodboard/
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '40px', paddingBottom: '8px', listStyle: 'none' }}>
+                  {group.moodboard.boards.map((board) => (
+                    <li key={`${group.groupId}:${board.id}`} style={{ padding: '8px 0', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedBoardIds.has(board.id)}
+                            onChange={() => toggleBoard(board.id)}
+                            style={{ margin: 0, cursor: 'pointer' }}
+                          />
+                        </label>
+                        <span style={{ color: '#6b7280' }}>—</span>
+                        <span>{board.name || 'Moodboard'}</span>
+                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>({board.id})</span>
+                        <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                          ({board.imagesCount} {board.imagesCount === 1 ? 'obraz' : 'obrazów'}, {(board.sketchesCount ?? 0)} {(board.sketchesCount ?? 0) === 1 ? 'szkic' : (board.sketchesCount ?? 0) >= 2 && (board.sketchesCount ?? 0) <= 4 ? 'szkice' : 'szkiców'})
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {group.projects?.length ? (
+              <div>
+                <div style={{ padding: '8px 16px 8px 24px', backgroundColor: '#f0fdf4', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="las la-folder" style={{ color: '#16a34a' }} />
+                  projects/
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '40px', paddingBottom: '12px', listStyle: 'none' }}>
+                  {group.projects.map((project) => (
+                    <li key={`${group.groupId}:${project.id}`} style={{ padding: '8px 0', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedProjectIds.has(project.id)}
+                            onChange={() => toggleProject(project.id)}
+                            style={{ margin: 0, cursor: 'pointer' }}
+                          />
+                        </label>
+                        <span style={{ color: '#6b7280' }}>—</span>
+                        {project.name}
+                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>({project.id})</span>
+                      </div>
+                      {project.revisions?.length ? (
+                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', listStyle: 'none', color: '#6b7280', fontSize: '13px' }}>
+                          <li style={{ padding: '2px 0' }}>rewizje/</li>
+                          {project.revisions.map((rev) => (
+                            <li key={rev.id} style={{ padding: '2px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span>— {rev.label || rev.id.slice(0, 8)}</span>
+                              {rev.thumbnailPresent && <span title="Miniaturka">🖼</span>}
+                              <span>(galeria: {rev.galleryCount})</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div style={{ paddingLeft: '20px', color: '#9ca3af', fontSize: '12px' }}>Brak rewizji</div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        ))}
 
-        {tree && !tree.moodboard?.boards?.length && !tree.projects?.length ? (
+        {tree && !tree.moodboard?.boards?.length && !tree.projects?.length && (!tree.groups?.length || tree.groups?.every((g) => !g.moodboard?.boards?.length && !g.projects?.length)) ? (
           <div style={{ padding: '16px', color: '#6b7280', fontSize: '14px' }}>
             Brak danych moodboard ani projektów w nowej strukturze. Uruchom skrypt migracji jeśli masz stare dane.
           </div>

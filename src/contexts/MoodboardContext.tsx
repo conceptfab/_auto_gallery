@@ -84,12 +84,52 @@ const MoodboardContext = createContext<MoodboardContextValue | null>(null);
 const DEBOUNCE_SAVE_MS = 2500;
 const API_STATE = '/api/moodboard/state';
 
+const ALL_GROUPS_ID = '__all__';
+
+function getStateApiUrl(selectedGroupId: string | undefined): string {
+  if (selectedGroupId === undefined) return API_STATE;
+  if (selectedGroupId === ALL_GROUPS_ID) return `${API_STATE}?allGroups=1`;
+  return `${API_STATE}?groupId=${encodeURIComponent(selectedGroupId)}`;
+}
+
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-async function saveStateToServer(appState: MoodboardAppState): Promise<void> {
-  const res = await fetch(API_STATE, {
+async function saveStateToServer(
+  appState: MoodboardAppState,
+  apiUrl: string,
+  selectedGroupId: string | undefined
+): Promise<void> {
+  if (selectedGroupId === ALL_GROUPS_ID) {
+    const byGroup = new Map<string, MoodboardBoard[]>();
+    for (const b of appState.boards) {
+      const gid = b.groupId ?? '';
+      if (!byGroup.has(gid)) byGroup.set(gid, []);
+      byGroup.get(gid)!.push(b);
+    }
+    for (const [gid, boards] of byGroup) {
+      if (boards.length === 0) continue;
+      const groupActiveId = appState.boards.some((b) => b.id === appState.activeId && (b.groupId ?? '') === gid)
+        ? appState.activeId
+        : boards[0].id;
+      const groupUrl = gid ? `${API_STATE}?groupId=${encodeURIComponent(gid)}` : API_STATE;
+      const res = await fetch(groupUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boards, activeId: groupActiveId }),
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          (data as { error?: string })?.error || `Zapis grupy nie powiódł się (${res.status})`
+        );
+      }
+    }
+    return;
+  }
+  const res = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(appState),
@@ -112,7 +152,15 @@ const emptyBoard = (): MoodboardBoard => ({
   groups: [],
 });
 
-export function MoodboardProvider({ children }: { children: React.ReactNode }) {
+export function MoodboardProvider({
+  children,
+  selectedGroupId,
+}: {
+  children: React.ReactNode;
+  /** Dla admina: grupa, której moodboard jest wyświetlany (undefined = domyślna grupa backendu, '' = global). */
+  selectedGroupId?: string;
+}) {
+  const apiUrl = getStateApiUrl(selectedGroupId);
   const [appState, setAppState] = useState<MoodboardAppState>(() => {
     // Try to load from localStorage for instant feedback
     if (typeof window !== 'undefined') {
@@ -183,9 +231,10 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
-        const res = await fetch(API_STATE, { credentials: 'same-origin' });
+        const res = await fetch(apiUrl, { credentials: 'same-origin' });
         if (!res.ok) {
           if (!cancelled) {
             setLoadError('Nie udało się załadować moodboarda.');
@@ -223,12 +272,12 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [apiUrl]);
 
   // Auto-refetch when another user updates the board (SSE board:updated)
   useEffect(() => {
     if (!boardSSE.boardUpdated) return;
-    fetch(API_STATE, { credentials: 'same-origin' })
+    fetch(apiUrl, { credentials: 'same-origin' })
       .then(r => r.json())
       .then(data => {
         if (data.success && data.state) {
@@ -240,7 +289,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {});
-  }, [boardSSE.boardUpdated]);
+  }, [boardSSE.boardUpdated, apiUrl]);
 
   const setSelected = useCallback(
     (id: string | null, type: SelectableType) => {
@@ -259,13 +308,13 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       saveTimeoutRef.current = null;
-      saveStateToServer(nextAppState).then(
+      saveStateToServer(nextAppState, apiUrl, selectedGroupId).then(
         () => setSaveError(null),
         (err) =>
           setSaveError(err instanceof Error ? err.message : 'Błąd zapisu')
       );
     }, DEBOUNCE_SAVE_MS);
-  }, []);
+  }, [apiUrl, selectedGroupId]);
 
   // Save state immediately (e.g. on unmount or critical actions)
   const saveStateImmediate = useCallback(async (nextAppState: MoodboardAppState) => {
@@ -274,12 +323,12 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       saveTimeoutRef.current = null;
     }
     try {
-      await saveStateToServer(nextAppState);
+      await saveStateToServer(nextAppState, apiUrl, selectedGroupId);
       setSaveError(null);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Błąd zapisu');
     }
-  }, []);
+  }, [apiUrl, selectedGroupId]);
 
   const setActiveBoard = useCallback(
     (id: string) => {
@@ -889,14 +938,21 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
 
   const appStateRef = useRef(appState);
   appStateRef.current = appState;
+  const apiUrlRef = useRef(apiUrl);
+  const selectedGroupIdRef = useRef(selectedGroupId);
+  apiUrlRef.current = apiUrl;
+  selectedGroupIdRef.current = selectedGroupId;
 
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
-        // Zapisz natychmiast przy odmontowaniu jeśli jest coś w kolejce
-        saveStateToServer(appStateRef.current).catch(console.error);
+        saveStateToServer(
+          appStateRef.current,
+          apiUrlRef.current,
+          selectedGroupIdRef.current
+        ).catch(console.error);
       }
     };
   }, []);
