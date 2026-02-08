@@ -1,6 +1,13 @@
 {
   "activeCodes": {},
-  "adminCodes": {},
+  "adminCodes": {
+    "michal@conceptfab.com": {
+      "email": "michal@conceptfab.com",
+      "code": "1D2FC6",
+      "expiresAt": "2026-02-08T10:02:32.690Z",
+      "createdAt": "2026-02-08T09:47:32.690Z"
+    }
+  },
   "loggedInUsers": [
     "micz@kleniewski.com"
   ],

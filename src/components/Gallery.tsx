@@ -40,6 +40,8 @@ interface FolderSectionProps {
   globalCollapsedFolders: Set<string>;
   setGlobalCollapsedFolders: (collapsed: Set<string>) => void;
   allFolders: GalleryFolder[];
+  /** Obrazy z folderów Kolorystyka z całego drzewa */
+  kolorystykaImages: ImageFile[];
   onFolderView?: (folder: GalleryFolder) => void;
   onTrackDownload?: (
     filePath: string,
@@ -55,7 +57,8 @@ function FolderSectionInner({
   onImageClick,
   globalCollapsedFolders,
   setGlobalCollapsedFolders,
-  allFolders,
+  allFolders: _allFolders,
+  kolorystykaImages,
   onFolderView,
   onTrackDownload,
   isAdmin = false,
@@ -76,24 +79,7 @@ function FolderSectionInner({
   };
 
   const renderFolder = (currentFolder: GalleryFolder, depth: number = 0) => {
-    // Znajdź obrazy z Kolorystyki
-    const kolorystykaFolder = allFolders.find(
-      (f) => f.name.toLowerCase() === 'kolorystyka'
-    );
-    const kolorystykaImages = kolorystykaFolder?.images || [];
-
-    if (kolorystykaImages.length > 0) {
-      logger.debug(
-        'Gallery - Znaleziono folder Kolorystyka z',
-        kolorystykaImages.length,
-        'obrazami'
-      );
-    } else {
-      logger.debug(
-        'Gallery - Brak folderu Kolorystyka lub jest pusty. Dostępne foldery:',
-        allFolders.map((f) => f.name)
-      );
-    }
+    // kolorystykaImages przekazane z góry (zbierane z folderów Kolorystyka w drzewie)
     const indentClass = `level-${Math.min(depth, 4)}`;
     const categoryClass = currentFolder.isCategory
       ? 'category'
@@ -212,6 +198,7 @@ const FolderSection = memo(
     prev.onImageClick === next.onImageClick &&
     prev.setGlobalCollapsedFolders === next.setGlobalCollapsedFolders &&
     prev.globalCollapsedFolders === next.globalCollapsedFolders &&
+    prev.kolorystykaImages === next.kolorystykaImages &&
     prev.isAdmin === next.isAdmin &&
     prev.cacheStatusByFolder === next.cacheStatusByFolder
 );
@@ -296,23 +283,21 @@ const Gallery: React.FC<GalleryProps> = ({
       .catch((err) => logger.error('Batch cache status error', err));
   }, [isAdmin, folders]);
 
-  // Wyciągnij obrazy z folderu Kolorystyka
+  // Zbierz obrazy z folderów Kolorystyka z całego drzewa
   const kolorystykaImages = useMemo(() => {
-    const findKolorystykaImages = (
-      folderList: GalleryFolder[]
-    ): ImageFile[] => {
+    const collectImages = (folderList: GalleryFolder[]): ImageFile[] => {
+      let result: ImageFile[] = [];
       for (const folder of folderList) {
         if (folder.name.toLowerCase() === 'kolorystyka') {
-          return folder.images;
+          result = result.concat(folder.images || []);
         }
-        if (folder.subfolders) {
-          const found = findKolorystykaImages(folder.subfolders);
-          if (found.length > 0) return found;
+        if (folder.subfolders?.length) {
+          result = result.concat(collectImages(folder.subfolders));
         }
       }
-      return [];
+      return result;
     };
-    return findKolorystykaImages(folders);
+    return collectImages(folders);
   }, [folders]);
 
   // Oblicz keyword images gdy zmienia się wybrany obraz
@@ -540,6 +525,7 @@ const Gallery: React.FC<GalleryProps> = ({
               globalCollapsedFolders={globalCollapsedFolders}
               setGlobalCollapsedFolders={setGlobalCollapsedFolders}
               allFolders={folders}
+              kolorystykaImages={kolorystykaImages}
               onFolderView={(f) => trackView('folder', f.path, f.name)}
               onTrackDownload={trackDownload}
               isAdmin={isAdmin}
@@ -549,16 +535,19 @@ const Gallery: React.FC<GalleryProps> = ({
         </div>
       )}
 
-      {selectedImage && (
+      {selectedImage && (() => {
+        const isKolorystykaView =
+          currentFolderPath != null &&
+          (currentFolderPath === 'Kolorystyka' ||
+            currentFolderPath.toLowerCase().endsWith('/kolorystyka'));
+        return (
         <div
           className="modal-overlay modal-overlay-fade-in"
           onClick={closeModal}
         >
           <div
             className={`modal-content${
-              currentFolderPath === 'Kolorystyka'
-                ? ' modal-content--kolorystyka'
-                : ''
+              isKolorystykaView ? ' modal-content--kolorystyka' : ''
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -592,7 +581,7 @@ const Gallery: React.FC<GalleryProps> = ({
             </button>
             {imageLoaded && (
               <div className="modal-bottom-actions">
-                {currentFolderPath !== 'Kolorystyka' &&
+                {!isKolorystykaView &&
                   modalKeywordImages.map((item, idx) => (
                     <button
                       key={`modal-keyword-${idx}`}
@@ -684,7 +673,7 @@ const Gallery: React.FC<GalleryProps> = ({
                 </button>
               </div>
             )}
-            {modalHoveredPreview && currentFolderPath !== 'Kolorystyka' && (
+            {modalHoveredPreview && !isKolorystykaView && (
               <div
                 className="modal-color-preview"
                 style={{
@@ -763,7 +752,8 @@ const Gallery: React.FC<GalleryProps> = ({
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </>
   );
 };

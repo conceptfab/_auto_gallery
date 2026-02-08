@@ -39,6 +39,7 @@ interface MoodboardContextValue extends MoodboardBoard {
   setHoveredGroup: (x: number | null, y: number | null) => void;
   setActiveBoard: (id: string) => void;
   setMoodboardName: (name: string) => void;
+  updateBoard: (boardId: string, patch: { groupId?: string }) => void;
   deleteBoard: (boardId: string) => void;
   createNewMoodboard: () => void;
   addImage: (image: Omit<MoodboardImage, 'id'>) => void;
@@ -270,6 +271,20 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       setAppState((prev) => {
         const boards = prev.boards.map((b) =>
           b.id === prev.activeId ? { ...b, name: name || undefined } : b
+        );
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const updateBoard = useCallback(
+    (boardId: string, patch: { groupId?: string }) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) =>
+          b.id === boardId ? { ...b, ...patch } : b
         );
         const next = { ...prev, boards };
         scheduleSave(next);
@@ -771,6 +786,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       setSelected,
       setActiveBoard,
       setMoodboardName,
+      updateBoard,
       deleteBoard,
       createNewMoodboard,
       addImage,
@@ -818,6 +834,7 @@ export function MoodboardProvider({ children }: { children: React.ReactNode }) {
       setSelected,
       setActiveBoard,
       setMoodboardName,
+      updateBoard,
       deleteBoard,
       createNewMoodboard,
       addImage,

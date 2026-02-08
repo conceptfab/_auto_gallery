@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import LoadingOverlay from '@/src/components/LoadingOverlay';
@@ -8,6 +8,7 @@ import {
   MoodboardProvider,
   useMoodboard,
 } from '@/src/contexts/MoodboardContext';
+import type { UserGroup } from '@/src/types/admin';
 
 const MoodboardCanvas = dynamic(
   () => import('@/src/components/moodboard/Canvas'),
@@ -20,9 +21,19 @@ const MoodboardTab = dynamic(
 
 function MoodboardContent({ isAdmin = false }: { isAdmin?: boolean }) {
   const { loading, loadError, saveError } = useMoodboard();
+  const [groups, setGroups] = useState<UserGroup[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetch('/api/auth/admin/groups/list', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((data) => setGroups(data.groups ?? []))
+      .catch(() => setGroups([]));
+  }, [isAdmin]);
+
   return (
     <>
-      <MoodboardTab isAdmin={isAdmin} />
+      <MoodboardTab isAdmin={isAdmin} groups={groups} />
       <div className="moodboard-body">
         {loading && (
           <div className="moodboard-loading-wrap">

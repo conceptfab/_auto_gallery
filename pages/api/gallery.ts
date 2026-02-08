@@ -15,7 +15,6 @@ import {
   setCachedGallery,
   generateETag,
 } from '@/src/utils/galleryCache';
-import { logger } from '@/src/utils/logger';
 
 /**
  * Konwertuje URL-e obrazków na podpisane URL-e (jeśli ochrona jest włączona)
@@ -47,38 +46,6 @@ function convertFolderUrls(
 }
 
 /**
- * Rekurencyjnie zbiera wszystkie obrazy z folderów "decors" z całego drzewa
- */
-function collectDecorsImages(folders: GalleryFolder[]): ImageFile[] {
-  const decorsImages: ImageFile[] = [];
-
-  const search = (folderList: GalleryFolder[]) => {
-    for (const folder of folderList) {
-      logger.debug('Sprawdzam folder:', folder.name, folder.path);
-
-      if (folder.name.toLowerCase() === 'decors') {
-        logger.debug(
-          'Znaleziono folder decors:',
-          folder.name,
-          'Obrazów:',
-          folder.images.length
-        );
-        // Dodaj wszystkie obrazy z folderu decors bezpośrednio do kategorii Kolorystyka
-        decorsImages.push(...folder.images);
-      }
-
-      // Rekurencyjnie sprawdź podfoldery
-      if (folder.subfolders && folder.subfolders.length > 0) {
-        search(folder.subfolders);
-      }
-    }
-  };
-
-  search(folders);
-  return decorsImages;
-}
-
-/**
  * Folder _folders NIE MOŻE być wyświetlany w galerii pod żadnym pozorem.
  * Usuwa rekurencyjnie z drzewa każdy folder o nazwie _folders lub ścieżce zawierającej _folders.
  */
@@ -99,72 +66,27 @@ function removeFoldersHiddenFromGallery(
     }));
 }
 
+/** Nazwy folderów traktowanych jako „specjalne” – wyświetlane na końcu listy w danej grupie. */
+const SPECIAL_FOLDER_NAMES = ['kolorystyka'];
+
 /**
- * Usuwa wszystkie foldery "decors" z drzewa folderów
+ * Sortuje drzewo folderów tak, aby foldery specjalne (np. Kolorystyka) były na końcu listy w każdej grupie.
  */
-function removeDecorsFolders(folders: GalleryFolder[]): GalleryFolder[] {
-  return folders
-    .filter((folder) => folder.name.toLowerCase() !== 'decors')
+function sortSpecialFoldersLast(folders: GalleryFolder[]): GalleryFolder[] {
+  return [...folders]
+    .sort((a, b) => {
+      const aSpecial = SPECIAL_FOLDER_NAMES.includes(a.name.toLowerCase());
+      const bSpecial = SPECIAL_FOLDER_NAMES.includes(b.name.toLowerCase());
+      if (aSpecial && !bSpecial) return 1;
+      if (!aSpecial && bSpecial) return -1;
+      return 0;
+    })
     .map((folder) => ({
       ...folder,
-      subfolders: folder.subfolders
-        ? removeDecorsFolders(folder.subfolders)
+      subfolders: folder.subfolders?.length
+        ? sortSpecialFoldersLast(folder.subfolders)
         : undefined,
     }));
-}
-
-/**
- * Zbiera wszystkie podfoldery "decors" z drzewa i tworzy z nich
- * osobną główną kategorię "Kolorystyka" na dole listy folderów.
- * Sam podfolder "decors" jest usuwany z miejsca, w którym był pierwotnie.
- */
-function attachDecorsAsKolorystyka(folders: GalleryFolder[]): GalleryFolder[] {
-  logger.debug(
-    'attachDecorsAsKolorystyka - otrzymane foldery:',
-    folders.map((f) => ({
-      name: f.name,
-      path: f.path,
-      subfolders: f.subfolders?.map((s) => s.name),
-    }))
-  );
-
-  // Idempotentność: wykluczamy "Kolorystykę" z processedRoots i dopisujemy na końcu (poniżej).
-
-  // Zbierz wszystkie obrazy z folderów "decors" z całego drzewa
-  const decorsImages = collectDecorsImages(folders);
-
-  // Usuń wszystkie foldery "decors" z oryginalnych miejsc i wyklucz "Kolorystykę"
-  const processedRoots = removeDecorsFolders(
-    folders.filter((f) => f.name.toLowerCase() !== 'kolorystyka')
-  );
-
-  logger.debug('Zebrane obrazy z folderów decors:', decorsImages.length);
-  decorsImages.forEach((img, idx) => {
-    logger.debug(`${idx + 1}. ${img.name}`);
-  });
-
-  if (decorsImages.length === 0) {
-    logger.debug(
-      'Brak obrazów w folderach decors - nie tworzę kategorii Kolorystyka'
-    );
-    return processedRoots;
-  }
-
-  const kolorystykaFolder: GalleryFolder = {
-    name: 'Kolorystyka',
-    path: 'Kolorystyka',
-    images: decorsImages, // Bezpośrednio obrazy z wszystkich folderów decors
-    isCategory: false, // To jest galeria, nie kategoria
-    level: 0,
-  };
-
-  logger.debug(
-    'Tworzę galerię Kolorystyka z obrazami:',
-    kolorystykaFolder.images.length
-  );
-
-  // "Kolorystyka" zawsze na samym dole
-  return [...processedRoots, kolorystykaFolder];
 }
 
 async function galleryHandler(
@@ -184,20 +106,17 @@ async function galleryHandler(
     const { groupId } = req.query;
     const usePrivateScanning = isFileProtectionEnabled();
 
-    // Funkcja pomocnicza do skanowania (wybiera metodę)
     const scanFolder = async (
       folder: string,
       useCache: boolean = true
     ): Promise<GalleryFolder[]> => {
-      // Sprawdź cache tylko dla publicznych galerii (nie dla private scanning)
       if (useCache && !usePrivateScanning) {
         const cached = await getCachedGallery(
           folder,
           groupId as string | undefined
         );
         if (cached) {
-          // _folders nigdy z cache do galerii; potem Kolorystyka
-          return attachDecorsAsKolorystyka(
+          return sortSpecialFoldersLast(
             removeFoldersHiddenFromGallery(cached)
           );
         }
@@ -206,11 +125,9 @@ async function galleryHandler(
       let folders: GalleryFolder[];
 
       if (usePrivateScanning) {
-        // Skanuj przez PHP (prywatne pliki)
         const cleanFolder = folder.replace(/^\//, '').replace(/\/$/, '');
         folders = await scanPrivateDirectory(cleanFolder);
       } else {
-        // Skanuj przez HTTP (publiczne pliki)
         let galleryUrl: string;
         if (folder.startsWith('http://') || folder.startsWith('https://')) {
           galleryUrl = folder;
@@ -227,11 +144,9 @@ async function galleryHandler(
         folders = convertFolderUrls(folders, galleryUrl);
       }
 
-      // Folder _folders nigdy w galerii; potem Kolorystyka
       folders = removeFoldersHiddenFromGallery(folders);
-      folders = attachDecorsAsKolorystyka(folders);
+      folders = sortSpecialFoldersLast(folders);
 
-      // Zapisz do cache (tylko dla publicznych galerii)
       if (!usePrivateScanning) {
         await setCachedGallery(folder, folders, groupId as string | undefined);
       }

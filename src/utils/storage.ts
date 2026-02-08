@@ -24,6 +24,7 @@ export interface UserGroup {
   name: string;
   clientName: string;
   galleryFolder: string;
+  color?: string;
   users: string[];
 }
 
@@ -618,6 +619,13 @@ export async function getGroupByClientName(clientName: string): Promise<UserGrou
   return groups.find((g) => g.clientName.trim().toLowerCase() === normalized);
 }
 
+function randomGroupColor(): string {
+  const letters = '0123456789ABCDEF';
+  let hex = '#';
+  for (let i = 0; i < 6; i++) hex += letters[Math.floor(Math.random() * 16)];
+  return hex;
+}
+
 export async function createGroup(
   name: string,
   clientName: string,
@@ -636,6 +644,7 @@ export async function createGroup(
     name,
     clientName,
     galleryFolder,
+    color: randomGroupColor(),
     users: [],
   };
   groups.push(newGroup);
@@ -646,7 +655,7 @@ export async function createGroup(
 
 export async function updateGroup(
   id: string,
-  updates: { name?: string; clientName?: string; galleryFolder?: string }
+  updates: { name?: string; clientName?: string; galleryFolder?: string; color?: string }
 ): Promise<UserGroup | null> {
   const groups = await loadGroups();
   const group = groups.find((g) => g.id === id);
@@ -666,6 +675,9 @@ export async function updateGroup(
   if (updates.name !== undefined) group.name = updates.name;
   if (updates.galleryFolder !== undefined)
     group.galleryFolder = updates.galleryFolder;
+  if (updates.color !== undefined) {
+    group.color = updates.color === '' ? undefined : (updates.color?.trim() || undefined);
+  }
   await saveGroups(groups);
   if (cachedData) cachedData.groups = groups;
   return { ...group };

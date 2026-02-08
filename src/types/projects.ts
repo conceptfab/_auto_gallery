@@ -19,6 +19,8 @@ export interface Project {
   slug?: string;
   name: string;
   description?: string;
+  /** ID grupy (dla oznakowania kolorem w widoku admina) */
+  groupId?: string;
   createdAt: string;
   revisions?: Revision[];
 }

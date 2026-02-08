@@ -117,6 +117,8 @@ export interface MoodboardViewport {
 export interface MoodboardBoard {
   id: string;
   name?: string;
+  /** ID grupy (dla oznakowania kolorem w widoku admina) */
+  groupId?: string;
   images: MoodboardImage[];
   comments: MoodboardComment[];
   groups?: MoodboardGroup[];

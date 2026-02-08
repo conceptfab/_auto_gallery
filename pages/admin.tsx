@@ -443,6 +443,8 @@ const AdminPanel: React.FC = () => {
             <ProjectsSection
               isExpanded={expandedSections.has('projects')}
               onToggleSection={() => toggleSection('projects')}
+              groups={groups}
+              onGroupsChange={fetchGroups}
             />
           </>
         )}

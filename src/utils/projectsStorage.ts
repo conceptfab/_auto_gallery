@@ -21,6 +21,7 @@ interface ProjectMeta {
   name: string;
   slug?: string;
   description?: string;
+  groupId?: string;
   createdAt: string;
   revisionIds: string[];
 }
@@ -239,6 +240,7 @@ export async function getProjects(): Promise<Project[]> {
       name: meta.name,
       slug: meta.slug,
       description: meta.description,
+      groupId: meta.groupId,
       createdAt: meta.createdAt,
       revisions,
     });
@@ -380,6 +382,7 @@ export async function addProject(
     slug,
     name: meta.name,
     description: meta.description,
+    groupId: meta.groupId,
     createdAt: meta.createdAt,
     revisions: [],
   };
@@ -387,7 +390,7 @@ export async function addProject(
 
 export async function updateProject(
   id: string,
-  updates: { name?: string; description?: string }
+  updates: { name?: string; description?: string; groupId?: string }
 ): Promise<Project | null> {
   const dataDir = await getDataDir();
   const projectPath = path.join(dataDir, 'projects', id, 'project.json');
@@ -415,15 +418,12 @@ export async function updateProject(
         ? undefined
         : updates.description.trim();
   }
+  if (updates.groupId !== undefined) {
+    meta.groupId = updates.groupId === '' ? undefined : updates.groupId;
+  }
   await fsp.writeFile(projectPath, JSON.stringify(meta, null, 2), 'utf8');
-  return {
-    id,
-    name: meta.name,
-    slug: meta.slug,
-    description: meta.description,
-    createdAt: meta.createdAt,
-    revisions: (await getProjects()).find((p) => p.id === id)?.revisions ?? [],
-  };
+  const updated = (await getProjects()).find((p) => p.id === id) ?? null;
+  return updated;
 }
 
 export async function addProjectRevision(

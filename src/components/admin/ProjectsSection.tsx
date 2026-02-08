@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from '@/src/utils/logger';
 import type { Project } from '@/src/utils/projectsStorage';
+import type { UserGroup } from '@/src/types/admin';
 
 export interface ProjectsSectionProps {
   isExpanded: boolean;
   onToggleSection: () => void;
+  /** Grupy (tylko w widoku admina) – do oznakowania kolorem i przypisania projektu do grupy */
+  groups?: UserGroup[];
+  onGroupsChange?: () => void;
 }
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   isExpanded,
   onToggleSection,
+  groups = [],
+  onGroupsChange,
 }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +26,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   const [savingId, setSavingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
+  const [updatingGroupId, setUpdatingGroupId] = useState<string | null>(null);
 
   const fetchProjects = async () => {
     try {
@@ -107,6 +114,29 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     }
   };
 
+  const handleGroupChange = async (projectId: string, groupId: string) => {
+    setUpdatingGroupId(projectId);
+    try {
+      const res = await fetch('/api/admin/projects/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: projectId, groupId: groupId || undefined }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchProjects();
+        onGroupsChange?.();
+      } else {
+        alert(data.error || 'Błąd zapisywania grupy');
+      }
+    } catch (error) {
+      logger.error('Error updating project group', error);
+      alert('Błąd zapisywania grupy');
+    } finally {
+      setUpdatingGroupId(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Czy na pewno chcesz usunąć ten projekt?')) return;
     setDeletingId(id);
@@ -184,8 +214,24 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
             </p>
           ) : (
             <div className="admin-projects-grid">
-              {projects.map((p) => (
-                <div key={p.id} className="admin-project-tile">
+              {projects.map((p) => {
+                const groupColor = groups.length && p.groupId
+                  ? groups.find((g) => g.id === p.groupId)?.color
+                  : undefined;
+                return (
+                <div
+                  key={p.id}
+                  className="admin-project-tile"
+                  style={
+                    groupColor
+                      ? {
+                          borderLeftWidth: '4px',
+                          borderLeftStyle: 'solid',
+                          borderLeftColor: groupColor,
+                        }
+                      : undefined
+                  }
+                >
                   <div className="admin-project-tile-body">
                     <h4 className="admin-project-tile-title">{p.name}</h4>
                     {editingId === p.id ? (
@@ -240,6 +286,32 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                         >
                           <i className="las la-pen" aria-hidden /> Opis
                         </button>
+                        {groups.length > 0 && (
+                          <div style={{ marginTop: '8px' }}>
+                            <label htmlFor={`group-${p.id}`} style={{ fontSize: '12px', color: '#666', marginRight: '6px' }}>
+                              Grupa:
+                            </label>
+                            <select
+                              id={`group-${p.id}`}
+                              value={p.groupId ?? ''}
+                              onChange={(e) => handleGroupChange(p.id, e.target.value)}
+                              disabled={updatingGroupId === p.id}
+                              style={{
+                                fontSize: '12px',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                border: '1px solid #d1d5db',
+                              }}
+                            >
+                              <option value="">—</option>
+                              {groups.map((g) => (
+                                <option key={g.id} value={g.id}>
+                                  {g.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                       </>
                     )}
                     <span className="admin-project-tile-date">
@@ -266,7 +338,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                     )}
                   </button>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </>

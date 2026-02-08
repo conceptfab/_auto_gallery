@@ -14,6 +14,8 @@ export interface UserGroup {
   name: string;
   clientName: string;
   galleryFolder: string;
+  /** Kolor grupy (hex, np. #3b82f6) – wyświetlany na karcie grupy */
+  color?: string;
   users: string[];
 }
 

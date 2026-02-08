@@ -7,11 +7,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { id, name, description } = req.body;
+    const { id, name, description, groupId } = req.body;
     if (!id || typeof id !== 'string') {
       return res.status(400).json({ error: 'Id projektu jest wymagane' });
     }
-    const updates: { name?: string; description?: string } = {};
+    const updates: { name?: string; description?: string; groupId?: string } = {};
     if (name !== undefined) {
       if (typeof name !== 'string') {
         return res.status(400).json({ error: 'Nazwa musi być tekstem' });
@@ -24,8 +24,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
       updates.description = description;
     }
+    if (groupId !== undefined) {
+      updates.groupId = typeof groupId === 'string' ? groupId : undefined;
+    }
     if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'Podaj name lub description' });
+      return res.status(400).json({ error: 'Podaj name, description lub groupId' });
     }
     const project = await updateProject(id, updates);
     if (!project) {

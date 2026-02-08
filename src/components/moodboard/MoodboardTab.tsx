@@ -4,11 +4,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
 import type { MoodboardBoard } from '@/src/types/moodboard';
+import type { UserGroup } from '@/src/types/admin';
 
 const DEFAULT_NAME = 'Moodboard';
 
 interface MoodboardTabProps {
   isAdmin?: boolean;
+  /** Grupy (tylko w widoku admina) – do oznakowania zakładek kolorem */
+  groups?: UserGroup[];
 }
 
 function TabLabel({
@@ -22,6 +25,7 @@ function TabLabel({
   onSubmitEdit,
   onKeyDown,
   menuSlot,
+  groupColor,
 }: {
   board: MoodboardBoard;
   isActive: boolean;
@@ -33,11 +37,15 @@ function TabLabel({
   onSubmitEdit: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   menuSlot?: React.ReactNode;
+  groupColor?: string;
 }) {
   const displayName = board.name?.trim() || DEFAULT_NAME;
+  const underlineStyle = groupColor
+    ? { borderBottom: `3px solid ${groupColor}` }
+    : undefined;
   if (!isActive) {
     return (
-      <div className="moodboard-tab-tab moodboard-tab-tab--inactive">
+      <div className="moodboard-tab-tab moodboard-tab-tab--inactive" style={underlineStyle}>
         <button
           type="button"
           className="moodboard-tab-tab-name"
@@ -51,7 +59,7 @@ function TabLabel({
     );
   }
   return (
-    <div className="moodboard-tab-inner">
+    <div className="moodboard-tab-inner" style={underlineStyle}>
       <div className="moodboard-tab-inner-content">
         {editing ? (
           <input
@@ -81,7 +89,7 @@ function TabLabel({
 }
 
 function TabMenu({
-  board: _board,
+  board,
   isActive: _isActive,
   canDelete,
   onRename,
@@ -89,6 +97,8 @@ function TabMenu({
   isOpen,
   onToggle,
   onClose,
+  groups,
+  onGroupChange,
 }: {
   board: MoodboardBoard;
   isActive: boolean;
@@ -98,6 +108,8 @@ function TabMenu({
   isOpen: boolean;
   onToggle: (e: React.MouseEvent) => void;
   onClose: () => void;
+  groups?: UserGroup[];
+  onGroupChange?: (boardId: string, groupId: string) => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +151,26 @@ function TabMenu({
       </button>
       {isOpen && (
         <div className="moodboard-tab-menu-dropdown">
+          {groups && groups.length > 0 && (
+            <div className="moodboard-tab-menu-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px' }}>
+              <label htmlFor={`moodboard-group-${board.id}`} style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>Grupa:</label>
+              <select
+                id={`moodboard-group-${board.id}`}
+                value={board.groupId ?? ''}
+                onChange={(e) => {
+                  onGroupChange?.(board.id, e.target.value);
+                  onClose();
+                }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ fontSize: '12px', padding: '2px 6px', minWidth: '100px' }}
+              >
+                <option value="">—</option>
+                {groups.map((g) => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <button
             type="button"
             className="moodboard-tab-menu-item"
@@ -165,12 +197,13 @@ function TabMenu({
   );
 }
 
-export default function MoodboardTab({ isAdmin = false }: MoodboardTabProps) {
+export default function MoodboardTab({ isAdmin = false, groups = [] }: MoodboardTabProps) {
   const {
     boards,
     activeId,
     setActiveBoard,
     setMoodboardName,
+    updateBoard,
     deleteBoard,
     createNewMoodboard,
     name,
@@ -240,8 +273,15 @@ export default function MoodboardTab({ isAdmin = false }: MoodboardTabProps) {
         setOpenMenuId((prev) => (prev === b.id ? null : b.id));
       }}
       onClose={() => setOpenMenuId(null)}
+      groups={isAdmin && groups.length > 0 ? groups : undefined}
+      onGroupChange={isAdmin ? (boardId, groupId) => updateBoard(boardId, { groupId: groupId || undefined }) : undefined}
     />
   );
+
+  const groupColorFor = (b: MoodboardBoard) =>
+    isAdmin && groups.length > 0 && b.groupId
+      ? groups.find((g) => g.id === b.groupId)?.color
+      : undefined;
 
   const renderTabWithMenu = (
     b: MoodboardBoard,
@@ -261,6 +301,7 @@ export default function MoodboardTab({ isAdmin = false }: MoodboardTabProps) {
       isActive={isActive}
       {...tabLabelProps}
       menuSlot={isActive ? menuFor(b) : undefined}
+      groupColor={groupColorFor(b)}
     />
   );
 

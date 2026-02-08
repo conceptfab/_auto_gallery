@@ -41,6 +41,7 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
   const [editName, setEditName] = useState('');
   const [editClient, setEditClient] = useState('');
   const [editFolder, setEditFolder] = useState('');
+  const [editColor, setEditColor] = useState('');
 
   const handleGroupNameChange = (name: string) => {
     setNewGroupName(name);
@@ -120,6 +121,7 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
     setEditName(group.name);
     setEditClient(group.clientName);
     setEditFolder(group.galleryFolder);
+    setEditColor(group.color ?? '');
   };
 
   const handleUpdateGroup = async (groupId: string) => {
@@ -133,6 +135,7 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
           name: editName,
           clientName: editClient,
           galleryFolder: editFolder,
+          color: editColor || undefined,
         }),
       });
       if (response.ok) {
@@ -250,7 +253,19 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
           ) : (
             <div style={{ display: 'grid', gap: '15px' }}>
               {groups.map((group) => (
-                <div key={group.id} className="admin-card">
+                <div
+                  key={group.id}
+                  className="admin-card"
+                  style={
+                    group.color
+                      ? {
+                          borderLeftWidth: '4px',
+                          borderLeftStyle: 'solid',
+                          borderLeftColor: group.color,
+                        }
+                      : undefined
+                  }
+                >
                   {editingGroup === group.id ? (
                     <div>
                       <div
@@ -294,6 +309,38 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
                             border: '1px solid #ddd',
                           }}
                         />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', gridColumn: '1 / -1' }}>
+                          <span style={{ fontSize: '13px', color: '#374151' }}>Kolor:</span>
+                          <input
+                            type="color"
+                            value={editColor || '#6366f1'}
+                            onChange={(e) => setEditColor(e.target.value)}
+                            title="Kolor grupy"
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              padding: 0,
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setEditColor('')}
+                            style={{
+                              fontSize: '12px',
+                              padding: '4px 8px',
+                              color: '#6b7280',
+                              background: '#f3f4f6',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Wyczyść
+                          </button>
+                        </div>
                       </div>
                       <div style={{ display: 'flex', gap: '10px' }}>
                         <button
