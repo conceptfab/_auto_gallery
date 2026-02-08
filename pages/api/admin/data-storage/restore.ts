@@ -132,17 +132,36 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const entries = zip.getEntries();
   const normalizedNames = entries.filter((e) => !e.isDirectory).map((e) => norm(e.entryName));
   const hasGroups = normalizedNames.some((n) => n.startsWith('groups/'));
-  const hasMoodboardIndex = normalizedNames.includes('moodboard/index.json');
-  const rootProjectEntries = entries.filter((e) => !e.isDirectory && norm(e.entryName).startsWith('projects/'));
-  const projectTopDirs = new Set(
-    rootProjectEntries.map((e) => norm(e.entryName).split('/')[1]).filter(Boolean)
-  );
-  const hasProjectJson = rootProjectEntries.some((e) => {
+  // Moodboard: stary format moodboard/index.json LUB nowy – index.json w root z boardIds
+  const hasMoodboardIndexOld = normalizedNames.includes('moodboard/index.json');
+  const indexJsonRoot = entries.find((e) => norm(e.entryName) === 'index.json');
+  let hasMoodboardIndexRoot = false;
+  if (indexJsonRoot) {
+    try {
+      const parsed = JSON.parse(indexJsonRoot.getData().toString('utf8')) as { boardIds?: unknown };
+      hasMoodboardIndexRoot = Array.isArray(parsed?.boardIds);
+    } catch {
+      // nie moodboard
+    }
+  }
+  const hasMoodboardIndex = hasMoodboardIndexOld || hasMoodboardIndexRoot;
+  // Projekt: stary projects/ID/project.json LUB nowy root project.json LUB nowy ID/project.json
+  const rootProjectEntriesOld = entries.filter((e) => !e.isDirectory && norm(e.entryName).startsWith('projects/'));
+  const projectTopDirsOld = new Set(rootProjectEntriesOld.map((e) => norm(e.entryName).split('/')[1]).filter(Boolean));
+  const hasProjectJsonOld = rootProjectEntriesOld.some((e) => {
     const n = norm(e.entryName);
     return n.endsWith('project.json') && n.split('/').length >= 3;
   });
-  const isMoodboard = hasMoodboardIndex && projectTopDirs.size === 0;
-  const isProject = projectTopDirs.size > 0 && hasProjectJson;
+  const hasProjectJsonRoot = normalizedNames.includes('project.json');
+  const projectDirEntries = entries.filter((e) => !e.isDirectory && (() => {
+    const n = norm(e.entryName);
+    const parts = n.split('/');
+    return parts.length === 2 && parts[1] === 'project.json';
+  })());
+  const hasProjectJsonInDir = projectDirEntries.length > 0;
+  const hasAnyProject = hasProjectJsonOld || hasProjectJsonRoot || hasProjectJsonInDir;
+  const isMoodboard = hasMoodboardIndex && !hasAnyProject;
+  const isProject = hasAnyProject;
 
   // 1. Jeśli ZIP zawiera groups/ (backup „wszystko” lub z grup) – wypakuj do dataDir/groups/
   if (hasGroups) {
@@ -163,7 +182,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!isMoodboard && !isProject && !hasGroups) {
     const sample = normalizedNames.slice(0, 8).join(', ') + (normalizedNames.length > 8 ? '…' : '');
     return res.status(400).json({
-      error: 'Nieprawidłowy backup. ZIP musi zawierać moodboard (moodboard/index.json), projekt (projects/NAZWA/project.json) lub groups/ (backup z grup).',
+      error: 'Nieprawidłowy backup. ZIP musi zawierać moodboard (index.json + pliki .json), projekt (project.json lub ID/project.json) lub groups/.',
       hint: normalizedNames.length ? `W ZIP: ${sample}` : 'ZIP jest pusty lub uszkodzony.',
     });
   }
@@ -177,12 +196,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (isMoodboard) {
-    const indexEntry = entries.find((e) => norm(e.entryName) === 'moodboard/index.json');
-    if (!indexEntry) return res.status(400).json({ error: 'Brak moodboard/index.json w ZIP' });
+    const indexEntry = entries.find((e) => norm(e.entryName) === 'moodboard/index.json')
+      || entries.find((e) => norm(e.entryName) === 'index.json');
+    if (!indexEntry) return res.status(400).json({ error: 'Brak index.json moodboardu w ZIP' });
     const indexData = JSON.parse(indexEntry.getData().toString('utf8')) as { boardIds?: string[] };
     const boardIds = indexData.boardIds || [];
     if (boardIds.length === 0) return res.status(400).json({ error: 'Brak boardów w backupie moodboardu' });
 
+    const moodboardPrefix = hasMoodboardIndexOld ? 'moodboard/' : '';
     const moodboardDir = restoreToGroupId
       ? path.join(dataDir, 'groups', restoreToGroupId, 'moodboard')
       : path.join(dataDir, 'moodboard');
@@ -200,7 +221,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const existingIds = new Set(currentIndex.boardIds);
     const zipBoardIds = boardIds.filter((id) => {
-      const entry = entries.find((e) => norm(e.entryName) === `moodboard/${id}.json`);
+      const entry = entries.find((e) => norm(e.entryName) === `${moodboardPrefix}${id}.json`);
       return !!entry;
     });
     const hasConflict = zipBoardIds.some((id) => existingIds.has(id));
@@ -220,7 +241,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     for (const oldId of zipBoardIds) {
       const targetId = idMap.get(oldId) ?? oldId;
-      const boardEntry = entries.find((e) => norm(e.entryName) === `moodboard/${oldId}.json`);
+      const boardEntry = entries.find((e) => norm(e.entryName) === `${moodboardPrefix}${oldId}.json`);
       if (!boardEntry) continue;
       let board = JSON.parse(boardEntry.getData().toString('utf8')) as { id: string; name?: string; images?: unknown[] };
       board = { ...board, id: targetId, name: hasConflict && newName ? newName : (board.name ?? 'Moodboard') };
@@ -236,7 +257,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         JSON.stringify(board, null, 2),
         'utf8'
       );
-      const imgPrefix = `moodboard/images/${oldId}/`;
+      const imgPrefix = `${moodboardPrefix}images/${oldId}/`;
       const imageEntries = entries.filter((e) => !e.isDirectory && norm(e.entryName).startsWith(imgPrefix));
       const targetImagesDir = path.join(moodboardDir, 'images', targetId);
       if (imageEntries.length > 0) await fsp.mkdir(targetImagesDir, { recursive: true });
@@ -271,10 +292,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (isProject) {
-    const projectIdFromZip = Array.from(projectTopDirs)[0];
-    const projectJsonEntry = entries.find(
-      (e) => norm(e.entryName) === `projects/${projectIdFromZip}/project.json`
-    );
+    let projectJsonEntry: typeof entries[0] | undefined;
+    let projectIdFromZip: string;
+    let entryPrefix: string;
+    if (hasProjectJsonRoot) {
+      projectJsonEntry = entries.find((e) => norm(e.entryName) === 'project.json');
+      const meta = JSON.parse(projectJsonEntry!.getData().toString('utf8')) as { id: string };
+      projectIdFromZip = meta.id;
+      entryPrefix = '';
+    } else if (hasProjectJsonInDir) {
+      const firstDir = norm(projectDirEntries[0].entryName).split('/')[0];
+      projectIdFromZip = firstDir;
+      projectJsonEntry = entries.find((e) => norm(e.entryName) === `${firstDir}/project.json`);
+      entryPrefix = `${firstDir}/`;
+    } else {
+      projectIdFromZip = Array.from(projectTopDirsOld)[0];
+      projectJsonEntry = entries.find((e) => norm(e.entryName) === `projects/${projectIdFromZip}/project.json`);
+      entryPrefix = `projects/${projectIdFromZip}/`;
+    }
     if (!projectJsonEntry) return res.status(400).json({ error: 'Brak project.json w backupie projektu' });
     const projectMeta = JSON.parse(projectJsonEntry.getData().toString('utf8')) as {
       id: string;
@@ -296,7 +331,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const newId = hasConflict ? crypto.randomUUID() : projectMeta.id;
-    const newNameFinal = hasConflict && newName ? newName : projectMeta.name.trim() || 'Projekt';
+    const newNameFinal = (newName && newName.trim()) ? newName.trim() : (projectMeta.name?.trim() || 'Projekt');
     const existingSlugs = projects.filter((p) => p.id !== newId).map((p) => p.slug).filter(Boolean) as string[];
     const newSlug = generateSlug(newNameFinal, existingSlugs);
 
@@ -306,12 +341,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const targetProjectDir = path.join(projectsDir, newId);
     await fsp.mkdir(targetProjectDir, { recursive: true });
 
-    const prefix = `projects/${projectIdFromZip}/`;
     for (const entry of entries) {
       if (entry.isDirectory) continue;
       const name = norm(entry.entryName);
-      if (!name.startsWith(prefix)) continue;
-      const rel = name.slice(prefix.length);
+      if (!name.startsWith(entryPrefix) || name === entryPrefix.slice(0, -1)) continue;
+      const rel = name.slice(entryPrefix.length);
       const targetPath = path.join(targetProjectDir, rel);
       await fsp.mkdir(path.dirname(targetPath), { recursive: true });
       let data = entry.getData();
@@ -320,7 +354,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         meta.id = newId;
         meta.name = newNameFinal;
         meta.slug = newSlug;
-        if (restoreToGroupId) meta.groupId = restoreToGroupId;
+        meta.groupId = restoreToGroupId ?? undefined;
         data = Buffer.from(JSON.stringify(meta, null, 2), 'utf8');
       }
       await fsp.writeFile(targetPath, data);

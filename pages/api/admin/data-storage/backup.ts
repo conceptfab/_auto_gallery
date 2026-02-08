@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
+import crypto from 'crypto';
 import archiver from 'archiver';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDataDir } from '@/src/utils/dataDir';
@@ -144,7 +145,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       dataDir, selectedBoardIds, selectedProjectIds, selectedBoardGroupIds, selectedProjectGroupIds
     );
     const namePart = displayNames.length > 0 ? buildZipNamePart(displayNames) : 'wybrane';
-    zipName = `${namePart}-${date}.zip`;
+    const onlyMoodboard = selectedBoardIds.length > 0 && selectedProjectIds.length === 0;
+    const onlyProject = selectedProjectIds.length > 0 && selectedBoardIds.length === 0;
+    if (onlyMoodboard) zipName = `moodboard-${namePart}-${date}.zip`;
+    else if (onlyProject) zipName = selectedProjectIds.length === 1 ? `projekt-${namePart}-${date}.zip` : `projekty-${namePart}-${date}.zip`;
+    else zipName = `wybrane-${namePart}-${date}.zip`;
   } else if (scope === 'all') {
     zipName = `conceptview-wszystko-${date}.zip`;
   } else if (scope === 'moodboard') {
@@ -168,21 +173,41 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     if (scope === 'selected') {
-      // Moodboardy: każdy z właściwego katalogu (global lub groups/gid); w ZIP jako moodboard/ lub groups/gid/moodboard/
+      // Moodboardy: w ZIP folder/plik pod UUID – czytamy z dysku, zapisujemy pod crypto.randomUUID()
+      const moodboardZipIds: string[] = [];
+      let activeZipId: string | null = null;
+      const gidFirst = selectedBoardGroupIds[0];
+      const moodboardDirFirst = getMoodboardDir(dataDir, gidFirst || undefined);
+      try {
+        const indexRaw = await fsp.readFile(path.join(moodboardDirFirst, 'index.json'), 'utf8');
+        const index = JSON.parse(indexRaw) as { boardIds?: string[]; activeId?: string };
+        activeZipId = index.activeId && selectedBoardIds.includes(index.activeId) ? index.activeId : selectedBoardIds[0];
+      } catch {
+        // brak index
+      }
       for (let i = 0; i < selectedBoardIds.length; i++) {
         const boardId = selectedBoardIds[i];
         const gid = selectedBoardGroupIds[i];
         const moodboardDir = getMoodboardDir(dataDir, gid || undefined);
-        const zipPrefix = gid ? `groups/${gid}/moodboard` : 'moodboard';
+        const zipId = crypto.randomUUID();
+        moodboardZipIds.push(zipId);
         try {
-          const boardJson = path.join(moodboardDir, `${boardId}.json`);
-          await fsp.access(boardJson);
-          const content = await fsp.readFile(boardJson);
-          archive.append(content, { name: `${zipPrefix}/${boardId}.json` });
+          const boardJsonPath = path.join(moodboardDir, `${boardId}.json`);
+          const raw = await fsp.readFile(boardJsonPath, 'utf8');
+          const board = JSON.parse(raw) as { id: string; name?: string; images?: { imagePath?: string }[]; [key: string]: unknown };
+          board.id = zipId;
+          if (Array.isArray(board.images)) {
+            for (const img of board.images) {
+              if (typeof img.imagePath === 'string' && img.imagePath.startsWith(boardId + '/')) {
+                img.imagePath = zipId + img.imagePath.slice(boardId.length);
+              }
+            }
+          }
+          archive.append(JSON.stringify(board, null, 2), { name: `${zipId}.json` });
           const boardImagesDir = path.join(moodboardDir, 'images', boardId);
           try {
             await fsp.access(boardImagesDir);
-            archive.directory(boardImagesDir, `${zipPrefix}/images/${boardId}`);
+            archive.directory(boardImagesDir, `images/${zipId}`);
           } catch {
             // brak obrazów
           }
@@ -190,37 +215,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           // pomiń brakujący plik
         }
       }
-      // Dla wybranych moodboardów z jednego źródła dopisujemy index.json (tylko gdy wszystkie z tego samego katalogu)
-      const boardGroups = [...new Set(selectedBoardGroupIds.map((g) => g ?? ''))];
-      if (boardGroups.length === 1 && selectedBoardIds.length > 0) {
-        const gid = boardGroups[0] || undefined;
-        const moodboardDir = getMoodboardDir(dataDir, gid);
-        const zipPrefix = gid ? `groups/${gid}/moodboard` : 'moodboard';
-        try {
-          const indexPath = path.join(moodboardDir, 'index.json');
-          const indexRaw = await fsp.readFile(indexPath, 'utf8');
-          const index = JSON.parse(indexRaw) as { boardIds?: string[]; activeId?: string };
-          const newIndex = {
-            boardIds: selectedBoardIds,
-            activeId: index.activeId && selectedBoardIds.includes(index.activeId) ? index.activeId : selectedBoardIds[0],
-          };
-          archive.append(JSON.stringify(newIndex, null, 2), { name: `${zipPrefix}/index.json` });
-        } catch {
-          // brak index
-        }
+      if (moodboardZipIds.length > 0) {
+        const activeIdInZip = activeZipId && selectedBoardIds.includes(activeZipId)
+          ? moodboardZipIds[selectedBoardIds.indexOf(activeZipId)]
+          : moodboardZipIds[0];
+        archive.append(
+          JSON.stringify({ boardIds: moodboardZipIds, activeId: activeIdInZip }, null, 2),
+          { name: 'index.json' }
+        );
       }
 
+      // Projekty: w ZIP folder projects/{UUID}/ – typ w nazwie ZIP (projekt-xxx.zip)
       if (selectedProjectIds.length > 0) {
         for (let i = 0; i < selectedProjectIds.length; i++) {
           const projectId = selectedProjectIds[i];
           const gid = selectedProjectGroupIds[i];
           const projectsDir = getProjectsDir(dataDir, gid || undefined);
-          const zipPrefix = gid ? `groups/${gid}/projects` : 'projects';
           try {
             const projectPath = path.join(projectsDir, projectId);
             const stat = await fsp.stat(projectPath);
             if (stat.isDirectory()) {
-              archive.directory(projectPath, `${zipPrefix}/${projectId}`);
+              archive.directory(projectPath, `projects/${projectId}`);
             }
           } catch {
             // pomiń

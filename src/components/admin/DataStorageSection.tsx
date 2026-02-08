@@ -305,7 +305,7 @@ export const DataStorageSection: React.FC = () => {
     const form = new FormData();
     form.append('file', restoreFile);
     if (restoreNewName.trim()) form.append('newName', restoreNewName.trim());
-    if (restoreToGroupId.trim()) form.append('restoreToGroupId', restoreToGroupId.trim());
+    form.append('restoreToGroupId', restoreToGroupId);
     const xhr = new XMLHttpRequest();
     const timeoutId = setTimeout(() => {
       xhr.abort();
@@ -707,7 +707,7 @@ export const DataStorageSection: React.FC = () => {
           )}
           <input
             type="text"
-            placeholder="Nowa nazwa (gdy ID już istnieje)"
+            placeholder="Nazwa projektu (opcjonalnie, nadpisuje z ZIP)"
             value={restoreNewName}
             onChange={(e) => setRestoreNewName(e.target.value)}
             style={{ padding: '6px 10px', fontSize: '14px', minWidth: '220px', border: '1px solid #d1d5db', borderRadius: '4px' }}
