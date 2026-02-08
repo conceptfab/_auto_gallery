@@ -244,7 +244,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const boardEntry = entries.find((e) => norm(e.entryName) === `${moodboardPrefix}${oldId}.json`);
       if (!boardEntry) continue;
       let board = JSON.parse(boardEntry.getData().toString('utf8')) as { id: string; name?: string; images?: unknown[] };
-      board = { ...board, id: targetId, name: hasConflict && newName ? newName : (board.name ?? 'Moodboard') };
+      board = { ...board, id: targetId, name: (newName && newName.trim()) ? newName.trim() : (board.name ?? 'Moodboard') };
       if (Array.isArray(board.images)) {
         for (const img of board.images as { imagePath?: string }[]) {
           if (typeof img.imagePath === 'string' && img.imagePath.startsWith(oldId + '/')) {
