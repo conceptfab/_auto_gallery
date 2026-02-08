@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
-import { createWriteStream } from 'fs';
+import { createWriteStream, createReadStream } from 'fs';
 import archiver from 'archiver';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDataDir } from '@/src/utils/dataDir';
@@ -70,7 +70,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           'Content-Disposition',
           `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`
         );
-        const stream = require('fs').createReadStream(filePath);
+        const stream = createReadStream(filePath);
         stream.pipe(res);
         return;
       } catch {
