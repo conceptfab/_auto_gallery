@@ -328,16 +328,19 @@ async function handler(
             boards: [{ id, images: [], comments: [] }],
             activeId: id,
           };
-          await fsp.writeFile(
-            path.join(dir, getBoardFilename(id)),
-            JSON.stringify(appState.boards[0], null, 2),
-            'utf8'
-          );
-          await fsp.writeFile(
-            path.join(dir, INDEX_FILENAME),
-            JSON.stringify({ boardIds: [id], activeId: id }, null, 2),
-            'utf8'
-          );
+          // Dla moodboarda globalnego (bez grupy) nie zapisuj na dysk – żeby po usunięciu w adminie nie odtwarzał się.
+          if (groupId) {
+            await fsp.writeFile(
+              path.join(dir, getBoardFilename(id)),
+              JSON.stringify(appState.boards[0], null, 2),
+              'utf8'
+            );
+            await fsp.writeFile(
+              path.join(dir, INDEX_FILENAME),
+              JSON.stringify({ boardIds: [id], activeId: id }, null, 2),
+              'utf8'
+            );
+          }
         }
       }
 
