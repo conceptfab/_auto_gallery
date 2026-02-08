@@ -7,9 +7,58 @@ import { getDataDir } from '@/src/utils/dataDir';
 
 type Scope = 'all' | 'moodboard' | 'projects' | 'selected';
 
+const MAX_NAME_PART_LENGTH = 80;
+
 function parseIdList(value: unknown): string[] {
   if (typeof value !== 'string') return [];
   return value.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+/** Czyści string do bezpiecznej części nazwy pliku (bez \\ / : * ? " < > |). */
+function sanitizeFilenamePart(str: string, maxLen = 60): string {
+  const cleaned = str
+    .replace(/[\s]+/g, ' ')
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, '');
+  return cleaned.slice(0, maxLen) || 'backup';
+}
+
+async function getSelectedDisplayNames(
+  dataDir: string,
+  boardIds: string[],
+  projectIds: string[]
+): Promise<string[]> {
+  const names: string[] = [];
+  const moodboardDir = path.join(dataDir, 'moodboard');
+  const projectsDir = path.join(dataDir, 'projects');
+  for (const boardId of boardIds) {
+    try {
+      const raw = await fsp.readFile(path.join(moodboardDir, `${boardId}.json`), 'utf8');
+      const board = JSON.parse(raw) as { name?: string };
+      const n = (board.name || '').trim() || `Moodboard-${boardId.slice(0, 8)}`;
+      names.push(n);
+    } catch {
+      names.push(`Board-${boardId.slice(0, 8)}`);
+    }
+  }
+  for (const projectId of projectIds) {
+    try {
+      const raw = await fsp.readFile(path.join(projectsDir, projectId, 'project.json'), 'utf8');
+      const meta = JSON.parse(raw) as { name?: string };
+      const n = (meta.name || '').trim() || projectId;
+      names.push(n);
+    } catch {
+      names.push(projectId);
+    }
+  }
+  return names;
+}
+
+function buildZipNamePart(names: string[]): string {
+  const sanitized = names.map((n) => sanitizeFilenamePart(n, 40));
+  const joined = sanitized.join('_');
+  if (joined.length <= MAX_NAME_PART_LENGTH) return joined;
+  return sanitized[0] + '-i-inne';
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,7 +88,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
   const date = new Date().toISOString().slice(0, 10);
-  const zipName = `conceptview-data-${scope}-${date}.zip`;
+  let zipName: string;
+  if (scope === 'selected') {
+    const displayNames = await getSelectedDisplayNames(dataDir, selectedBoardIds, selectedProjectIds);
+    const namePart = displayNames.length > 0 ? buildZipNamePart(displayNames) : 'wybrane';
+    zipName = `${namePart}-${date}.zip`;
+  } else if (scope === 'all') {
+    zipName = `conceptview-wszystko-${date}.zip`;
+  } else if (scope === 'moodboard') {
+    zipName = `moodboard-${date}.zip`;
+  } else {
+    zipName = `projekty-${date}.zip`;
+  }
 
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader(

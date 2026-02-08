@@ -5,7 +5,7 @@
 
 + optymalizacja wydajności moodboard -> +moze zmniejszenie/przeskalowanie do max 2000px plików dodawanych do moodbardów
 
-- usuwanie grupy - pytaniecz czy rozgrupowac i usunąć grupę czy usunąć grupę z zawartością
++ usuwanie grupy - pytaniecz czy rozgrupowac i usunąć grupę czy usunąć grupę z zawartością
 
 
 

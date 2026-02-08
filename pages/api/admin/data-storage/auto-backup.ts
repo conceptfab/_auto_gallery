@@ -105,8 +105,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const maxFiles = data.settings?.autoBackupMaxFiles ?? 7;
 
       const now = new Date();
+      const date = now.toISOString().slice(0, 10);
       const ts = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const zipName = `manual-backup-${ts}.zip`;
+      const zipName = `backup-wszystko-${date}-${ts.slice(11)}.zip`;
       const zipPath = path.join(backupsDir, zipName);
       const tmpPath = zipPath + '.tmp';
 
