@@ -7,7 +7,7 @@ import formidable from 'formidable';
 import AdmZip from 'adm-zip';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDataDir } from '@/src/utils/dataDir';
-import { getProjects } from '@/src/utils/projectsStorage';
+import { getProjects, getAllProjects } from '@/src/utils/projectsStorage';
 
 export const config = {
   api: {
@@ -129,25 +129,48 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const entries = zip.getEntries();
   const normalizedNames = entries.filter((e) => !e.isDirectory).map((e) => norm(e.entryName));
+  const hasGroups = normalizedNames.some((n) => n.startsWith('groups/'));
   const hasMoodboardIndex = normalizedNames.includes('moodboard/index.json');
-  const projectEntries = entries.filter((e) => !e.isDirectory && norm(e.entryName).startsWith('projects/'));
+  const rootProjectEntries = entries.filter((e) => !e.isDirectory && norm(e.entryName).startsWith('projects/'));
   const projectTopDirs = new Set(
-    projectEntries
-      .map((e) => norm(e.entryName).split('/')[1])
-      .filter(Boolean)
+    rootProjectEntries.map((e) => norm(e.entryName).split('/')[1]).filter(Boolean)
   );
-  const hasProjectJson = projectEntries.some((e) => {
+  const hasProjectJson = rootProjectEntries.some((e) => {
     const n = norm(e.entryName);
     return n.endsWith('project.json') && n.split('/').length >= 3;
   });
   const isMoodboard = hasMoodboardIndex && projectTopDirs.size === 0;
   const isProject = projectTopDirs.size > 0 && hasProjectJson;
 
-  if (!isMoodboard && !isProject) {
+  // 1. Jeśli ZIP zawiera groups/ (backup „wszystko” lub z grup) – wypakuj do dataDir/groups/
+  if (hasGroups) {
+    const groupsDir = path.join(dataDir, 'groups');
+    await fsp.mkdir(groupsDir, { recursive: true });
+    for (const entry of entries) {
+      if (entry.isDirectory) continue;
+      const name = norm(entry.entryName);
+      if (!name.startsWith('groups/')) continue;
+      const rel = name.slice('groups/'.length);
+      if (!rel || rel.startsWith('../')) continue;
+      const targetPath = path.join(groupsDir, rel);
+      await fsp.mkdir(path.dirname(targetPath), { recursive: true });
+      await fsp.writeFile(targetPath, entry.getData());
+    }
+  }
+
+  if (!isMoodboard && !isProject && !hasGroups) {
     const sample = normalizedNames.slice(0, 8).join(', ') + (normalizedNames.length > 8 ? '…' : '');
     return res.status(400).json({
-      error: 'Nieprawidłowy backup. ZIP musi zawierać moodboard (moodboard/index.json) lub projekt (projects/NAZWA/project.json).',
+      error: 'Nieprawidłowy backup. ZIP musi zawierać moodboard (moodboard/index.json), projekt (projects/NAZWA/project.json) lub groups/ (backup z grup).',
       hint: normalizedNames.length ? `W ZIP: ${sample}` : 'ZIP jest pusty lub uszkodzony.',
+    });
+  }
+
+  // Jeśli był tylko groups/ – przywrócono grupy, koniec
+  if (hasGroups && !isMoodboard && !isProject) {
+    return res.status(200).json({
+      message: 'Przywrócono dane grup (moodboardy i projekty w grupach).',
+      type: 'groups',
     });
   }
 
@@ -256,7 +279,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       revisionIds?: string[];
     };
 
-    const projects = await getProjects();
+    const projects = await getAllProjects();
     const existingIds = new Set(projects.map((p) => p.id));
     const hasConflict = existingIds.has(projectMeta.id);
     if (hasConflict && !newName) {

@@ -122,6 +122,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
           const moodboardDir = path.join(dataDir, 'moodboard');
           const projectsDir = path.join(dataDir, 'projects');
+          const groupsDir = path.join(dataDir, 'groups');
 
           const addMoodboard = fsp.access(moodboardDir).then(
             () => { archive.directory(moodboardDir, 'moodboard'); },
@@ -131,8 +132,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             () => { archive.directory(projectsDir, 'projects'); },
             () => { /* no projects dir */ }
           );
+          const addGroups = fsp.access(groupsDir).then(async () => {
+            const gids = await fsp.readdir(groupsDir);
+            for (const gid of gids) {
+              if (gid === 'groups.json') continue;
+              const groupPath = path.join(groupsDir, gid);
+              const stat = await fsp.stat(groupPath).catch(() => null);
+              if (stat?.isDirectory()) archive.directory(groupPath, `groups/${gid}`);
+            }
+          }, () => { /* no groups dir */ });
 
-          Promise.all([addMoodboard, addProjects]).then(() => {
+          Promise.all([addMoodboard, addProjects, addGroups]).then(() => {
             archive.finalize();
           }).catch(reject);
         });

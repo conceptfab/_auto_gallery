@@ -162,9 +162,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       // brak groups
     }
 
+    // W grupie globalnej pokazuj tylko projekty, których NIE MA w żadnej grupie – żeby nie duplikować w UI (ten sam projekt może być na dysku w data/projects/ i w groups/X/projects/).
+    const projectIdsInGroups = new Set(groupItems.flatMap((g) => g.projects.map((p) => p.id)));
+    const globalOnlyProjects = projects.filter((p) => !projectIdsInGroups.has(p.id));
+
     const tree: DataStorageTree = {
       moodboard: { boards: moodboardBoards },
-      projects,
+      projects: globalOnlyProjects,
       groups: groupItems,
     };
     return res.status(200).json(tree);

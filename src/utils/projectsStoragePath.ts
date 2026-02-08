@@ -9,12 +9,15 @@ import { getDataDir } from './dataDir';
 
 // ==================== GLOBALNE (bez grupy) ====================
 
+/** Dla grupy tworzy folder. Dla globalnego (bez grupy) nie tworzy – żeby nie odtwarzać po usunięciu i uniknąć duplikatów. */
 export async function getProjectsBaseDir(groupId?: string): Promise<string> {
   const dataDir = await getDataDir();
   const base = groupId
     ? path.join(dataDir, 'groups', groupId, 'projects')
     : path.join(dataDir, 'projects');
-  await fsp.mkdir(base, { recursive: true });
+  if (groupId) {
+    await fsp.mkdir(base, { recursive: true });
+  }
   return base;
 }
 
