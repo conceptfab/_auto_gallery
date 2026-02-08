@@ -1,6 +1,6 @@
 {
   "name": "ConceptDesk",
-  "version": "b 0.36i",
+  "version": "b 0.36ii",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

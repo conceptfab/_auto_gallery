@@ -1311,6 +1311,25 @@ a {
   background: #c53030;
 }
 
+/* Softer variant for empty folder (info, not failure) */
+.error--soft {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.error--soft p {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.error--soft .retry-button {
+  background: #64748b;
+}
+
+.error--soft .retry-button:hover {
+  background: #475569;
+}
+
 /* No images found message */
 .no-images {
   text-align: center;

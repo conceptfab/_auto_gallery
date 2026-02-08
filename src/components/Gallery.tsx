@@ -513,9 +513,10 @@ const Gallery: React.FC<GalleryProps> = ({
   }
 
   if (error) {
+    const isEmptyFolder = error.includes('nie ma jeszcze');
     return (
-      <div className="error">
-        <p>Błąd: {error}</p>
+      <div className={isEmptyFolder ? 'error error--soft' : 'error'}>
+        <p>{isEmptyFolder ? error : `Błąd: ${error}`}</p>
         <button onClick={fetchGalleryData} className="retry-button">
           Spróbuj ponownie
         </button>

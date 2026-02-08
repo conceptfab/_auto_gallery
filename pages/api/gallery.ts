@@ -258,7 +258,7 @@ async function galleryHandler(
       if (folders.length === 0) {
         return res.status(200).json({
           success: false,
-          error: `Brak danych w folderze: ${targetFolder || '/'}`,
+          error: 'W tym folderze nie ma jeszcze obrazów.',
         });
       }
     } else if (isAdmin) {
@@ -290,7 +290,7 @@ async function galleryHandler(
       if (folders.length === 0) {
         return res.status(200).json({
           success: false,
-          error: `Brak danych w folderze: ${targetFolder || '/'}`,
+          error: 'W tym folderze nie ma jeszcze obrazów.',
         });
       }
     }
