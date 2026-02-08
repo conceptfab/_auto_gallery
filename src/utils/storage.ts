@@ -9,7 +9,7 @@ import type {
 } from '../types/moodboard';
 import { DEFAULT_MOODBOARD_DRAWING_CONFIG } from '../types/moodboard';
 import { getDataDir } from './dataDir';
-import { ensureGroupFolders } from './projectsStoragePath';
+import { ensureGroupFolders, getGroupsBaseDir } from './projectsStoragePath';
 
 // Trwałe przechowywanie danych w plikach JSON
 
@@ -764,13 +764,25 @@ export async function updateGroup(
   return { ...group };
 }
 
-export async function deleteGroup(id: string): Promise<boolean> {
+export async function deleteGroup(id: string, deleteData = true): Promise<boolean> {
   const groups = await loadGroups();
   const index = groups.findIndex((g) => g.id === id);
   if (index === -1) return false;
   groups.splice(index, 1);
   await saveGroups(groups);
   if (cachedData) cachedData.groups = groups;
+
+  // Usuń folder danych grupy (projekty, moodboardy, obrazy)
+  if (deleteData) {
+    try {
+      const groupsBase = await getGroupsBaseDir();
+      const groupDir = path.join(groupsBase, id);
+      await fsp.rm(groupDir, { recursive: true, force: true });
+    } catch (err) {
+      console.error(`[deleteGroup] Błąd usuwania folderu grupy ${id}:`, err);
+    }
+  }
+
   return true;
 }
 

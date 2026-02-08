@@ -286,18 +286,27 @@ const FileManager: React.FC = () => {
       return;
 
     setProcessing('batch-delete');
-    for (const path of selectedItems) {
+    const failed: string[] = [];
+    for (const filePath of selectedItems) {
       try {
-        await fetch('/api/admin/files/delete', {
+        const res = await fetch('/api/admin/files/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path }),
+          body: JSON.stringify({ path: filePath }),
         });
+        if (!res.ok) {
+          failed.push(filePath);
+          logger.error('Delete failed (batch)', { path: filePath, status: res.status });
+        }
       } catch (err) {
-        logger.error('Delete error (batch)', { path, error: err });
+        failed.push(filePath);
+        logger.error('Delete error (batch)', { path: filePath, error: err });
       }
     }
     setProcessing(null);
+    if (failed.length > 0) {
+      alert(`Nie udało się usunąć ${failed.length} z ${selectedItems.size} elementów.`);
+    }
     fetchFiles(currentFolder);
   };
 

@@ -176,14 +176,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, groupId?: string) => {
     if (!confirm('Czy na pewno chcesz usunąć ten projekt?')) return;
     setDeletingId(id);
     try {
       const res = await fetch('/api/admin/projects/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, groupId }),
       });
       const data = await res.json();
       if (data.success) {
@@ -407,7 +407,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleDelete(p.id)}
+                    onClick={() => handleDelete(p.id, p.groupId)}
                     disabled={deletingId === p.id || editingId === p.id}
                     className="admin-btn admin-btn--danger-sm admin-project-tile-delete"
                     title="Usuń projekt"

@@ -454,23 +454,32 @@ export function MoodboardProvider({
   );
 
   const removeImage = useCallback(
-    (id: string) => {
-      setAppState((prev) => {
-        const activeBoard = prev.boards.find((b) => b.id === prev.activeId);
-        const imageToRemove = activeBoard?.images.find((img) => img.id === id);
+    async (id: string) => {
+      // Odczytaj dane potrzebne do usunięcia z serwera PRZED aktualizacją stanu
+      const currentState = appState;
+      const activeBoard = currentState.boards.find((b) => b.id === currentState.activeId);
+      const imageToRemove = activeBoard?.images.find((img) => img.id === id);
+      const boardId = currentState.activeId;
 
-        // Usuń plik z dysku jeśli obraz ma imagePath
-        if (imageToRemove?.imagePath) {
-          fetch('/api/moodboard/delete-image', {
+      // Najpierw usuń plik z serwera (await!)
+      if (imageToRemove?.imagePath) {
+        try {
+          const res = await fetch('/api/moodboard/delete-image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ boardId: prev.activeId, imageId: id }),
+            body: JSON.stringify({ boardId, imageId: id }),
             credentials: 'same-origin',
-          }).catch(() => {
-            // Ignoruj błędy usuwania pliku
           });
+          if (!res.ok) {
+            console.error('[Moodboard] Błąd usuwania pliku z serwera:', res.status);
+          }
+        } catch (err) {
+          console.error('[Moodboard] Błąd sieci przy usuwaniu obrazu:', err);
         }
+      }
 
+      // Dopiero potem zaktualizuj stan lokalny
+      setAppState((prev) => {
         const boards = prev.boards.map((b) =>
           b.id === prev.activeId
             ? { ...b, images: b.images.filter((img) => img.id !== id) }
@@ -485,7 +494,7 @@ export function MoodboardProvider({
         setSelectedType(null);
       }
     },
-    [scheduleSave, selectedId, selectedType]
+    [appState, scheduleSave, selectedId, selectedType]
   );
 
   const addComment = useCallback(

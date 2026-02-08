@@ -682,29 +682,34 @@ export async function deleteProjectRevision(
   revisionId: string,
   groupId?: string
 ): Promise<boolean> {
-  const revDir = await getRevisionDir(projectId, revisionId, groupId);
-  try {
-    await fsp.rm(revDir, { recursive: true, force: true });
-  } catch {
-    // ignoruj jeśli nie istnieje
-  }
-
+  // 1. Najpierw zaktualizuj project.json (odwracalne) — PRZED usunięciem plików
   const projectDir = await getProjectDir(projectId, groupId);
   const projectPath = path.join(projectDir, 'project.json');
   let raw: string;
   try {
     raw = await fsp.readFile(projectPath, 'utf8');
-  } catch {
+  } catch (err) {
+    logger.error('[deleteProjectRevision] Nie można odczytać project.json', { projectId, groupId, error: err });
     return false;
   }
   let meta: ProjectMeta;
   try {
     meta = JSON.parse(raw) as ProjectMeta;
-  } catch {
+  } catch (err) {
+    logger.error('[deleteProjectRevision] Nie można sparsować project.json', { projectId, error: err });
     return false;
   }
   meta.revisionIds = (meta.revisionIds || []).filter((id) => id !== revisionId);
   await fsp.writeFile(projectPath, JSON.stringify(meta, null, 2), 'utf8');
+
+  // 2. Dopiero potem usuń folder rewizji (nieodwracalne)
+  const revDir = await getRevisionDir(projectId, revisionId, groupId);
+  try {
+    await fsp.rm(revDir, { recursive: true, force: true });
+  } catch (err) {
+    logger.error('[deleteProjectRevision] Błąd usuwania folderu rewizji', { projectId, revisionId, error: err });
+  }
+
   return true;
 }
 
@@ -713,7 +718,8 @@ export async function deleteProject(id: string, groupId?: string): Promise<boole
   try {
     await fsp.rm(projectDir, { recursive: true, force: true });
     return true;
-  } catch {
+  } catch (err) {
+    logger.error('[deleteProject] Błąd usuwania projektu', { id, groupId, projectDir, error: err });
     return false;
   }
 }
