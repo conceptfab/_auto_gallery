@@ -24,6 +24,7 @@ interface ProjectTreeItem {
 
 interface GroupTreeItem {
   groupId: string;
+  groupName: string;
   moodboard: { boards: MoodboardBoardInfo[] };
   projects: ProjectTreeItem[];
 }
@@ -756,7 +757,7 @@ export const DataStorageSection: React.FC = () => {
           <div style={{ borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ padding: '10px 16px', backgroundColor: '#e0e7ff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <i className="las la-globe" style={{ color: '#3730a3' }} />
-              Global
+              Grupa globalna (bez przypisania)
             </div>
             {tree?.moodboard?.boards?.length ? (
               <div style={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -837,7 +838,8 @@ export const DataStorageSection: React.FC = () => {
           <div key={group.groupId} style={{ borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ padding: '10px 16px', backgroundColor: '#fef3c7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <i className="las la-users" style={{ color: '#b45309' }} />
-              Grupa: {group.groupId}
+              {group.groupName}
+              <span style={{ fontWeight: 400, color: '#92400e', fontSize: '13px' }}>({group.groupId})</span>
             </div>
             {group.moodboard?.boards?.length ? (
               <div style={{ borderBottom: '1px solid #e5e7eb' }}>

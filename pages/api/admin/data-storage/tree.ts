@@ -3,6 +3,7 @@ import path from 'path';
 import fsp from 'fs/promises';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDataDir } from '@/src/utils/dataDir';
+import { getGroups } from '@/src/utils/storage';
 
 export interface MoodboardBoardInfo {
   id: string;
@@ -27,6 +28,8 @@ export interface ProjectTreeItem {
 
 export interface GroupTreeItem {
   groupId: string;
+  /** Czytelna nazwa grupy z groups.json (lub groupId gdy brak) */
+  groupName: string;
   moodboard: { boards: MoodboardBoardInfo[] };
   projects: ProjectTreeItem[];
 }
@@ -134,8 +137,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const moodboardBoards = await readMoodboardBoards(path.join(dataDir, 'moodboard'));
     const projects = await readProjects(path.join(dataDir, 'projects'));
 
-    // Scan group folders
+    // Scan group folders i dopasuj czytelne nazwy z groups.json
     const groupItems: GroupTreeItem[] = [];
+    const groupsList = await getGroups().catch(() => []);
     const groupsDir = path.join(dataDir, 'groups');
     try {
       const groupDirs = await fsp.readdir(groupsDir);
@@ -146,8 +150,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (!gstat?.isDirectory()) continue;
         const gMoodboard = await readMoodboardBoards(path.join(groupPath, 'moodboard'));
         const gProjects = await readProjects(path.join(groupPath, 'projects'));
+        const groupMeta = groupsList.find((g) => g.id === gid);
         groupItems.push({
           groupId: gid,
+          groupName: groupMeta?.name?.trim() || groupMeta?.clientName?.trim() || gid,
           moodboard: { boards: gMoodboard },
           projects: gProjects,
         });

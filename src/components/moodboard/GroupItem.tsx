@@ -232,8 +232,9 @@ const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMen
             style={{ zIndex: 10 }}
             onClick={onDelete}
             aria-label="Usuń grupę"
+            title="Usuń grupę"
           >
-            ×
+            <i className="las la-trash-alt" aria-hidden />
           </button>
           <div className="moodboard-resize-handle moodboard-resize-handle--nw" onPointerDown={(e) => onResizeHandlePointerDown(e, 'nw')} />
           <div className="moodboard-resize-handle moodboard-resize-handle--n" onPointerDown={(e) => onResizeHandlePointerDown(e, 'n')} />
