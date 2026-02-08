@@ -1,7 +1,6 @@
 import path from 'path';
 import fsp from 'fs/promises';
 import crypto from 'crypto';
-import { getDataDir } from './dataDir';
 import {
   getProjectsBaseDir,
   getProjectDir,
@@ -90,93 +89,6 @@ function revisionToMeta(rev: Revision): RevisionMeta {
   };
 }
 
-let legacyMigrationAttempted = false;
-
-/**
- * Jednorazowa migracja z legacy projects.json do struktury katalogowej.
- */
-async function migrateLegacyToFolderStructure(
-  dataDir: string,
-  legacyProjects: Project[]
-): Promise<void> {
-  if (legacyProjects.length === 0) return;
-  const projectsDir = path.join(dataDir, 'projects');
-  const oldThumbBase = path.join(dataDir, 'thumbnails', 'design-revision');
-  const oldGalleryBase = path.join(dataDir, 'thumbnails', 'design-gallery');
-
-  await fsp.mkdir(projectsDir, { recursive: true });
-
-  for (const project of legacyProjects) {
-    const projectId = project.id;
-    const projectPath = path.join(projectsDir, projectId);
-    await fsp.mkdir(projectPath, { recursive: true });
-
-    const meta: ProjectMeta = {
-      id: projectId,
-      name: project.name || 'Projekt',
-      slug: project.slug,
-      description: project.description,
-      groupId: project.groupId,
-      createdAt: project.createdAt || new Date().toISOString(),
-      revisionIds: (project.revisions || []).map((r) => r.id),
-    };
-    await fsp.writeFile(
-      path.join(projectPath, 'project.json'),
-      JSON.stringify(meta, null, 2),
-      'utf8'
-    );
-
-    for (const rev of project.revisions || []) {
-      const revId = rev.id;
-      const revDir = path.join(projectPath, 'rewizje', revId);
-      await fsp.mkdir(revDir, { recursive: true });
-
-      const oldThumbFile = path.join(oldThumbBase, projectId, `${revId}.webp`);
-      const newThumbFile = path.join(revDir, REVISION_THUMBNAIL_FILENAME);
-      let thumbnailCopied = false;
-      try {
-        await fsp.copyFile(oldThumbFile, newThumbFile);
-        thumbnailCopied = true;
-      } catch {
-        // brak starej miniaturki
-      }
-
-      const galleryDir = path.join(revDir, 'gallery');
-      await fsp.mkdir(galleryDir, { recursive: true });
-
-      const galleryPaths: string[] = [];
-      for (const rel of rev.galleryPaths || []) {
-        const parts = rel.split(/[/\\]/);
-        const filename = parts[parts.length - 1];
-        if (!filename) continue;
-        const oldFile = path.join(oldGalleryBase, projectId, revId, filename);
-        const newFile = path.join(galleryDir, filename);
-        try {
-          await fsp.copyFile(oldFile, newFile);
-          galleryPaths.push(filename);
-        } catch {
-          // plik mógł nie istnieć
-        }
-      }
-
-      const revMeta: RevisionMeta = {
-        id: rev.id,
-        label: rev.label,
-        description: rev.description,
-        embedUrl: rev.embedUrl,
-        createdAt: rev.createdAt || new Date().toISOString(),
-        thumbnailPath: thumbnailCopied ? REVISION_THUMBNAIL_FILENAME : undefined,
-        galleryPaths: galleryPaths.length ? galleryPaths : undefined,
-      };
-      await fsp.writeFile(
-        path.join(revDir, 'revision.json'),
-        JSON.stringify(revMeta, null, 2),
-        'utf8'
-      );
-    }
-  }
-}
-
 // ==================== ODCZYT PROJEKTÓW Z KATALOGU ====================
 
 /** Czyta projekty z podanego katalogu bazowego (globalnego lub grupowego). */
@@ -236,34 +148,6 @@ async function readProjectsFromDir(projectsDir: string, forGroupId?: string): Pr
 /** Odczytuje projekty: grupowe (z groups/{groupId}/projects/) lub globalne (projects/). */
 export async function getProjects(groupId?: string): Promise<Project[]> {
   const projectsDir = await getProjectsBaseDir(groupId);
-
-  // Legacy migration only for global (no group) projects
-  if (!groupId) {
-    let entries: string[] = [];
-    try {
-      entries = await fsp.readdir(projectsDir);
-    } catch {
-      entries = [];
-    }
-
-    if (entries.length === 0 && !legacyMigrationAttempted) {
-      legacyMigrationAttempted = true;
-      const dataDir = await getDataDir();
-      const legacyPath = path.join(dataDir, 'projects.json');
-      try {
-        const raw = await fsp.readFile(legacyPath, 'utf8');
-        const legacy = JSON.parse(raw) as unknown;
-        const legacyProjects = Array.isArray(legacy) ? (legacy as Project[]) : [];
-        if (legacyProjects.length > 0) {
-          await migrateLegacyToFolderStructure(dataDir, legacyProjects);
-          return getProjects();
-        }
-      } catch {
-        // brak lub błąd legacy – zwróć pustą listę
-      }
-    }
-  }
-
   return readProjectsFromDir(projectsDir, groupId);
 }
 

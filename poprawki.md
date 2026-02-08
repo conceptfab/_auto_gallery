@@ -298,16 +298,18 @@ galleryPaths.some((p) => p.endsWith(`/${filename}`)); // zbyt szerokie dopasowan
 
 ---
 
-### MIG-2: migrateLegacyToFolderStructure
+### MIG-2: migrateLegacyToFolderStructure [ZREALIZOWANE]
 
-**Plik:** `src/utils/projectsStorage.ts:93-178, 241-264`
+**Plik:** `src/utils/projectsStorage.ts`
 
-**Problem:** Migracja z jednego `projects.json` do struktury folderow. Uruchamiana przy kazdym `getProjects()` (chodziaz z flagow `legacyMigrationAttempted`).
+**Problem:** Flaga `legacyMigrationAttempted` (zmienna modulowa) resetowala sie przy kazdym deployu/restarcie. Powodowalo to ponowne uruchomienie migracji z `projects.json` i tworzenie duplikatow projektow bez grupy obok istniejacych projektow w grupach. **To byla przyczyna bugu z duplikatami po deploy.**
 
-**Do usuniecia:**
-- Zmienna `legacyMigrationAttempted` (linia 93)
-- Funkcja `migrateLegacyToFolderStructure` (linie 98-178)
-- Blok migracyjny w `getProjects` (linie 241-264)
+**Wykonane zmiany:**
+- Usunieta zmienna `legacyMigrationAttempted`
+- Usunieta cala funkcja `migrateLegacyToFolderStructure` (~80 linii)
+- Usuniety blok migracyjny z `getProjects()` (~25 linii) — funkcja teraz bezposrednio wywoluje `readProjectsFromDir()`
+- Usuniety nieuzywany import `getDataDir`
+- Laczna redukcja: ~107 linii kodu
 
 ---
 
@@ -576,7 +578,7 @@ function getCachedRegexes(keyword: string): KeywordRegexes {
 | # | Zadanie | Pliki | Szac. linii |
 |---|---------|-------|-------------|
 | 1 | Usunac migrateToGroupFolders | `migrateToGroupFolders.ts`, `migrate-to-group-folders.ts`, `GroupsManager.tsx` | ~280 |
-| 2 | Usunac migrateLegacyToFolderStructure | `projectsStorage.ts` | ~100 |
+| 2 | Usunac migrateLegacyToFolderStructure | `projectsStorage.ts` | DONE (~107 linii) |
 | 3 | Usunac migrateStatsToDailyFiles | `statsStorage.ts` | ~50 |
 | 4 | Usunac migrateLegacyToCurrent | `cacheStorage.ts` | ~60 |
 | 5 | Usunac fallback niepodpisanych cookies | `auth.ts` | ~5 |
@@ -606,7 +608,7 @@ function getCachedRegexes(keyword: string): KeywordRegexes {
 **Zrealizowane zmiany (12 plikow):**
 1. `src/contexts/MoodboardContext.tsx` — async removeImage z await na fetch
 2. `src/utils/storage.ts` — deleteGroup() usuwa folder danych grupy
-3. `src/utils/projectsStorage.ts` — odwrocona kolejnosc w deleteProjectRevision + logowanie bledow w deleteProject
+3. `src/utils/projectsStorage.ts` — odwrocona kolejnosc w deleteProjectRevision + logowanie bledow w deleteProject + **usunieta migracja legacy (MIG-2, ~107 linii)**
 4. `src/components/FileManager.tsx` — batch delete sprawdza response.ok i informuje o bledach
 5. `src/components/admin/ProjectsSection.tsx` — groupId w delete request
 6. `pages/api/admin/files/list.ts` — walidacja path traversal
