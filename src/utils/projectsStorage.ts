@@ -366,6 +366,28 @@ export async function getThumbnailFilePath(
   }
 }
 
+/** Szuka pliku miniaturki w globalnym folderze i we wszystkich grupach (fallback po przeniesieniu projektu). */
+export async function getThumbnailFilePathFromAnyGroup(
+  projectId: string,
+  revisionId: string
+): Promise<string | null> {
+  let fp = await getThumbnailFilePath(projectId, revisionId, undefined);
+  if (fp) return fp;
+  const groupsBase = await getGroupsBaseDir();
+  let groupDirs: string[] = [];
+  try {
+    groupDirs = await fsp.readdir(groupsBase);
+  } catch {
+    return null;
+  }
+  for (const gid of groupDirs) {
+    if (gid === 'groups.json') continue;
+    fp = await getThumbnailFilePath(projectId, revisionId, gid);
+    if (fp) return fp;
+  }
+  return null;
+}
+
 /** Usuwa plik miniaturki rewizji. */
 export async function deleteThumbnailFile(
   projectId: string,

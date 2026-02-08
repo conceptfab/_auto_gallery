@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getEmailFromCookie } from '@/src/utils/auth';
 import { isUserLoggedIn, isAdminLoggedIn } from '@/src/utils/storage';
-import { findProjectById, getThumbnailFilePath } from '@/src/utils/projectsStorage';
+import { findProjectById, getThumbnailFilePath, getThumbnailFilePathFromAnyGroup } from '@/src/utils/projectsStorage';
 import { ADMIN_EMAIL } from '@/src/config/constants';
 import { logger } from '@/src/utils/logger';
 import fsp from 'fs/promises';
@@ -44,9 +44,13 @@ export default async function handler(
     return res.status(404).json({ error: 'Projekt lub rewizja nie znaleziona' });
   }
 
-  const filePath = await getThumbnailFilePath(projectId, revisionId, projectGroupId);
+  let filePath = await getThumbnailFilePath(projectId, revisionId, projectGroupId);
   if (!filePath) {
-    logger.warn('[thumbnail API] getThumbnailFilePath zwrócił null', { projectId, revisionId });
+    filePath = await getThumbnailFilePathFromAnyGroup(projectId, revisionId);
+  }
+  if (!filePath) {
+    logger.warn('[thumbnail API] brak pliku miniaturki', { projectId, revisionId });
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(404).json({ error: 'Plik miniaturki nie istnieje' });
   }
 
