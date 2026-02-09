@@ -59,17 +59,6 @@ export const DEFAULT_HISTORY_CLEANUP_CONFIG: HistoryCleanupConfig = {
   retentionHours: 24,
 };
 
-const defaultCacheData: CacheStorageData = {
-  schedulerConfig: DEFAULT_SCHEDULER_CONFIG,
-  thumbnailConfig: DEFAULT_THUMBNAIL_CONFIG,
-  fileHashes: [],
-  changeHistory: [],
-  history: [],
-  lastSchedulerRun: null,
-  lastScanChanges: 0,
-  lastScanDuration: null,
-};
-
 const CACHE_PATHS = {
   config: 'cache-config.json',
   historyDir: 'history',
@@ -124,7 +113,6 @@ interface DailyHistoryFile {
 }
 
 let cachedData: CacheStorageData | null = null;
-let cacheMigrationDone = false;
 
 async function loadConfig(): Promise<CacheConfigFile> {
   const filePath = await getConfigFilePath();
@@ -175,65 +163,7 @@ async function loadCurrent(): Promise<CacheCurrentFile> {
         ? data.changeHistory
         : [],
     };
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : null;
-    if (code === 'ENOENT') return migrateLegacyToCurrent();
-    return {
-      fileHashes: [],
-      lastSchedulerRun: null,
-      lastScanChanges: 0,
-      lastScanDuration: null,
-      history: [],
-      changeHistory: [],
-    };
-  }
-}
-
-async function migrateLegacyToCurrent(): Promise<CacheCurrentFile> {
-  if (cacheMigrationDone) {
-    return {
-      fileHashes: [],
-      lastSchedulerRun: null,
-      lastScanChanges: 0,
-      lastScanDuration: null,
-      history: [],
-      changeHistory: [],
-    };
-  }
-  const configPath = await getConfigFilePath();
-  try {
-    const raw = await fsp.readFile(configPath, 'utf8');
-    const legacy: CacheStorageData = {
-      ...defaultCacheData,
-      ...JSON.parse(raw),
-    };
-    cacheMigrationDone = true;
-    await saveConfig({
-      schedulerConfig: legacy.schedulerConfig,
-      thumbnailConfig: legacy.thumbnailConfig,
-      emailNotificationConfig: legacy.emailNotificationConfig,
-      historyCleanupConfig: legacy.historyCleanupConfig,
-    });
-    const current: CacheCurrentFile = {
-      fileHashes: legacy.fileHashes || [],
-      lastSchedulerRun: legacy.lastSchedulerRun ?? null,
-      lastScanChanges: legacy.lastScanChanges ?? 0,
-      lastScanDuration: legacy.lastScanDuration ?? null,
-      folderHashRecords: legacy.folderHashRecords,
-      lastRebuiltFolder: legacy.lastRebuiltFolder,
-      history: (legacy.history || []).slice(-HISTORY_SLICE_MAX),
-      changeHistory: (legacy.changeHistory || []).slice(-HISTORY_SLICE_MAX),
-    };
-    const historyDir = await getHistoryDir();
-    await fsp.mkdir(historyDir, { recursive: true });
-    const currentPath = await getCurrentFilePath();
-    await fsp.writeFile(currentPath, JSON.stringify(current, null, 2));
-    return current;
   } catch {
-    cacheMigrationDone = true;
     return {
       fileHashes: [],
       lastSchedulerRun: null,
@@ -286,7 +216,6 @@ export async function getCacheData(): Promise<CacheStorageData> {
 
   const config = await loadConfig();
   const current = await loadCurrent();
-  cacheMigrationDone = true;
 
   const merged: CacheStorageData = {
     ...config,

@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import sharp from 'sharp';
-import axios from 'axios';
 import { logger } from '@/src/utils/logger';
 import {
   generateUploadToken,
@@ -255,19 +254,18 @@ async function scanFolderForImages(
 
     const listUrl = generateListUrl(cleanPath);
 
-    const response = await axios.get(listUrl, {
-      timeout: API_TIMEOUT_SHORT,
+    const response = await fetch(listUrl, {
+      signal: AbortSignal.timeout(API_TIMEOUT_SHORT),
     });
+    const data = await response.json();
 
-    if (!response.data || response.data.error) {
+    if (!data || data.error) {
       logger.error(
         `PHP returned error:`,
-        response.data?.error || 'Unknown error',
+        data?.error || 'Unknown error',
       );
       return [];
     }
-
-    const data = response.data;
 
     const images: Array<{ name: string; url: string }> = [];
 
@@ -321,12 +319,6 @@ async function scanFolderForImages(
     return images;
   } catch (error) {
     logger.error('Error scanning folder for images', { folderPath, error });
-    if (axios.isAxiosError(error)) {
-      logger.error(
-        `Axios scan error: ${error.response?.status} ${error.response?.statusText}`,
-        error.response?.data,
-      );
-    }
     return [];
   }
 }
@@ -341,13 +333,13 @@ async function convertImageToWebP(
       throw new Error('Invalid image URL');
     }
 
-    const response = await axios.get(image.url, {
-      responseType: 'arraybuffer',
-      timeout: API_TIMEOUT_LONG,
-      maxContentLength: MAX_FILE_SIZE_BYTES,
-      maxBodyLength: MAX_FILE_SIZE_BYTES,
+    const response = await fetch(image.url, {
+      signal: AbortSignal.timeout(API_TIMEOUT_LONG),
     });
-    const imageBuffer = Buffer.from(response.data);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const imageBuffer = Buffer.from(await response.arrayBuffer());
 
     // Validate file size
     if (imageBuffer.length > MAX_FILE_SIZE_BYTES) {
@@ -383,38 +375,28 @@ async function uploadConvertedFile(
   try {
     const { token, expires, url } = generateUploadToken(folderPath);
 
-    // Przygotuj FormData
-    const FormData = (await import('form-data')).default;
     const formData = new FormData();
-
     formData.append('token', token);
     formData.append('expires', expires.toString());
     formData.append('folder', folderPath);
-    formData.append('file', buffer, {
-      filename: fileName,
-      contentType: 'image/webp',
-    });
+    formData.append('file', new Blob([new Uint8Array(buffer)], { type: 'image/webp' }), fileName);
 
-    const response = await axios.post(url, formData, {
-      headers: {
-        ...formData.getHeaders(),
-      },
-      timeout: API_TIMEOUT_LONG,
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      signal: AbortSignal.timeout(API_TIMEOUT_LONG),
     });
+    const data = await response.json();
 
-    if (response.data.success) {
+    if (data.success) {
       const filePath = `${folderPath}/${fileName}`;
       return filePath;
     } else {
-      const errorMsg = 'Upload failed';
-      logger.error(`Upload failed`, response.data);
-      throw new Error(errorMsg);
+      logger.error(`Upload failed`, data);
+      throw new Error('Upload failed');
     }
   } catch (error) {
     logger.error(`Upload error for ${fileName}`, error);
-    if (axios.isAxiosError(error)) {
-      logger.error(`Axios upload error: ${error.response?.status}`);
-    }
     throw new Error('Upload failed');
   }
 }
@@ -461,19 +443,15 @@ async function deleteOriginalImage(imageUrl: string): Promise<void> {
     const { token, expires, url } = generateDeleteToken(filePath);
 
     // Wyślij żądanie usunięcia
-    const response = await axios.post(
-      url,
-      {
-        path: filePath,
-        token: token,
-        expires: expires,
-      },
-      {
-        timeout: API_TIMEOUT_SHORT,
-      },
-    );
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: filePath, token, expires }),
+      signal: AbortSignal.timeout(API_TIMEOUT_SHORT),
+    });
+    const data = await response.json();
 
-    if (!response.data.success) {
+    if (!data.success) {
       throw new Error('Delete failed');
     }
   } catch (error) {

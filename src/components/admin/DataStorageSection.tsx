@@ -677,7 +677,7 @@ export const DataStorageSection: React.FC = () => {
                 setRestoreConflict(null);
                 setRestoreSuccess(null);
                 setRestoreError(null);
-                if (f) console.log('[Restore] Wybrano plik:', f.name, 'rozmiar:', (f.size / 1024 / 1024).toFixed(2), 'MB');
+                if (f) logger.debug('[Restore] Wybrano plik:', f.name, 'rozmiar:', (f.size / 1024 / 1024).toFixed(2), 'MB');
               }}
               style={{ fontSize: '13px' }}
             />

@@ -3,8 +3,6 @@
 import sharp from 'sharp';
 import path from 'path';
 import fsp from 'fs/promises';
-import axios from 'axios';
-import FormData from 'form-data';
 import { ThumbnailConfig, ThumbnailSize } from '@/src/types/cache';
 import { logger } from '@/src/utils/logger';
 import { DEFAULT_THUMBNAIL_SIZES } from '@/src/utils/cacheStorage';
@@ -63,14 +61,14 @@ export async function generateThumbnails(
         })();
 
     // Pobierz oryginalny obraz
-    const response = await axios.get(fetchUrl, {
-      responseType: 'arraybuffer',
-      timeout: 60000,
-      headers: {
-        'User-Agent': 'ContentBrowser/1.0',
-      },
+    const response = await fetch(fetchUrl, {
+      headers: { 'User-Agent': 'ContentBrowser/1.0' },
+      signal: AbortSignal.timeout(60000),
     });
-    const imageBuffer = Buffer.from(response.data);
+    if (!response.ok) {
+      throw Object.assign(new Error(`HTTP ${response.status}`), { status: response.status });
+    }
+    const imageBuffer = Buffer.from(await response.arrayBuffer());
 
     // Sprawdź czy to prawidłowy obraz
     const metadata = await sharp(imageBuffer).metadata();
@@ -114,9 +112,7 @@ export async function generateThumbnails(
 
     return results;
   } catch (error) {
-    const status = axios.isAxiosError(error)
-      ? error.response?.status
-      : undefined;
+    const status = (error as { status?: number }).status;
     if (status === 404) {
       logger.warn(`File not found on server (404), skipping: ${originalPath}`);
       return results;
@@ -182,20 +178,18 @@ async function saveThumbnail(
       throw new Error('FILE_UPLOAD_URL not configured');
     }
 
-    const form = new FormData();
     const pathParts = relativePath.split('/');
     const filename = pathParts.pop() || 'thumb.webp';
 
-    form.append('file', buffer, {
-      filename,
-      contentType: `image/${format}`,
-    });
+    const form = new FormData();
+    form.append('file', new Blob([new Uint8Array(buffer)], { type: `image/${format}` }), filename);
     form.append('path', `thumbnails/${pathParts.join('/')}`);
     form.append('secret', process.env.FILE_PROXY_SECRET || '');
 
-    await axios.post(uploadUrl, form, {
-      headers: form.getHeaders(),
-      timeout: 30000,
+    await fetch(uploadUrl, {
+      method: 'POST',
+      body: form,
+      signal: AbortSignal.timeout(30000),
     });
 
     const base = GALLERY_BASE_URL.endsWith('/')
@@ -232,8 +226,8 @@ export async function thumbnailExists(
       : GALLERY_BASE_URL + '/';
     const url = `${base}thumbnails/${relativePath}`;
     try {
-      await axios.head(url, { timeout: 5000 });
-      return true;
+      const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+      return res.ok;
     } catch {
       return false;
     }

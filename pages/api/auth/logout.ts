@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
-  logoutUser,
   clearAuthCookie,
   getEmailFromCookie,
 } from '../../../src/utils/auth';
+import { logoutUser } from '../../../src/utils/storage';
 import { endSession } from '../../../src/utils/statsStorage';
+import { logger } from '../../../src/utils/logger';
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,7 +35,7 @@ export default async function handler(
       success: true,
     });
   } catch (error) {
-    console.error('Error during logout:', error);
+    logger.error('Error during logout:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }

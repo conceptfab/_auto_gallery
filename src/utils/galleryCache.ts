@@ -1,27 +1,15 @@
-import { Redis } from '@upstash/redis';
 import { GalleryFolder } from '@/src/types/gallery';
 import crypto from 'crypto';
-import { logger } from '@/src/utils/logger';
 
-// Inicjalizacja Redis z fallback do null jeśli brak zmiennych środowiskowych
-let redis: Redis | null = null;
+const CACHE_TTL = 300_000; // 5 minut w ms
 
-try {
-  if (process.env.UPSTASH_REDIS_URL && process.env.UPSTASH_REDIS_TOKEN) {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_URL,
-      token: process.env.UPSTASH_REDIS_TOKEN,
-    });
-  }
-} catch (error) {
-  logger.warn('Redis initialization failed, using fallback mode:', error);
+interface CacheEntry {
+  data: GalleryFolder[];
+  expiresAt: number;
 }
 
-const CACHE_TTL = 300; // 5 minut
+const cache = new Map<string, CacheEntry>();
 
-/**
- * Generuje klucz cache dla folderu galerii
- */
 function getCacheKey(folder: string, groupId?: string): string {
   const baseKey = `gallery:${folder || 'root'}`;
   return groupId ? `${baseKey}:group:${groupId}` : baseKey;
@@ -58,18 +46,14 @@ export async function getCachedGallery(
   folder: string,
   groupId?: string
 ): Promise<GalleryFolder[] | null> {
-  if (!redis) {
-    return null; // Fallback - brak cache
+  const key = getCacheKey(folder, groupId);
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key);
+    return null;
   }
-
-  try {
-    const key = getCacheKey(folder, groupId);
-    const cached = await redis.get<GalleryFolder[]>(key);
-    return cached;
-  } catch (error) {
-    logger.error('Redis get error:', error);
-    return null; // Graceful degradation
-  }
+  return entry.data;
 }
 
 /**
@@ -80,41 +64,6 @@ export async function setCachedGallery(
   data: GalleryFolder[],
   groupId?: string
 ): Promise<void> {
-  if (!redis) {
-    return; // Fallback - brak cache
-  }
-
-  try {
-    const key = getCacheKey(folder, groupId);
-    await redis.set(key, data, { ex: CACHE_TTL });
-  } catch (error) {
-    logger.error('Redis set error:', error);
-    // Graceful degradation - nie przerywamy działania
-  }
-}
-
-/**
- * Czyści cache dla konkretnego folderu
- */
-export async function clearCachedGallery(
-  folder: string,
-  groupId?: string
-): Promise<void> {
-  if (!redis) {
-    return;
-  }
-
-  try {
-    const key = getCacheKey(folder, groupId);
-    await redis.del(key);
-  } catch (error) {
-    logger.error('Redis del error:', error);
-  }
-}
-
-/**
- * Sprawdza czy Redis jest dostępny
- */
-export function isCacheAvailable(): boolean {
-  return redis !== null;
+  const key = getCacheKey(folder, groupId);
+  cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL });
 }

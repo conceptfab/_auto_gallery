@@ -10,6 +10,7 @@ import type {
 import { DEFAULT_MOODBOARD_DRAWING_CONFIG } from '../types/moodboard';
 import { getDataDir } from './dataDir';
 import { ensureGroupFolders, getGroupsBaseDir } from './projectsStoragePath';
+import { logger } from './logger';
 
 // Trwałe przechowywanie danych w plikach JSON
 
@@ -175,7 +176,7 @@ async function loadJsonFile(filePath: string, label: string): Promise<unknown> {
     return JSON.parse(raw);
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
-    console.error(`❌ Błąd ładowania ${label}:`, err);
+    logger.error(`Błąd ładowania ${label}:`, err);
     return undefined;
   }
 }
@@ -199,33 +200,46 @@ function asRecord(data: unknown): Record<string, unknown> {
 
 // ==================== LISTY (osobne pliki) ====================
 
+let _whitelistCache: string[] | null = null;
+let _blacklistCache: string[] | null = null;
+let _groupsCache: UserGroup[] | null = null;
+
 async function loadWhitelist(): Promise<string[]> {
-  return asArray(await loadJsonFile(getWhitelistPath(await getListsDir()), 'whitelist'));
+  if (_whitelistCache) return _whitelistCache;
+  _whitelistCache = asArray(await loadJsonFile(getWhitelistPath(await getListsDir()), 'whitelist'));
+  return _whitelistCache;
 }
 
 async function saveWhitelist(list: string[]): Promise<void> {
   const dir = await getListsDir();
   await saveJsonFile(dir, getWhitelistPath(dir), list);
+  _whitelistCache = list;
 }
 
 async function loadBlacklist(): Promise<string[]> {
-  return asArray(await loadJsonFile(getBlacklistPath(await getListsDir()), 'blacklist'));
+  if (_blacklistCache) return _blacklistCache;
+  _blacklistCache = asArray(await loadJsonFile(getBlacklistPath(await getListsDir()), 'blacklist'));
+  return _blacklistCache;
 }
 
 async function saveBlacklist(list: string[]): Promise<void> {
   const dir = await getListsDir();
   await saveJsonFile(dir, getBlacklistPath(dir), list);
+  _blacklistCache = list;
 }
 
 // ==================== GRUPY (osobny plik) ====================
 
 async function loadGroups(): Promise<UserGroup[]> {
-  return asArray(await loadJsonFile(getGroupsPath(await getGroupsDir()), 'groups'));
+  if (_groupsCache) return _groupsCache;
+  _groupsCache = asArray(await loadJsonFile(getGroupsPath(await getGroupsDir()), 'groups'));
+  return _groupsCache;
 }
 
 async function saveGroups(groups: UserGroup[]): Promise<void> {
   const dir = await getGroupsDir();
   await saveJsonFile(dir, getGroupsPath(dir), groups);
+  _groupsCache = groups;
 }
 
 // ==================== CORE (pending, codes, settings) ====================

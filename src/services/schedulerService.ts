@@ -214,7 +214,7 @@ export async function runScan(isScheduled = false): Promise<{
         cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
       if (emailConfig.enabled && emailConfig.notifyOnRebuild) {
         try {
-          console.log(
+          logger.info(
             '[Scan] Wysyłam powiadomienie email o wykrytych zmianach...'
           );
           await sendRebuildNotification(
@@ -229,10 +229,6 @@ export async function runScan(isScheduled = false): Promise<{
           );
         } catch (emailErr) {
           logger.error('Failed to send scan changes notification', emailErr);
-          console.error(
-            '[Scan] Błąd wysyłki powiadomienia o wykrytych zmianach:',
-            emailErr
-          );
         }
       }
     } else {
@@ -289,7 +285,7 @@ export async function runScan(isScheduled = false): Promise<{
       const emailConfig =
         cacheData.emailNotificationConfig || DEFAULT_EMAIL_NOTIFICATION_CONFIG;
       if (emailConfig.enabled && emailConfig.notifyOnError) {
-        console.log(
+        logger.info(
           '[Scan] Wysyłam powiadomienie email o błędzie skanowania...'
         );
         await sendRebuildNotification(
@@ -306,7 +302,6 @@ export async function runScan(isScheduled = false): Promise<{
       }
     } catch (emailErr) {
       logger.error('Failed to send scan error notification', emailErr);
-      console.error('[Scan] Błąd wysyłki powiadomienia o błędzie:', emailErr);
     }
 
     return {

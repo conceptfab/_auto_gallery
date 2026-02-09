@@ -43,7 +43,7 @@ export async function sendAdminNotification(
   email: string,
   ip: string
 ): Promise<void> {
-  logger.emailEvent('sending admin notification', ADMIN_EMAIL);
+  logger.info(`Email sending admin notification to ${ADMIN_EMAIL}`);
 
   try {
     const result = await resend.emails.send({
@@ -64,11 +64,7 @@ export async function sendAdminNotification(
       `,
     });
 
-    logger.emailEvent(
-      'admin notification sent successfully',
-      ADMIN_EMAIL,
-      result.data?.id
-    );
+    logger.info(`Email admin notification sent to ${ADMIN_EMAIL}`, result.data?.id);
   } catch (error) {
     logger.error('Failed to send admin notification', error);
     throw error;
@@ -79,7 +75,7 @@ export async function sendLoginCode(
   email: string,
   code: string
 ): Promise<void> {
-  logger.emailEvent('sending login code', email);
+  logger.info(`Email sending login code to ${email}`);
 
   try {
     const result = await resend.emails.send({
@@ -101,7 +97,7 @@ export async function sendLoginCode(
       `,
     });
 
-    logger.emailEvent('login code sent successfully', email, result.data?.id);
+    logger.info(`Email login code sent to ${email}`, result.data?.id);
   } catch (error) {
     logger.error('Failed to send login code to', email, error);
     throw error;
@@ -112,7 +108,7 @@ export async function sendAdminLoginCode(
   email: string,
   code: string
 ): Promise<void> {
-  logger.emailEvent('sending admin login code', email);
+  logger.info(`Email sending admin login code to ${email}`);
 
   try {
     const result = await resend.emails.send({
@@ -136,11 +132,7 @@ export async function sendAdminLoginCode(
       `,
     });
 
-    logger.emailEvent(
-      'admin login code sent successfully',
-      email,
-      result.data?.id
-    );
+    logger.info(`Email admin login code sent to ${email}`, result.data?.id);
   } catch (error) {
     logger.error('Failed to send admin login code to', email, error);
     throw error;
@@ -148,7 +140,7 @@ export async function sendAdminLoginCode(
 }
 
 export async function sendEmergencyCodeAlert(ip: string): Promise<void> {
-  logger.emailEvent('sending emergency code alert', ADMIN_EMAIL);
+  logger.info(`Email sending emergency code alert to ${ADMIN_EMAIL}`);
 
   try {
     await resend.emails.send({
@@ -180,7 +172,7 @@ export async function sendEmergencyCodeAlert(ip: string): Promise<void> {
       `,
     });
 
-    logger.emailEvent('emergency code alert sent', ADMIN_EMAIL);
+    logger.info(`Email emergency code alert sent to ${ADMIN_EMAIL}`);
   } catch (error) {
     logger.error('Failed to send emergency code alert', error);
     // Non-blocking — don't throw
@@ -203,19 +195,18 @@ export async function sendRebuildNotification(
 ): Promise<void> {
   const targetEmail = (customEmail?.trim() || ADMIN_EMAIL).trim();
   if (!targetEmail) {
-    console.error(
+    logger.error(
       '[Email] Nie wysłano powiadomienia o rebuild: brak adresu (ustaw ADMIN_EMAIL lub email w konfiguracji)'
     );
     return;
   }
   if (!process.env.RESEND_API_KEY?.trim()) {
-    console.error(
+    logger.error(
       '[Email] Nie wysłano powiadomienia o rebuild: brak RESEND_API_KEY w zmiennych środowiskowych (Railway Variables)'
     );
     return;
   }
-  logger.emailEvent('sending rebuild notification', targetEmail);
-  console.log('[Email] Wysyłam powiadomienie o rebuild do:', targetEmail);
+  logger.info(`Email sending rebuild notification to ${targetEmail}`);
 
   try {
     const statusColor = data.success ? '#4CAF50' : '#f44336';
@@ -272,18 +263,9 @@ export async function sendRebuildNotification(
       `,
     });
 
-    logger.emailEvent(
-      'rebuild notification sent successfully',
-      targetEmail,
-      result.data?.id
-    );
-    console.log(
-      '[Email] Powiadomienie o rebuild wysłane pomyślnie, id:',
-      result.data?.id
-    );
+    logger.info(`Email rebuild notification sent to ${targetEmail}`, result.data?.id);
   } catch (error) {
     logger.error('Failed to send rebuild notification', error);
-    console.error('[Email] Błąd wysyłki powiadomienia o rebuild:', error);
     // Nie rzucaj błędu - powiadomienie nie powinno blokować rebuild
   }
 }
@@ -314,7 +296,7 @@ function escapeHtml(s: string): string {
 }
 
 export async function sendBugReport(data: BugReportData): Promise<void> {
-  logger.emailEvent('sending bug report', ADMIN_EMAIL);
+  logger.info(`Email sending bug report to ${ADMIN_EMAIL}`);
 
   const versionLabel = data.appVersion?.trim()
     ? ` [ver: ${data.appVersion}]`
@@ -383,11 +365,7 @@ export async function sendBugReport(data: BugReportData): Promise<void> {
       `,
     });
 
-    logger.emailEvent(
-      'bug report sent successfully',
-      ADMIN_EMAIL,
-      result.data?.id
-    );
+    logger.info(`Email bug report sent to ${ADMIN_EMAIL}`, result.data?.id);
   } catch (error) {
     logger.error('Failed to send bug report', error);
     throw error;

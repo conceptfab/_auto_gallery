@@ -6,6 +6,7 @@ import { getAllProjects } from '@/src/utils/projectsStorage';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
 import { getDataDir } from '@/src/utils/dataDir';
 import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStoragePath';
+import { logger } from '@/src/utils/logger';
 
 interface OrphanedFile {
   path: string;
@@ -249,7 +250,7 @@ async function saveCleanupLog(entries: CleanupLogEntry[]): Promise<void> {
     await fsp.writeFile(tmpPath, JSON.stringify(all, null, 2));
     await fsp.rename(tmpPath, logPath);
   } catch (err) {
-    console.error('[CLEANUP] Błąd zapisu logu:', err);
+    logger.error('[CLEANUP] Błąd zapisu logu:', err);
   }
 }
 
@@ -279,7 +280,7 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
     try {
       await fsp.unlink(fullPath);
       deleted++;
-      console.log(`[CLEANUP] Usunięto ${file.type}: ${file.path} (${file.size} B)`);
+      logger.info(`[CLEANUP] Usunięto ${file.type}: ${file.path} (${file.size} B)`);
       logEntries.push({ path: file.path, type: file.type, size: file.size, action: 'deleted' });
 
       const parentDir = path.dirname(fullPath);
@@ -287,7 +288,7 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
         const entries = await fsp.readdir(parentDir);
         if (entries.length === 0) {
           await fsp.rmdir(parentDir);
-          console.log(`[CLEANUP] Usunięto pusty katalog: ${parentDir}`);
+          logger.info(`[CLEANUP] Usunięto pusty katalog: ${parentDir}`);
           logEntries.push({ path: parentDir, type: 'directory', size: 0, action: 'dir_removed' });
         }
       } catch {
@@ -295,7 +296,7 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[CLEANUP] Błąd usuwania ${file.path}: ${msg}`);
+      logger.error(`[CLEANUP] Błąd usuwania ${file.path}: ${msg}`);
       logEntries.push({ path: file.path, type: file.type, size: file.size, action: 'error', error: msg });
     }
   }
@@ -310,7 +311,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const result = await scanOrphanedFiles();
       return res.status(200).json(result);
     } catch (error) {
-      console.error('Scan orphaned files error:', error);
+      logger.error('Scan orphaned files error:', error);
       return res.status(500).json({ error: 'Błąd skanowania plików' });
     }
   }
@@ -338,7 +339,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         freedBytes: scanResult.totalSize,
       });
     } catch (error) {
-      console.error('Delete orphaned files error:', error);
+      logger.error('Delete orphaned files error:', error);
       return res.status(500).json({ error: 'Błąd usuwania plików' });
     }
   }

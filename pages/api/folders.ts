@@ -7,7 +7,6 @@ import {
   generateSignedUrl,
 } from '@/src/utils/fileToken';
 import { generateListUrl } from '@/src/utils/fileToken';
-import axios from 'axios';
 
 interface FolderItem {
   name: string;
@@ -28,15 +27,15 @@ async function checkFolderThumbnailHTTP(
   folderUrl: string,
 ): Promise<string | null> {
   try {
-    const response = await axios.get(folderUrl, {
-      timeout: 10000,
+    const response = await fetch(folderUrl, {
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       },
+      signal: AbortSignal.timeout(10000),
     });
 
-    const html = response.data;
+    const html = await response.text();
     const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
     let match;
 
@@ -102,15 +101,15 @@ async function checkFolderThumbnailPHP(
  */
 async function getSubfoldersHTTP(baseUrl: string): Promise<FolderItem[]> {
   try {
-    const response = await axios.get(baseUrl, {
-      timeout: 15000,
+    const response = await fetch(baseUrl, {
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       },
+      signal: AbortSignal.timeout(15000),
     });
 
-    const html = response.data;
+    const html = await response.text();
     const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
     let match;
     const folders: FolderItem[] = [];

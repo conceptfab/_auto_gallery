@@ -1,10 +1,5 @@
 import crypto from 'crypto';
 import { NextApiRequest, NextApiResponse } from 'next';
-import {
-  loginUser as storageLogin,
-  logoutUser as storageLogout,
-  isUserLoggedIn as storageIsLoggedIn,
-} from './storage';
 import { ADMIN_EMAIL } from '../config/constants';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -28,18 +23,6 @@ function verifyCookieValue(signed: string): string | null {
   if (sig.length !== expected.length) return null;
   if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   return value;
-}
-
-export async function loginUser(email: string): Promise<void> {
-  await storageLogin(email);
-}
-
-export async function logoutUser(email: string): Promise<void> {
-  await storageLogout(email);
-}
-
-export async function isUserLoggedIn(email: string): Promise<boolean> {
-  return await storageIsLoggedIn(email);
 }
 
 export function setAuthCookie(res: NextApiResponse, email: string, maxAgeSeconds = 43200): void {
@@ -67,17 +50,9 @@ export function clearAuthCookie(res: NextApiResponse): void {
   ]);
 }
 
-/** Odczytuje i weryfikuje podpisane cookie email. Akceptuje też stare niepodpisane cookie (migracja). */
+/** Odczytuje i weryfikuje podpisane cookie email. */
 function extractVerifiedEmail(rawValue: string): string | null {
-  // Próbuj zweryfikować podpis
-  const verified = verifyCookieValue(rawValue);
-  if (verified) return verified;
-  // Fallback: stare niepodpisane cookie (email bez kropki-hex na końcu)
-  if (rawValue.includes('@') && !rawValue.includes('.', rawValue.lastIndexOf('@') + 4)) {
-    return rawValue;
-  }
-  // Cookie z @ i podpisem — podpis nieprawidłowy
-  return null;
+  return verifyCookieValue(rawValue);
 }
 
 export function getEmailFromCookie(req: NextApiRequest): string | null {

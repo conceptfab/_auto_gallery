@@ -9,7 +9,10 @@ n8n?
 
 + usuwanie grupy - pytaniecz czy rozgrupowac i usunąć grupę czy usunąć grupę z zawartoscią
 
-restore sledzic
+nie działa szkcicowanie tabletem
+inne etykieta na szkicu inna na grupie
+admin - problem z dodawaniem pliku z galerii do moodboardu
+sprytniejsze wyświetlanie w podgladzie jednego pliku
 
 
 

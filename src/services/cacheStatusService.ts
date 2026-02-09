@@ -8,7 +8,6 @@ import {
 } from '@/src/services/thumbnailService';
 import { generateListUrl } from '@/src/utils/fileToken';
 import { API_TIMEOUT } from '@/src/config/constants';
-import axios from 'axios';
 import { logger } from '@/src/utils/logger';
 
 export interface ImageCacheStatus {
@@ -66,16 +65,13 @@ export async function getFolderCacheStatus(
   let listResponse: PHPListResponse;
   try {
     const listUrl = generateListUrl(folderPath);
-    const response = await axios.get<PHPListResponse>(listUrl, {
-      timeout: API_TIMEOUT,
-    });
-    listResponse = response.data;
-  } catch (err) {
-    const status = axios.isAxiosError(err) ? err.response?.status : undefined;
-    if (status === 404) {
+    const response = await fetch(listUrl, { signal: AbortSignal.timeout(API_TIMEOUT) });
+    if (response.status === 404) {
       logger.debug(`Folder not found (404): ${folderPath || '/'}`);
       return { ...emptyResponse(folderPath), error: 'Folder not found' };
     }
+    listResponse = await response.json();
+  } catch (err) {
     logger.error('Error fetching file list in folder-status', err);
     return { ...emptyResponse(folderPath), error: 'Failed to fetch file list' };
   }

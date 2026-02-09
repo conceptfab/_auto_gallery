@@ -26,17 +26,6 @@ interface ProjectMeta {
   revisionIds: string[];
 }
 
-/** Format revision.json na dysku (katalog projects/{id}/rewizje/{revId}/). */
-interface RevisionMeta {
-  id: string;
-  label?: string;
-  description?: string;
-  embedUrl?: string;
-  createdAt: string;
-  thumbnailPath?: string;
-  galleryPaths?: string[];
-}
-
 /** Generuje URL-friendly slug z nazwy projektu (obsługuje polskie znaki). */
 function generateSlug(name: string, existingSlugs: string[] = []): string {
   const polishMap: Record<string, string> = {
@@ -64,31 +53,6 @@ function generateSlug(name: string, existingSlugs: string[] = []): string {
   return final;
 }
 
-function revisionMetaToRevision(meta: RevisionMeta, _projectId: string): Revision {
-  const rev: Revision = {
-    id: meta.id,
-    label: meta.label,
-    description: meta.description,
-    embedUrl: meta.embedUrl,
-    createdAt: meta.createdAt,
-    galleryPaths: meta.galleryPaths ? [...meta.galleryPaths] : undefined,
-    thumbnailPath: meta.thumbnailPath || undefined,
-  };
-  return rev;
-}
-
-function revisionToMeta(rev: Revision): RevisionMeta {
-  return {
-    id: rev.id,
-    label: rev.label,
-    description: rev.description,
-    embedUrl: rev.embedUrl,
-    createdAt: rev.createdAt,
-    thumbnailPath: rev.thumbnailPath || undefined,
-    galleryPaths: rev.galleryPaths?.length ? [...rev.galleryPaths] : undefined,
-  };
-}
-
 // ==================== ODCZYT PROJEKTÓW Z KATALOGU ====================
 
 /** Czyta projekty z podanego katalogu bazowego (globalnego lub grupowego). */
@@ -100,49 +64,56 @@ async function readProjectsFromDir(projectsDir: string, forGroupId?: string): Pr
     return [];
   }
 
-  const projects: Project[] = [];
-  for (const name of entries) {
-    const projectDir = path.join(projectsDir, name);
-    const stat = await fsp.stat(projectDir).catch(() => null);
-    if (!stat?.isDirectory()) continue;
-    const projectJsonPath = path.join(projectDir, 'project.json');
-    let raw: string;
-    try {
-      raw = await fsp.readFile(projectJsonPath, 'utf8');
-    } catch {
-      continue;
-    }
-    let meta: ProjectMeta;
-    try {
-      meta = JSON.parse(raw) as ProjectMeta;
-    } catch {
-      continue;
-    }
-    if (meta.id !== name) continue;
-    const revisionIds = Array.isArray(meta.revisionIds) ? meta.revisionIds : [];
-    const revisions: Revision[] = [];
-    const rewizjeDir = path.join(projectDir, 'rewizje');
-    for (const revId of revisionIds) {
-      const revPath = path.join(rewizjeDir, revId, 'revision.json');
+  const results = await Promise.all(
+    entries.map(async (name): Promise<Project | null> => {
+      const projectDir = path.join(projectsDir, name);
+      const stat = await fsp.stat(projectDir).catch(() => null);
+      if (!stat?.isDirectory()) return null;
+      const projectJsonPath = path.join(projectDir, 'project.json');
+      let raw: string;
       try {
-        const revRaw = await fsp.readFile(revPath, 'utf8');
-        const revMeta = JSON.parse(revRaw) as RevisionMeta;
-        revisions.push(revisionMetaToRevision(revMeta, name));
+        raw = await fsp.readFile(projectJsonPath, 'utf8');
       } catch {
-        // pomiń uszkodzoną/brakującą rewizję
+        return null;
       }
-    }
-    projects.push({
-      id: name,
-      name: meta.name,
-      slug: meta.slug,
-      description: meta.description,
-      groupId: forGroupId ?? meta.groupId,
-      createdAt: meta.createdAt,
-      revisions,
-    });
-  }
-  return projects;
+      let meta: ProjectMeta;
+      try {
+        meta = JSON.parse(raw) as ProjectMeta;
+      } catch {
+        return null;
+      }
+      if (meta.id !== name) return null;
+      const revisionIds = Array.isArray(meta.revisionIds) ? meta.revisionIds : [];
+      const rewizjeDir = path.join(projectDir, 'rewizje');
+      const revisions = (
+        await Promise.all(
+          revisionIds.map(async (revId): Promise<Revision | null> => {
+            try {
+              const revRaw = await fsp.readFile(
+                path.join(rewizjeDir, revId, 'revision.json'),
+                'utf8'
+              );
+              return JSON.parse(revRaw) as Revision;
+            } catch {
+              return null;
+            }
+          })
+        )
+      ).filter((r): r is Revision => r !== null);
+
+      return {
+        id: name,
+        name: meta.name,
+        slug: meta.slug,
+        description: meta.description,
+        groupId: forGroupId ?? meta.groupId,
+        createdAt: meta.createdAt,
+        revisions,
+      };
+    })
+  );
+
+  return results.filter((p): p is Project => p !== null);
 }
 
 /** Odczytuje projekty: grupowe (z groups/{groupId}/projects/) lub globalne (projects/). */
@@ -153,36 +124,39 @@ export async function getProjects(groupId?: string): Promise<Project[]> {
 
 /** (Admin) Zwraca WSZYSTKIE projekty ze wszystkich grup + globalne. */
 export async function getAllProjects(): Promise<Project[]> {
-  const all: Project[] = [];
-
-  // Globalne projekty
-  const globalProjects = await getProjects();
-  all.push(...globalProjects);
-
-  // Projekty z każdej grupy
+  // Projekty z każdej grupy (równolegle z globalnymi)
   const groupsBase = await getGroupsBaseDir();
   let groupDirs: string[] = [];
   try {
     groupDirs = await fsp.readdir(groupsBase);
   } catch {
-    return all;
+    return getProjects();
   }
 
-  for (const groupDirName of groupDirs) {
-    // Pomijamy groups.json (plik, nie katalog)
-    if (groupDirName === 'groups.json') continue;
-    const groupProjectsDir = path.join(groupsBase, groupDirName, 'projects');
-    try {
-      const stat = await fsp.stat(groupProjectsDir);
-      if (!stat.isDirectory()) continue;
-    } catch {
-      continue;
-    }
-    const groupProjects = await readProjectsFromDir(groupProjectsDir, groupDirName);
-    all.push(...groupProjects);
-  }
+  const validGroupDirs = (
+    await Promise.all(
+      groupDirs
+        .filter((d) => d !== 'groups.json')
+        .map(async (d) => {
+          const dir = path.join(groupsBase, d, 'projects');
+          try {
+            const stat = await fsp.stat(dir);
+            return stat.isDirectory() ? d : null;
+          } catch {
+            return null;
+          }
+        })
+    )
+  ).filter((d): d is string => d !== null);
 
-  return all;
+  const [globalProjects, ...groupResults] = await Promise.all([
+    getProjects(),
+    ...validGroupDirs.map((d) =>
+      readProjectsFromDir(path.join(groupsBase, d, 'projects'), d)
+    ),
+  ]);
+
+  return [...globalProjects, ...groupResults.flat()];
 }
 
 /** Znajduje projekt wg ID przeszukując globalny folder i wszystkie grupy. Zwraca [project, groupId]. */
@@ -341,16 +315,16 @@ export async function appendRevisionGalleryPaths(
   } catch {
     return null;
   }
-  let meta: RevisionMeta;
+  let meta: Revision;
   try {
-    meta = JSON.parse(raw) as RevisionMeta;
+    meta = JSON.parse(raw) as Revision;
   } catch {
     return null;
   }
   const current = meta.galleryPaths ?? [];
   meta.galleryPaths = [...current, ...filenames];
   await fsp.writeFile(revPath, JSON.stringify(meta, null, 2), 'utf8');
-  return revisionMetaToRevision(meta, projectId);
+  return meta;
 }
 
 export async function addProject(
@@ -465,7 +439,7 @@ export async function addProjectRevision(
   const revDir = await getRevisionDir(projectId, revisionId, groupId);
   await fsp.writeFile(
     path.join(revDir, 'revision.json'),
-    JSON.stringify(revisionToMeta(revision), null, 2),
+    JSON.stringify(revision, null, 2),
     'utf8'
   );
   meta.revisionIds = [...(meta.revisionIds || []), revisionId];
@@ -494,9 +468,9 @@ export async function updateProjectRevision(
   } catch {
     return null;
   }
-  let meta: RevisionMeta;
+  let meta: Revision;
   try {
-    meta = JSON.parse(raw) as RevisionMeta;
+    meta = JSON.parse(raw) as Revision;
   } catch {
     return null;
   }
@@ -528,7 +502,7 @@ export async function updateProjectRevision(
     }
   }
   await fsp.writeFile(revPath, JSON.stringify(meta, null, 2), 'utf8');
-  return revisionMetaToRevision(meta, projectId);
+  return meta;
 }
 
 export async function reorderProjectRevisions(

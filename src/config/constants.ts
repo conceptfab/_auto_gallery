@@ -24,7 +24,6 @@ export const API_TIMEOUT_LONG = 30000; // 30 seconds
 
 // UI delays (in milliseconds)
 export const UI_DELAY_SHORT = 200; // 200ms
-export const UI_DELAY_MEDIUM = 500; // 500ms
 export const PREVIEW_TIMEOUT = 2000; // 2 seconds
 
 // Loading progress values (percentages)

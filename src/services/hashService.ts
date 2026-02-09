@@ -2,7 +2,6 @@
 
 import { FileHash, HashChangeEvent, FolderHashRecord } from '@/src/types/cache';
 import { logger } from '@/src/utils/logger';
-import axios from 'axios';
 import xxhashInit from 'xxhash-wasm';
 import { generateListUrl } from '@/src/utils/fileToken';
 import { getCacheData, updateCacheData } from '@/src/utils/cacheStorage';
@@ -151,15 +150,16 @@ async function scanFolderRecursive(
     const listUrl = generateListUrl(folderPath);
     logger.debug(`Scanning folder: ${folderPath || 'root'}, URL: ${listUrl.substring(0, 100)}...`);
 
-    const response = await axios.get<PHPListResponse>(listUrl, { timeout: 30000 });
+    const response = await fetch(listUrl, { signal: AbortSignal.timeout(30000) });
+    const data: PHPListResponse = await response.json();
 
-    if (response.data.error) {
-      logger.warn(`Failed to list folder ${folderPath}: ${response.data.error}`);
+    if (data.error) {
+      logger.warn(`Failed to list folder ${folderPath}: ${data.error}`);
       return;
     }
 
-    const folders = response.data.folders || [];
-    const files = response.data.files || [];
+    const folders = data.folders || [];
+    const files = data.files || [];
 
     logger.debug(`Response for ${folderPath || 'root'}: folders=${folders.length}, files=${files.length}`);
 

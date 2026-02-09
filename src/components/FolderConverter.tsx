@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '@/src/utils/logger';
 
 interface ConvertProgress {
   current: number;
@@ -71,13 +72,13 @@ const FolderConverter: React.FC<FolderConverterProps> = ({ folderUrl, folderName
                 }
               }
             } catch (e) {
-              console.error('Error parsing SSE data:', e);
+              logger.error('Error parsing SSE data:', e);
             }
           }
         }
       }
     } catch (error) {
-      console.error('Conversion error:', error);
+      logger.error('Conversion error:', error);
       setIsConverting(false);
       setProgress({
         current: 0,

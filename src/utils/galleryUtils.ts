@@ -1,4 +1,3 @@
-import axios, { type AxiosInstance } from 'axios';
 import * as cheerio from 'cheerio';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GalleryFolder, ImageFile } from '@/src/types/gallery';
@@ -8,12 +7,6 @@ import {
   API_TIMEOUT,
 } from '@/src/config/constants';
 import { logger } from '@/src/utils/logger';
-
-/** Wspólna instancja axios (PERF-008). */
-const galleryAxios: AxiosInstance = axios.create({
-  timeout: API_TIMEOUT,
-  headers: { 'User-Agent': DEFAULT_USER_AGENT },
-});
 
 /** Parsowanie linków HTML przez cheerio (SEC-007) zamiast regex. */
 function parseLinksFromHtml(
@@ -45,8 +38,11 @@ async function getDirectoryContent(url: string): Promise<{
   images: ImageFile[];
 }> {
   try {
-    const response = await galleryAxios.get<string>(url);
-    const html = response.data;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': DEFAULT_USER_AGENT },
+      signal: AbortSignal.timeout(API_TIMEOUT),
+    });
+    const html = await response.text();
     const links = parseLinksFromHtml(html);
     
     const subfolders: Array<{ name: string; url: string }> = [];
@@ -128,7 +124,7 @@ export async function scanRemoteDirectory(
   url: string,
   maxDepth: number = 5
 ): Promise<GalleryFolder[]> {
-  logger.galleryStart(url);
+  logger.info(`Starting gallery scan: ${url}`);
   logger.debug('ROZPOCZĘCIE SKANOWANIA GALERII', { url, maxDepth });
 
   return await scanDirectoryRecursive(url, 0, maxDepth);

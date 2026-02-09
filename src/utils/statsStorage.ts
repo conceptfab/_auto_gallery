@@ -1,6 +1,7 @@
 import path from 'path';
 import fsp from 'fs/promises';
-import { getData, getUsersDir } from './storage';
+import { getUsersDir } from './storage';
+import { logger } from './logger';
 import type {
   UserLogin,
   UserSession,
@@ -37,10 +38,6 @@ function getDateString(d: Date): string {
   return d.toLocaleDateString('en-CA', { timeZone: STATS_TIMEZONE });
 }
 
-function getDateFromTimestamp(iso: string): string {
-  return getDateString(new Date(iso));
-}
-
 async function getStatsFilePath(dateStr: string): Promise<string> {
   const dir = await getUsersDir();
   return path.join(dir, `stats-${dateStr}.json`);
@@ -66,7 +63,7 @@ async function loadStatsFile(dateStr: string): Promise<DailyStatsFile> {
         ? (err as NodeJS.ErrnoException).code
         : null;
     if (code === 'ENOENT') return emptyDaily(dateStr);
-    console.error('Błąd ładowania stats dla', dateStr, err);
+    logger.error('Błąd ładowania stats dla', dateStr, err);
     return emptyDaily(dateStr);
   }
 }
@@ -81,45 +78,6 @@ async function saveStatsFile(
   const tmpPath = filePath + '.tmp';
   await fsp.writeFile(tmpPath, JSON.stringify(data, null, 2));
   await fsp.rename(tmpPath, filePath);
-}
-
-let migrationDone = false;
-
-async function migrateStatsToDailyFiles(): Promise<void> {
-  if (migrationDone) return;
-  const data = await getData();
-  const stats = data.stats;
-  if (
-    !stats ||
-    (stats.logins.length === 0 &&
-      stats.sessions.length === 0 &&
-      stats.viewEvents.length === 0 &&
-      stats.downloadEvents.length === 0)
-  ) {
-    migrationDone = true;
-    return;
-  }
-  const byDate: Record<string, DailyStatsFile> = {};
-  const add = (dateStr: string) => {
-    if (!byDate[dateStr]) byDate[dateStr] = emptyDaily(dateStr);
-    return byDate[dateStr];
-  };
-  stats.logins.forEach((l) =>
-    add(getDateFromTimestamp(l.timestamp)).logins.push(l)
-  );
-  stats.sessions.forEach((s) =>
-    add(getDateFromTimestamp(s.startedAt)).sessions.push(s)
-  );
-  stats.viewEvents.forEach((v) =>
-    add(getDateFromTimestamp(v.timestamp)).viewEvents.push(v)
-  );
-  stats.downloadEvents.forEach((d) =>
-    add(getDateFromTimestamp(d.timestamp)).downloadEvents.push(d)
-  );
-  for (const dateStr of Object.keys(byDate).sort()) {
-    await saveStatsFile(dateStr, byDate[dateStr]);
-  }
-  migrationDone = true;
 }
 
 async function listStatsDates(): Promise<string[]> {
@@ -154,7 +112,6 @@ export async function recordLogin(
   ip: string,
   userAgent?: string
 ): Promise<UserLogin> {
-  await migrateStatsToDailyFiles();
   const login: UserLogin = {
     email,
     timestamp: new Date().toISOString(),
@@ -172,7 +129,6 @@ export async function getLoginHistory(
   email?: string,
   limit: number = 100
 ): Promise<UserLogin[]> {
-  await migrateStatsToDailyFiles();
   const dates = await listStatsDates();
   const out: UserLogin[] = [];
   for (const dateStr of dates) {
@@ -195,7 +151,6 @@ export async function startSession(
   ip: string,
   userAgent?: string
 ): Promise<UserSession> {
-  await migrateStatsToDailyFiles();
   const now = new Date().toISOString();
   const session: UserSession = {
     id: generateId('sess'),
@@ -243,7 +198,6 @@ export async function endSession(sessionId: string): Promise<void> {
 export async function getActiveSession(
   email: string
 ): Promise<UserSession | null> {
-  await migrateStatsToDailyFiles();
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
   const dates = await listStatsDates();
   const toCheck = dates.slice(0, 3);
@@ -285,7 +239,6 @@ export async function recordViewEvent(
   deviceInfo?: DeviceInfo,
   designMeta?: DesignViewMeta
 ): Promise<ViewEvent> {
-  await migrateStatsToDailyFiles();
   const event: ViewEvent = {
     id: generateId('view'),
     email,
@@ -318,7 +271,6 @@ export async function getViewEvents(
   type?: ViewEventType,
   limit: number = 100
 ): Promise<ViewEvent[]> {
-  await migrateStatsToDailyFiles();
   const dates = await listStatsDates();
   const out: ViewEvent[] = [];
   for (const dateStr of dates) {
@@ -347,7 +299,6 @@ export async function recordDownloadEvent(
   userAgent?: string,
   deviceInfo?: DeviceInfo
 ): Promise<DownloadEvent> {
-  await migrateStatsToDailyFiles();
   const event: DownloadEvent = {
     id: generateId('dl'),
     email,
@@ -371,7 +322,6 @@ export async function getDownloadEvents(
   email?: string,
   limit: number = 100
 ): Promise<DownloadEvent[]> {
-  await migrateStatsToDailyFiles();
   const dates = await listStatsDates();
   const out: DownloadEvent[] = [];
   for (const dateStr of dates) {
@@ -413,7 +363,6 @@ async function aggregateStatsForUser(
 }
 
 export async function getUserStats(email: string): Promise<UserStats> {
-  await migrateStatsToDailyFiles();
   const dates = await listStatsDates();
   const {
     logins: userLogins,
@@ -496,7 +445,6 @@ export async function getOverviewStats(dateRange?: {
     timestamp: string;
   }>;
 }> {
-  await migrateStatsToDailyFiles();
   const dates = await listStatsDates();
   const stats: StatsData = {
     logins: [],
@@ -664,7 +612,6 @@ export async function getDesignOverviewStats(dateRange?: {
     timestamp: string;
   }>;
 }> {
-  await migrateStatsToDailyFiles();
   const dates = await listStatsDates();
   const viewEvents: ViewEvent[] = [];
   const dateRangeStart = dateRange ? getDateString(dateRange.start) : null;

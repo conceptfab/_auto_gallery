@@ -17,15 +17,21 @@ interface KeywordRegexes {
   displaySimpleg: RegExp;
 }
 
+const regexCache = new Map<string, KeywordRegexes>();
+
 function buildKeywordRegexes(keyword: string): KeywordRegexes {
+  const cached = regexCache.get(keyword);
+  if (cached) return cached;
   const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const escapedUpper = escaped.toUpperCase();
-  return {
+  const result: KeywordRegexes = {
     boundarygi: new RegExp(`(?:^|_|\\s|-|\\b)(${escaped})(?:_|\\s|-|\\b|$)`, 'gi'),
     simplegi: new RegExp(`(${escaped})`, 'gi'),
     displayBoundaryg: new RegExp(`(?:^|\\s|-|\\b)(${escapedUpper})(?:\\s|-|\\b|$)`, 'g'),
     displaySimpleg: new RegExp(`(${escapedUpper})`, 'g'),
   };
+  regexCache.set(keyword, result);
+  return result;
 }
 
 class DecorConverter {

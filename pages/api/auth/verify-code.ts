@@ -5,8 +5,9 @@ import {
   removeActiveCode,
   cleanupExpiredCodes,
   getSessionDurationSeconds,
+  loginUser,
 } from '../../../src/utils/storage';
-import { loginUser, setAuthCookie } from '../../../src/utils/auth';
+import { setAuthCookie } from '../../../src/utils/auth';
 import { withRateLimit } from '../../../src/utils/rateLimiter';
 import { recordLogin, startSession } from '../../../src/utils/statsStorage';
 

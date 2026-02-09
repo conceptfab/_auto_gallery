@@ -3,7 +3,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { generateListUrl } from '@/src/utils/fileToken';
-import axios from 'axios';
 
 interface FolderInfo {
   path: string;
@@ -75,24 +74,25 @@ async function scanFolderInfo(
 
   try {
     const listUrl = generateListUrl(folderPath);
-    const response = await axios.get<PHPListResponse>(listUrl, { timeout: 15000 });
+    const response = await fetch(listUrl, { signal: AbortSignal.timeout(15000) });
+    const data: PHPListResponse = await response.json();
 
     // PHP zwraca { folders: [], files: [] } lub { error: "..." }
-    if (response.data.error) {
-      errors.push(`Folder ${folderPath || 'root'}: ${response.data.error}`);
+    if (data.error) {
+      errors.push(`Folder ${folderPath || 'root'}: ${data.error}`);
       allFolders.push({
         path: folderPath || '/',
         name: folderPath.split('/').pop() || 'root',
         fileCount: 0,
         imageCount: 0,
         subfolders: [],
-        error: response.data.error,
+        error: data.error,
       });
       return;
     }
 
-    const folders = response.data.folders || [];
-    const files = response.data.files || [];
+    const folders = data.folders || [];
+    const files = data.files || [];
     const imageExtensions = /\.(jpg|jpeg|png|gif|webp|avif)$/i;
 
     const imageCount = files.filter((f) => imageExtensions.test(f.name)).length;

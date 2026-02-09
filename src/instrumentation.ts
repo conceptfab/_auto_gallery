@@ -1,19 +1,21 @@
 // src/instrumentation.ts
 // Start serwera = start schedulera. Deploy to początek odliczania.
 
+import { logger } from './utils/logger';
+
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') {
     return;
   }
 
   try {
-    console.log('[Instrumentation] Starting cache scheduler...');
+    logger.info('[Instrumentation] Starting cache scheduler...');
     const { initScheduler } = await import('./services/schedulerService');
     initScheduler();
-    console.log(
+    logger.info(
       '[Instrumentation] Cache scheduler started (deploy = start of countdown)'
     );
   } catch (err) {
-    console.error('[Instrumentation] Failed to start scheduler:', err);
+    logger.error('[Instrumentation] Failed to start scheduler:', err);
   }
 }
