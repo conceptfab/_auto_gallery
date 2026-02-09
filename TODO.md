@@ -2,7 +2,7 @@
 
 n8n?
 
-+ poprawki moodbardów w widokach mobilnych
++ poprawki moodbardów w widokach mobilnych - innych widoków
 
 
 
