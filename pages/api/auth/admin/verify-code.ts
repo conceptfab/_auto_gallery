@@ -116,4 +116,5 @@ async function handler(
 }
 
 // 5 prób weryfikacji na minutę na IP
-export default withRateLimit(5, 60 * 1000)(handler);
+// Limit wyższy niż zwykły login – admin może potrzebować kilku prób (np. literówka w kodzie)
+export default withRateLimit(20, 60 * 1000)(handler);

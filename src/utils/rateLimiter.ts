@@ -14,6 +14,13 @@ function getClientId(req: NextApiRequest): string {
   return req.socket?.remoteAddress || 'unknown';
 }
 
+/** Klucz per endpoint – żeby galeria/status nie zjadały limitu logowania. */
+function getRateLimitKey(req: NextApiRequest, suffix: string): string {
+  const client = getClientId(req);
+  const path = typeof req.url === 'string' ? req.url.split('?')[0] : suffix;
+  return `${client}|${path || suffix}`;
+}
+
 function cleanupExpired(now: number): void {
   for (const [key, entry] of requests.entries()) {
     if (now > entry.reset) requests.delete(key);
@@ -27,9 +34,10 @@ function cleanupExpired(now: number): void {
 export function checkRateLimit(
   req: NextApiRequest,
   maxRequests: number,
-  windowMs: number
+  windowMs: number,
+  keySuffix: string = ''
 ): boolean {
-  const clientId = getClientId(req);
+  const key = getRateLimitKey(req, keySuffix);
   const now = Date.now();
 
   cleanupCounter++;
@@ -38,10 +46,10 @@ export function checkRateLimit(
     if (cleanupCounter >= 50) cleanupCounter = 0;
   }
 
-  const entry = requests.get(clientId);
+  const entry = requests.get(key);
 
   if (!entry || now > entry.reset) {
-    requests.set(clientId, { count: 1, reset: now + windowMs });
+    requests.set(key, { count: 1, reset: now + windowMs });
     return true;
   }
 
@@ -50,16 +58,16 @@ export function checkRateLimit(
   return true;
 }
 
-function getRemaining(req: NextApiRequest, maxRequests: number): number {
-  const clientId = getClientId(req);
-  const entry = requests.get(clientId);
+function getRemaining(req: NextApiRequest, maxRequests: number, keySuffix: string): number {
+  const key = getRateLimitKey(req, keySuffix);
+  const entry = requests.get(key);
   if (!entry) return maxRequests;
   return Math.max(0, maxRequests - entry.count);
 }
 
-function getResetTime(req: NextApiRequest, windowMs: number): number {
-  const clientId = getClientId(req);
-  const entry = requests.get(clientId);
+function getResetTime(req: NextApiRequest, windowMs: number, keySuffix: string): number {
+  const key = getRateLimitKey(req, keySuffix);
+  const entry = requests.get(key);
   return entry ? entry.reset : Date.now() + windowMs;
 }
 
@@ -71,10 +79,11 @@ export function withRateLimit(
     handler: (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void
   ) {
     return async function (req: NextApiRequest, res: NextApiResponse) {
-      const isAllowed = checkRateLimit(req, maxRequests, windowMs);
+      const keySuffix = typeof req.url === 'string' ? req.url.split('?')[0] : '';
+      const isAllowed = checkRateLimit(req, maxRequests, windowMs, keySuffix);
 
       if (!isAllowed) {
-        const resetTime = getResetTime(req, windowMs);
+        const resetTime = getResetTime(req, windowMs, keySuffix);
         const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
 
         res.setHeader('X-RateLimit-Limit', String(maxRequests));
@@ -89,8 +98,8 @@ export function withRateLimit(
         });
       }
 
-      const remaining = getRemaining(req, maxRequests);
-      const resetTime = getResetTime(req, windowMs);
+      const remaining = getRemaining(req, maxRequests, keySuffix);
+      const resetTime = getResetTime(req, windowMs, keySuffix);
 
       res.setHeader('X-RateLimit-Limit', String(maxRequests));
       res.setHeader('X-RateLimit-Remaining', String(remaining));
