@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { z } from 'zod';
 import { GalleryResponse, GalleryFolder, ImageFile } from '@/src/types/gallery';
 import { scanRemoteDirectory } from '@/src/utils/galleryUtils';
 import { withRateLimit } from '@/src/utils/rateLimiter';
@@ -100,10 +101,24 @@ async function galleryHandler(
     });
   }
 
+  const querySchema = z.object({
+    groupId: z
+      .union([z.string(), z.array(z.string())])
+      .optional()
+      .transform((v) => (Array.isArray(v) ? v[0] : v)),
+  });
+  const parseResult = querySchema.safeParse(req.query);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nieprawidłowe parametry',
+    });
+  }
+  const { groupId } = parseResult.data;
+
   try {
     const email = getEmailFromCookie(req);
     const isAdmin = email === ADMIN_EMAIL;
-    const { groupId } = req.query;
     const usePrivateScanning = isFileProtectionEnabled();
 
     const scanFolder = async (

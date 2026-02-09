@@ -4,7 +4,8 @@ import os from 'os';
 import fsp from 'fs/promises';
 import crypto from 'crypto';
 import formidable from 'formidable';
-import AdmZip from 'adm-zip';
+import yauzl, { type ZipFile, type Entry } from 'yauzl';
+import type { Readable } from 'stream';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getDataDir } from '@/src/utils/dataDir';
 import { getAllProjects } from '@/src/utils/projectsStorage';
@@ -55,6 +56,39 @@ function isSafePath(targetPath: string, allowedBase: string): boolean {
   const resolved = path.resolve(targetPath);
   const base = path.resolve(allowedBase);
   return resolved.startsWith(base + path.sep) || resolved === base;
+}
+
+/** Odczyt ZIP z bufora (yauzl) – zwraca listę wpisów w formacie kompatybilnym z poprzednim AdmZip. */
+function readZipEntriesFromBuffer(buffer: Buffer): Promise<Array<{ entryName: string; isDirectory: boolean; getData: () => Buffer }>> {
+  return new Promise((resolve, reject) => {
+    const entries: Array<{ entryName: string; isDirectory: boolean; getData: () => Buffer }> = [];
+    yauzl.fromBuffer(buffer, { lazyEntries: true }, (err: Error | null, zipfile: ZipFile) => {
+      if (err) return reject(err);
+      zipfile.readEntry();
+      zipfile.on('entry', (entry: Entry) => {
+        const isDirectory = /\/$/.test(entry.fileName);
+        const entryName = entry.fileName;
+        if (isDirectory) {
+          entries.push({ entryName, isDirectory: true, getData: () => Buffer.alloc(0) });
+          zipfile.readEntry();
+        } else {
+          zipfile.openReadStream(entry, (err2: Error | null, readStream: Readable) => {
+            if (err2) return reject(err2);
+            const chunks: Buffer[] = [];
+            readStream.on('data', (chunk: Buffer) => chunks.push(chunk));
+            readStream.on('end', () => {
+              const data = Buffer.concat(chunks);
+              entries.push({ entryName, isDirectory: false, getData: () => data });
+              zipfile.readEntry();
+            });
+            readStream.on('error', reject);
+          });
+        }
+      });
+      zipfile.on('end', () => resolve(entries));
+      zipfile.on('error', reject);
+    });
+  });
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -125,18 +159,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(503).json({ error: 'Katalog danych niedostępny' });
   }
 
-  let zip: AdmZip;
+  let entries: Array<{ entryName: string; isDirectory: boolean; getData: () => Buffer }>;
   try {
     const buffer = await fsp.readFile(file.filepath);
-    zip = new AdmZip(buffer);
+    entries = await readZipEntriesFromBuffer(buffer);
   } catch (zipErr) {
     const msg = zipErr instanceof Error ? zipErr.message : 'Uszkodzony plik ZIP';
     return res.status(400).json({ error: `Nie można odczytać ZIP: ${msg}` });
   } finally {
     await fsp.unlink(file.filepath).catch(() => {});
   }
-
-  const entries = zip.getEntries();
   const normalizedNames = entries.filter((e) => !e.isDirectory).map((e) => norm(e.entryName));
   const hasGroups = normalizedNames.some((n) => n.startsWith('groups/'));
   // Moodboard: stary format moodboard/index.json LUB nowy – index.json w root z boardIds

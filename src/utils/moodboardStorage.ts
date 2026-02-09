@@ -1,9 +1,28 @@
 import path from 'path';
 import fsp from 'fs/promises';
 import { getDataDir } from './dataDir';
-import { getMoodboardImagesDirByGroup } from './moodboardStoragePath';
 
-/** Zwraca katalog na obrazy moodboardu: /data-storage/moodboard/images (globalny) */
+/** Zwraca katalog moodboard: globalny lub grupowy. Dla grupy tworzy folder; dla globalnego (bez grupy) nie tworzy. */
+export async function getMoodboardBaseDir(groupId?: string): Promise<string> {
+  const dataDir = await getDataDir();
+  const base = groupId
+    ? path.join(dataDir, 'groups', groupId, 'moodboard')
+    : path.join(dataDir, 'moodboard');
+  if (groupId) {
+    await fsp.mkdir(base, { recursive: true });
+  }
+  return base;
+}
+
+/** Zwraca katalog na obrazy moodboardu: globalny lub grupowy (tworzy katalogi). */
+export async function getMoodboardImagesDirByGroup(groupId?: string): Promise<string> {
+  const base = await getMoodboardBaseDir(groupId);
+  const imagesDir = path.join(base, 'images');
+  await fsp.mkdir(imagesDir, { recursive: true });
+  return imagesDir;
+}
+
+/** Zwraca katalog na obrazy moodboardu: /data-storage/moodboard/images (globalny, bez tworzenia). */
 export async function getMoodboardImagesDir(): Promise<string> {
   const dataDir = await getDataDir();
   return path.join(dataDir, 'moodboard', 'images');

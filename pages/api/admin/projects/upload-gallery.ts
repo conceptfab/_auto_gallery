@@ -85,12 +85,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     try {
       const raw = await fsp.readFile(file.filepath);
-      // SEC-7: Walidacja zawartości pliku przez sharp metadata (magic bytes)
-      const metadata = await sharp(raw).metadata();
+      // SEC-7: Walidacja zawartości pliku przez sharp metadata; limit pamięci (audyt)
+      const sharpOpt = { limitInputPixels: 4096 * 4096 };
+      const metadata = await sharp(raw, sharpOpt).metadata();
       if (!metadata.format || !['jpeg', 'png', 'webp', 'gif', 'tiff', 'svg'].includes(metadata.format)) {
         continue;
       }
-      const buffer = await sharp(raw).webp({ quality: 85 }).toBuffer();
+      const buffer = await sharp(raw, sharpOpt).webp({ quality: 85 }).toBuffer();
       const relativePath = await saveGalleryFile(
         projectId,
         revisionId,

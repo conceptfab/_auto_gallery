@@ -2,7 +2,7 @@ import type { NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
 import type { MoodboardBoard } from '@/src/types/moodboard';
-import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
+import { getMoodboardBaseDir } from '@/src/utils/moodboardStorage';
 import { saveMoodboardImage } from '@/src/utils/moodboardStorage';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 import { getProjects, getAllProjects, getThumbnailFilePath } from '@/src/utils/projectsStorage';

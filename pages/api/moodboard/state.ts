@@ -6,7 +6,7 @@ import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
 } from '@/src/utils/moodboardStorage';
-import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
+import { getMoodboardBaseDir } from '@/src/utils/moodboardStorage';
 import { getGroupsBaseDir } from '@/src/utils/projectsStoragePath';
 import { sseBroker } from '@/src/lib/sse-broker';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';

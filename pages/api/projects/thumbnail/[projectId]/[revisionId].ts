@@ -57,7 +57,7 @@ export default async function handler(
   try {
     const buffer = await fsp.readFile(filePath);
     res.setHeader('Content-Type', 'image/webp');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
     res.send(buffer);
   } catch (error) {
     console.error('Error serving thumbnail:', error);

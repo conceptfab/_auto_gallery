@@ -1,7 +1,7 @@
 import type { NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
-import { getMoodboardBaseDir } from '@/src/utils/moodboardStoragePath';
+import { getMoodboardBaseDir } from '@/src/utils/moodboardStorage';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 import { getProjects, getAllProjects } from '@/src/utils/projectsStorage';
 

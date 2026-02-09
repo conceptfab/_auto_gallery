@@ -2,7 +2,7 @@ import type { NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
-import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStoragePath';
+import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStorage';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
 
 async function handler(

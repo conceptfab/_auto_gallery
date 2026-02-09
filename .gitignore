@@ -33,6 +33,9 @@ next-env.d.ts
 # IDE
 .vscode
 .idea
+.claude
+.gemini
+.vs
 
 # Generated Cache
 /public/cache

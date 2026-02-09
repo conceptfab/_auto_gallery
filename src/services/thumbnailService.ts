@@ -13,8 +13,9 @@ import {
 } from '@/src/utils/fileToken';
 import { getThumbnailsBasePath } from '@/src/utils/thumbnailStoragePath';
 
-// Ograniczenie współbieżności Sharp dla niskich zasobów
+// Ograniczenie współbieżności i pamięci Sharp (audyt poprawki.md)
 sharp.concurrency(2);
+const SHARP_LIMIT_INPUT_PIXELS = 4096 * 4096; // 16M px – ograniczenie pamięci
 
 /**
  * Generuje ścieżkę miniaturki na podstawie oryginalnej ścieżki
@@ -70,8 +71,8 @@ export async function generateThumbnails(
     }
     const imageBuffer = Buffer.from(await response.arrayBuffer());
 
-    // Sprawdź czy to prawidłowy obraz
-    const metadata = await sharp(imageBuffer).metadata();
+    // Sprawdź czy to prawidłowy obraz (limit pamięci – audyt)
+    const metadata = await sharp(imageBuffer, { limitInputPixels: SHARP_LIMIT_INPUT_PIXELS }).metadata();
     if (!metadata.width || !metadata.height) {
       throw new Error('Invalid image metadata');
     }
@@ -130,10 +131,12 @@ async function processImage(
   size: ThumbnailSize,
   format: 'webp' | 'avif' | 'jpeg'
 ): Promise<Buffer> {
-  let pipeline = sharp(buffer).resize(size.width, size.height, {
-    fit: 'inside',
-    withoutEnlargement: true,
-  });
+  let pipeline = sharp(buffer, { limitInputPixels: SHARP_LIMIT_INPUT_PIXELS })
+    .resize(size.width, size.height, {
+      fit: 'inside',
+      withoutEnlargement: true,
+      fastShrinkOnLoad: true,
+    });
 
   switch (format) {
     case 'webp':

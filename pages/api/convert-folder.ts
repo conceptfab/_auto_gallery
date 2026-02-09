@@ -346,7 +346,7 @@ async function convertImageToWebP(
       throw new Error('File too large');
     }
 
-    const webpBuffer = await sharp(imageBuffer)
+    const webpBuffer = await sharp(imageBuffer, { limitInputPixels: 4096 * 4096 })
       .webp({ quality: 90 })
       .toBuffer();
 

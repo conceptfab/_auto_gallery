@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { LoginRequest } from '../../../src/types/auth';
+import { z } from 'zod';
 import {
   getActiveCode,
   removeActiveCode,
@@ -11,16 +11,22 @@ import { setAuthCookie } from '../../../src/utils/auth';
 import { withRateLimit } from '../../../src/utils/rateLimiter';
 import { recordLogin, startSession } from '../../../src/utils/statsStorage';
 
+const verifyCodeBodySchema = z.object({
+  email: z.string().email('Nieprawidłowy format email'),
+  code: z.string().min(1, 'Kod jest wymagany').max(32),
+});
+
 async function verifyCodeHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Oczyść wygasłe kody przed weryfikacją
     await cleanupExpiredCodes();
 
-    const { email, code }: LoginRequest = req.body;
-
-    if (!email || !code) {
-      return res.status(400).json({ error: 'Email and code required' });
+    const parseResult = verifyCodeBodySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      const msg = parseResult.error.errors.map((e) => e.message).join('; ') || 'Nieprawidłowe dane';
+      return res.status(400).json({ error: msg });
     }
+    const { email, code } = parseResult.data;
 
     // Normalizuj email do lowercase dla spójnych porównań
     const normalizedEmail = email.trim().toLowerCase();

@@ -9,7 +9,8 @@ export const GALLERY_BASE_URL =
   process.env.NEXT_PUBLIC_GALLERY_BASE_URL ||
   process.env.GALLERY_BASE_URL ||
   'https://conceptfab.com/__metro/gallery/';
-export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'michal@conceptfab.com';
+/** Ustaw w .env (ADMIN_EMAIL). W produkcji wymagane. */
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? '';
 export const EMAIL_FROM =
   process.env.EMAIL_FROM || 'ConceptDesk <no-reply@conceptfab.com>';
 export const ADMIN_PANEL_URL =

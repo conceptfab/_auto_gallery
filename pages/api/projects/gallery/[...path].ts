@@ -70,7 +70,7 @@ export default async function handler(
       'base64'
     );
     res.setHeader('Content-Type', 'image/gif');
-    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60');
     res.setHeader('X-Image-Status', 'placeholder');
     return res.send(transparentGif);
   }
@@ -83,7 +83,7 @@ export default async function handler(
       ? 'image/jpeg'
       : 'image/webp';
     res.setHeader('Content-Type', ext);
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
     res.send(buffer);
   } catch (error) {
     console.error('Error serving gallery image:', error);

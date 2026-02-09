@@ -5,7 +5,7 @@ import { withAdminAuth } from '@/src/utils/adminMiddleware';
 import { getAllProjects } from '@/src/utils/projectsStorage';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
 import { getDataDir } from '@/src/utils/dataDir';
-import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStoragePath';
+import { getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStorage';
 import { logger } from '@/src/utils/logger';
 
 interface OrphanedFile {

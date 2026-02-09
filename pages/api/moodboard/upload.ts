@@ -61,9 +61,11 @@ async function handler(
       return res.status(400).json({ error: 'Nieprawidłowy format obrazu' });
     }
 
-    // Resize do max 2000px i konwertuj do WebP
-    const resizedBuffer = await sharp(buffer)
-      .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+    // Resize do max 2000px i konwertuj do WebP (limit pamięci + fastShrinkOnLoad – audyt)
+    const sharpOpt = { limitInputPixels: 4096 * 4096 };
+    const resizeOpt = { fit: 'inside' as const, withoutEnlargement: true, fastShrinkOnLoad: true };
+    const resizedBuffer = await sharp(buffer, sharpOpt)
+      .resize(MAX_DIMENSION, MAX_DIMENSION, resizeOpt)
       .webp({ quality: MAIN_QUALITY })
       .toBuffer();
 
@@ -71,8 +73,8 @@ async function handler(
     const imagePath = await saveMoodboardImage(boardId, imageId, resizedBuffer, ext, groupId);
 
     // Wygeneruj thumbnail (_thumb)
-    const thumbBuffer = await sharp(buffer)
-      .resize(THUMB_DIMENSION, THUMB_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+    const thumbBuffer = await sharp(buffer, sharpOpt)
+      .resize(THUMB_DIMENSION, THUMB_DIMENSION, resizeOpt)
       .webp({ quality: THUMB_QUALITY })
       .toBuffer();
     await saveMoodboardImage(boardId, `${imageId}_thumb`, thumbBuffer, '.webp', groupId);

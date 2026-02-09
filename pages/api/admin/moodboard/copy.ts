@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fsp from 'fs/promises';
 import { withAdminAuth } from '@/src/utils/adminMiddleware';
-import { getMoodboardBaseDir, getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStoragePath';
+import { getMoodboardBaseDir, getMoodboardImagesDirByGroup } from '@/src/utils/moodboardStorage';
 import { getMoodboardImagesDir } from '@/src/utils/moodboardStorage';
 
 function generateId(): string {

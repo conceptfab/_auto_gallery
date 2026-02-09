@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { z } from 'zod';
 import { getEmailFromCookie } from '@/src/utils/auth';
 import { getUserGroup, getGroupById } from '@/src/utils/storage';
 import { ADMIN_EMAIL, GALLERY_BASE_URL } from '@/src/config/constants';
@@ -229,17 +230,25 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const querySchema = z.object({
+    groupId: z.union([z.string(), z.array(z.string())]).optional().transform((v) => (Array.isArray(v) ? v[0] : v)),
+  });
+  const parseResult = querySchema.safeParse(req.query);
+  if (!parseResult.success) {
+    return res.status(400).json({ success: false, error: 'Nieprawidłowe parametry zapytania' });
+  }
+  const { groupId } = parseResult.data;
+
   try {
     const email = getEmailFromCookie(req);
     const isAdmin = email === ADMIN_EMAIL;
-    const { groupId } = req.query;
     const usePrivateScanning = isFileProtectionEnabled();
 
     let targetFolder = '';
     let clientName = '';
 
     // Określ folder i nazwę klienta
-    if (isAdmin && groupId && typeof groupId === 'string') {
+    if (isAdmin && groupId) {
       const group = await getGroupById(groupId);
       if (!group) {
         return res.status(404).json({ error: 'Grupa nie została znaleziona' });
