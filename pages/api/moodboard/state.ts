@@ -5,6 +5,7 @@ import type { MoodboardAppState, MoodboardBoard, MoodboardViewport } from '@/src
 import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
+  deleteAllBoardImages,
 } from '@/src/utils/moodboardStorage';
 import { getMoodboardBaseDir } from '@/src/utils/moodboardStorage';
 import { getGroupsBaseDir } from '@/src/utils/projectsStoragePath';
@@ -356,6 +357,8 @@ async function handler(
     try {
       const appState = normalizeAppState(req.body);
       await fsp.mkdir(dir, { recursive: true });
+      const indexPath = path.join(dir, INDEX_FILENAME);
+      const nextBoardIds = new Set(appState.boards.map((b) => b.id));
 
       for (const board of appState.boards) {
         const boardPath = path.join(dir, getBoardFilename(board.id));
@@ -367,10 +370,26 @@ async function handler(
         activeId: appState.activeId,
       };
       await fsp.writeFile(
-        path.join(dir, INDEX_FILENAME),
+        indexPath,
         JSON.stringify(index, null, 2),
         'utf8'
       );
+
+      // Usuń osierocone pliki boardów, które nie występują już w index.json.
+      try {
+        const entries = await fsp.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+          if (entry.name === INDEX_FILENAME || entry.name === LEGACY_STATE_FILENAME) continue;
+          const boardId = entry.name.slice(0, -'.json'.length);
+          if (nextBoardIds.has(boardId)) continue;
+
+          await fsp.unlink(path.join(dir, entry.name)).catch(() => undefined);
+          await deleteAllBoardImages(boardId, groupId).catch(() => undefined);
+        }
+      } catch {
+        // Ignoruj błędy cleanupu osieroconych boardów
+      }
 
       // Notify other SSE clients that board state changed
       sseBroker.broadcast(appState.activeId, 'board:updated', {

@@ -13,16 +13,107 @@ export interface VerifyRepairReport {
     projects: number;
     revisions: number;
     galleryPaths: number;
+    moodboardBoards: number;
+    moodboardImageDirs: number;
   };
   adopted: {
     revisionDirs: string[];
     galleryFiles: string[];
+    moodboardBoardFiles: string[];
+    moodboardImageDirs: string[];
   };
   orphans: {
     projectDirs: string[];
     revisionDirs: string[];
   };
   errors: string[];
+}
+
+async function verifyRepairMoodboardDir(
+  moodboardDir: string,
+  prefix: string,
+  report: VerifyRepairReport
+): Promise<void> {
+  const indexPath = path.join(moodboardDir, 'index.json');
+  let index: { boardIds: string[]; activeId: string } | null = null;
+  try {
+    const raw = await fsp.readFile(indexPath, 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      Array.isArray((parsed as { boardIds?: unknown[] }).boardIds)
+    ) {
+      const boardIds = ((parsed as { boardIds: unknown[] }).boardIds || [])
+        .filter((id): id is string => typeof id === 'string' && id.trim() !== '');
+      const activeId =
+        typeof (parsed as { activeId?: unknown }).activeId === 'string'
+          ? (parsed as { activeId: string }).activeId
+          : boardIds[0] || '';
+      index = { boardIds, activeId };
+    }
+  } catch {
+    // Brak index.json lub uszkodzony – pomijamy moodboard
+    return;
+  }
+  if (!index) return;
+
+  const entries = await fsp.readdir(moodboardDir, { withFileTypes: true }).catch(() => []);
+  const boardFiles = entries.filter(
+    (entry) =>
+      entry.isFile() &&
+      entry.name.endsWith('.json') &&
+      entry.name !== 'index.json' &&
+      entry.name !== 'state.json'
+  );
+  const listedBoardIds = new Set(index.boardIds);
+
+  for (const entry of boardFiles) {
+    const boardId = entry.name.slice(0, -'.json'.length);
+    if (listedBoardIds.has(boardId)) continue;
+
+    const boardPath = path.join(moodboardDir, entry.name);
+    await fsp.unlink(boardPath).catch(() => undefined);
+    report.repaired.moodboardBoards++;
+    report.adopted.moodboardBoardFiles.push(`${prefix}${entry.name}`);
+
+    const imageDir = path.join(moodboardDir, 'images', boardId);
+    const imageStat = await fsp.stat(imageDir).catch(() => null);
+    if (imageStat?.isDirectory()) {
+      await fsp.rm(imageDir, { recursive: true, force: true }).catch(() => undefined);
+      report.repaired.moodboardImageDirs++;
+      report.adopted.moodboardImageDirs.push(`${prefix}images/${boardId}`);
+    }
+  }
+
+  // Zaktualizuj index.json jeśli zawiera ID boardów bez plików.
+  const entriesAfterCleanup = await fsp.readdir(moodboardDir, { withFileTypes: true }).catch(() => []);
+  const existingBoardIds = new Set(
+    entriesAfterCleanup
+      .filter(
+        (entry) =>
+          entry.isFile() &&
+          entry.name.endsWith('.json') &&
+          entry.name !== 'index.json' &&
+          entry.name !== 'state.json'
+      )
+      .map((entry) => entry.name.slice(0, -'.json'.length))
+  );
+  const normalizedBoardIds = index.boardIds.filter((id) => existingBoardIds.has(id));
+  const normalizedActiveId =
+    normalizedBoardIds.includes(index.activeId) ? index.activeId : normalizedBoardIds[0] || '';
+
+  if (
+    normalizedBoardIds.length !== index.boardIds.length ||
+    normalizedActiveId !== index.activeId
+  ) {
+    await fsp.writeFile(
+      indexPath,
+      JSON.stringify({ boardIds: normalizedBoardIds, activeId: normalizedActiveId }, null, 2),
+      'utf8'
+    );
+    report.repaired.moodboardBoards++;
+  }
 }
 
 async function verifyRepairProjectsDir(
@@ -164,8 +255,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const report: VerifyRepairReport = {
     success: true,
-    repaired: { projects: 0, revisions: 0, galleryPaths: 0 },
-    adopted: { revisionDirs: [], galleryFiles: [] },
+    repaired: { projects: 0, revisions: 0, galleryPaths: 0, moodboardBoards: 0, moodboardImageDirs: 0 },
+    adopted: { revisionDirs: [], galleryFiles: [], moodboardBoardFiles: [], moodboardImageDirs: [] },
     orphans: { projectDirs: [], revisionDirs: [] },
     errors: [],
   };
@@ -175,6 +266,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Global projects
     await verifyRepairProjectsDir(path.join(dataDir, 'projects'), 'projects/', report);
+    // Global moodboard
+    await verifyRepairMoodboardDir(path.join(dataDir, 'moodboard'), 'moodboard/', report);
 
     // Group projects
     const groupsDir = path.join(dataDir, 'groups');
@@ -184,8 +277,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (gid === 'groups.json') continue;
         const groupProjectsDir = path.join(groupsDir, gid, 'projects');
         const gstat = await fsp.stat(groupProjectsDir).catch(() => null);
-        if (!gstat?.isDirectory()) continue;
-        await verifyRepairProjectsDir(groupProjectsDir, `groups/${gid}/projects/`, report);
+        if (gstat?.isDirectory()) {
+          await verifyRepairProjectsDir(groupProjectsDir, `groups/${gid}/projects/`, report);
+        }
+        await verifyRepairMoodboardDir(
+          path.join(groupsDir, gid, 'moodboard'),
+          `groups/${gid}/moodboard/`,
+          report
+        );
       }
     } catch {
       // brak groups

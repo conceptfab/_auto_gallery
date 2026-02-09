@@ -10,7 +10,7 @@ import { logger } from '@/src/utils/logger';
 
 interface OrphanedFile {
   path: string;
-  type: 'revision-thumbnail' | 'gallery' | 'moodboard';
+  type: 'revision-thumbnail' | 'gallery' | 'moodboard' | 'moodboard-board-json';
   size: number;
 }
 
@@ -80,6 +80,23 @@ async function getMoodboardImagePathsFromDir(moodboardDir: string): Promise<Set<
     // Ignoruj błędy
   }
   return paths;
+}
+
+async function getMoodboardBoardIdsFromDir(moodboardDir: string): Promise<Set<string>> {
+  const boardIds = new Set<string>();
+  try {
+    const indexPath = path.join(moodboardDir, 'index.json');
+    const indexRaw = await fsp.readFile(indexPath, 'utf8');
+    const index = JSON.parse(indexRaw) as { boardIds: string[] };
+    for (const boardId of index.boardIds || []) {
+      if (typeof boardId === 'string' && boardId.trim() !== '') {
+        boardIds.add(boardId);
+      }
+    }
+  } catch {
+    // Ignoruj błędy
+  }
+  return boardIds;
 }
 
 async function scanOrphanedFiles(): Promise<ScanResult> {
@@ -171,7 +188,9 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
   // Global moodboard images
   const moodboardDir = await getMoodboardImagesDir();
   const moodboardFiles = await scanDirectory(moodboardDir);
-  const usedMoodboardPaths = await getMoodboardImagePathsFromDir(path.join(dataDir, 'moodboard'));
+  const globalMoodboardBaseDir = path.join(dataDir, 'moodboard');
+  const usedMoodboardPaths = await getMoodboardImagePathsFromDir(globalMoodboardBaseDir);
+  const usedGlobalBoardIds = await getMoodboardBoardIdsFromDir(globalMoodboardBaseDir);
   let scannedMoodboardFiles = 0;
 
   for (const file of moodboardFiles) {
@@ -183,6 +202,29 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
         size: file.size,
       });
     }
+  }
+
+  try {
+    const entries = await fsp.readdir(globalMoodboardBaseDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (!entry.name.endsWith('.json')) continue;
+      if (entry.name === 'index.json' || entry.name === 'state.json') continue;
+      scannedMoodboardFiles++;
+      const boardId = entry.name.slice(0, -'.json'.length);
+      if (!usedGlobalBoardIds.has(boardId)) {
+        const fullPath = path.join(globalMoodboardBaseDir, entry.name);
+        const stat = await fsp.stat(fullPath).catch(() => null);
+        if (!stat?.isFile()) continue;
+        orphanedFiles.push({
+          path: `moodboard/${entry.name}`,
+          type: 'moodboard-board-json',
+          size: stat.size,
+        });
+      }
+    }
+  } catch {
+    // brak katalogu
   }
 
   // Group projects + group moodboard images
@@ -205,6 +247,7 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
         const gImagesDir = await getMoodboardImagesDirByGroup(gid);
         const gFiles = await scanDirectory(gImagesDir);
         const gUsedPaths = await getMoodboardImagePathsFromDir(groupMoodboardDir);
+        const gUsedBoardIds = await getMoodboardBoardIdsFromDir(groupMoodboardDir);
         for (const file of gFiles) {
           scannedMoodboardFiles++;
           if (!gUsedPaths.has(file.relativePath)) {
@@ -212,6 +255,25 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
               path: `groups/${gid}/moodboard/images/${file.relativePath}`,
               type: 'moodboard',
               size: file.size,
+            });
+          }
+        }
+
+        const entries = await fsp.readdir(groupMoodboardDir, { withFileTypes: true }).catch(() => []);
+        for (const entry of entries) {
+          if (!entry.isFile()) continue;
+          if (!entry.name.endsWith('.json')) continue;
+          if (entry.name === 'index.json' || entry.name === 'state.json') continue;
+          scannedMoodboardFiles++;
+          const boardId = entry.name.slice(0, -'.json'.length);
+          if (!gUsedBoardIds.has(boardId)) {
+            const fullPath = path.join(groupMoodboardDir, entry.name);
+            const stat = await fsp.stat(fullPath).catch(() => null);
+            if (!stat?.isFile()) continue;
+            orphanedFiles.push({
+              path: `groups/${gid}/moodboard/${entry.name}`,
+              type: 'moodboard-board-json',
+              size: stat.size,
             });
           }
         }

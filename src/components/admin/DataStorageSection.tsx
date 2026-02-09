@@ -38,8 +38,19 @@ interface DataStorageTree {
 
 interface VerifyRepairReport {
   success: boolean;
-  repaired: { projects: number; revisions: number; galleryPaths: number };
-  adopted: { revisionDirs: string[]; galleryFiles: string[] };
+  repaired: {
+    projects: number;
+    revisions: number;
+    galleryPaths: number;
+    moodboardBoards: number;
+    moodboardImageDirs: number;
+  };
+  adopted: {
+    revisionDirs: string[];
+    galleryFiles: string[];
+    moodboardBoardFiles: string[];
+    moodboardImageDirs: string[];
+  };
   orphans: { projectDirs: string[]; revisionDirs: string[] };
   errors: string[];
 }
@@ -235,15 +246,25 @@ export const DataStorageSection: React.FC = () => {
       });
       const data: VerifyRepairReport = await res.json();
       setVerifyRepairReport(data);
-      if (data.success && (data.repaired.projects > 0 || data.repaired.revisions > 0 || data.adopted.revisionDirs.length > 0 || data.adopted.galleryFiles.length > 0)) {
+      if (data.success && (
+        data.repaired.projects > 0 ||
+        data.repaired.revisions > 0 ||
+        data.repaired.galleryPaths > 0 ||
+        data.repaired.moodboardBoards > 0 ||
+        data.repaired.moodboardImageDirs > 0 ||
+        data.adopted.revisionDirs.length > 0 ||
+        data.adopted.galleryFiles.length > 0 ||
+        data.adopted.moodboardBoardFiles.length > 0 ||
+        data.adopted.moodboardImageDirs.length > 0
+      )) {
         await fetchTree();
       }
     } catch (err) {
       logger.error('Verify-repair error', err);
       setVerifyRepairReport({
         success: false,
-        repaired: { projects: 0, revisions: 0, galleryPaths: 0 },
-        adopted: { revisionDirs: [], galleryFiles: [] },
+        repaired: { projects: 0, revisions: 0, galleryPaths: 0, moodboardBoards: 0, moodboardImageDirs: 0 },
+        adopted: { revisionDirs: [], galleryFiles: [], moodboardBoardFiles: [], moodboardImageDirs: [] },
         orphans: { projectDirs: [], revisionDirs: [] },
         errors: ['Błąd połączenia'],
       });
@@ -432,7 +453,7 @@ export const DataStorageSection: React.FC = () => {
             {verifyRepairReport.success ? 'Weryfikacja zakończona' : 'Weryfikacja z błędami'}
           </strong>
           <div style={{ marginBottom: '6px' }}>
-            Naprawiono: {verifyRepairReport.repaired.projects} projektów, {verifyRepairReport.repaired.revisions} rewizji, {verifyRepairReport.repaired.galleryPaths} wpisów galerii.
+            Naprawiono: {verifyRepairReport.repaired.projects} projektów, {verifyRepairReport.repaired.revisions} rewizji, {verifyRepairReport.repaired.galleryPaths} wpisów galerii, {verifyRepairReport.repaired.moodboardBoards} boardów moodboard, {verifyRepairReport.repaired.moodboardImageDirs} katalogów obrazów moodboard.
           </div>
           {verifyRepairReport.adopted.revisionDirs.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
@@ -443,6 +464,16 @@ export const DataStorageSection: React.FC = () => {
           {verifyRepairReport.adopted.galleryFiles.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
               Przyjęte pliki galerii (dopasowane do rewizji): {verifyRepairReport.adopted.galleryFiles.length}
+            </div>
+          )}
+          {verifyRepairReport.adopted.moodboardBoardFiles.length > 0 && (
+            <div style={{ marginBottom: '6px' }}>
+              Usunięte osierocone boardy moodboard: {verifyRepairReport.adopted.moodboardBoardFiles.length}
+            </div>
+          )}
+          {verifyRepairReport.adopted.moodboardImageDirs.length > 0 && (
+            <div style={{ marginBottom: '6px' }}>
+              Usunięte osierocone katalogi obrazów moodboard: {verifyRepairReport.adopted.moodboardImageDirs.length}
             </div>
           )}
           {verifyRepairReport.orphans.projectDirs.length > 0 && (
