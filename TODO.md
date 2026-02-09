@@ -4,15 +4,12 @@ n8n?
 
 + poprawki moodbardów w widokach mobilnych
 
-
-+ optymalizacja wydajności moodboard -> +moze zmniejszenie/przeskalowanie do max 2000px plików dodawanych do moodbardów
-
++ przeanalizuj jak można zooptymalziwac pracę na moodboardzi - od pracy z duża ilością grafiki - ograniczenie rozmiaru plików do 2000px do ulepszenia pracy online - szybsze wyświetlanie efektów rysowania. zapisz wnioski w moodboard_todo.md
 + usuwanie grupy - pytaniecz czy rozgrupowac i usunąć grupę czy usunąć grupę z zawartoscią
-
-nie działa szkcicowanie tabletem
-inne etykieta na szkicu inna na grupie
-admin - problem z dodawaniem pliku z galerii do moodboardu
-sprytniejsze wyświetlanie w podgladzie jednego pliku
++ nie działa szkcicowanie tabletem
++ inne etykieta na szkicu inna na grupie
++ admin - problem z dodawaniem pliku z galerii do moodboardu
++ sprytniejsze wyświetlanie w podgladzie jednego pliku - dopasowanie do proporcji wyświetlanego obrazu + pasek dolny i górny
 
 
 

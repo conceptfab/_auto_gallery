@@ -226,6 +226,66 @@
         "screenHeight": 1728,
         "language": "pl"
       }
+    },
+    {
+      "id": "view_1770643157269_miiqb2",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-09T13:19:17.269Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770643557400_ramip5",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-09T13:25:57.400Z",
+      "type": "design_list",
+      "path": "projekty",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
+    },
+    {
+      "id": "view_1770643857882_bjg91u",
+      "email": "micz@kleniewski.com",
+      "sessionId": "sess_1770458089208_i4yazf",
+      "timestamp": "2026-02-09T13:30:57.882Z",
+      "type": "moodboard",
+      "path": "moodboard",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "deviceInfo": {
+        "browser": "Chrome",
+        "browserVersion": "144.0.0.0",
+        "os": "Windows",
+        "osVersion": "10",
+        "deviceType": "desktop",
+        "screenWidth": 3072,
+        "screenHeight": 1728,
+        "language": "pl"
+      }
     }
   ],
   "downloadEvents": []

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Rect, Image as KonvaImage } from 'react-konva';
+import type Konva from 'konva';
 import type {
   DrawingData,
   DrawingTool,
@@ -40,7 +41,7 @@ export default function DrawingCanvas({
   backgroundColor,
   backgroundImage,
 }: DrawingCanvasProps) {
-  const stageRef = useRef<ReturnType<typeof Stage> extends React.ReactElement<infer P> ? P : never>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
   const isDrawing = useRef(false);
 
   // Current stroke being drawn (pen/eraser)
@@ -49,17 +50,27 @@ export default function DrawingCanvas({
   const [currentShape, setCurrentShape] = useState<MoodboardDrawShape | null>(null);
   const shapeStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Refs to avoid stale closures in react-konva event handlers
+  // Refs to avoid stale closures in event handlers
   const currentStrokeRef = useRef<MoodboardStroke | null>(null);
   const currentShapeRef = useRef<MoodboardDrawShape | null>(null);
   const drawingRef = useRef(drawing);
   const onDrawingChangeRef = useRef(onDrawingChange);
   const toolRef = useRef(tool);
+  const isActiveRef = useRef(isActive);
+  const colorRef = useRef(color);
+  const strokeWidthRef = useRef(strokeWidth);
+  const widthRef = useRef(width);
+  const heightRef = useRef(height);
 
-  // Sync refs on each render (before effects, so handlers always see latest)
+  // Sync refs on each render
   drawingRef.current = drawing;
   onDrawingChangeRef.current = onDrawingChange;
   toolRef.current = tool;
+  isActiveRef.current = isActive;
+  colorRef.current = color;
+  strokeWidthRef.current = strokeWidth;
+  widthRef.current = width;
+  heightRef.current = height;
 
   // Helper: commit any in-progress stroke/shape to drawing data
   const flushInProgress = useCallback(() => {
@@ -142,6 +153,182 @@ export default function DrawingCanvas({
     img.onload = () => setBgImgElement(img);
   }, [backgroundImage]);
 
+  // Commit current stroke/shape
+  const commitStroke = useCallback(() => {
+    if (!isDrawing.current) return;
+    isDrawing.current = false;
+
+    const t = toolRef.current;
+    const d = drawingRef.current;
+    const onChange = onDrawingChangeRef.current;
+
+    if (t === 'pen' || t === 'eraser') {
+      const stroke = currentStrokeRef.current;
+      if (stroke && stroke.points.length >= 3) {
+        onChange({ ...d, strokes: [...d.strokes, stroke] });
+      }
+      currentStrokeRef.current = null;
+      setCurrentStroke(null);
+    } else {
+      const shape = currentShapeRef.current;
+      if (shape) {
+        const hasSize =
+          shape.type === 'line'
+            ? Math.abs((shape.endX ?? 0) - shape.x) > 2 ||
+              Math.abs((shape.endY ?? 0) - shape.y) > 2
+            : shape.width > 2 || shape.height > 2;
+
+        if (hasSize) {
+          onChange({ ...d, shapes: [...d.shapes, shape] });
+        }
+      }
+      currentShapeRef.current = null;
+      setCurrentShape(null);
+      shapeStartRef.current = null;
+    }
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Native pointer events for pen/stylus/touch input
+  // Konva 10 maps pointerdown→mousedown internally, but pen coordinate handling
+  // via Konva can be unreliable when the canvas is inside a CSS-transformed
+  // parent (moodboard zoom/pan). We add native listeners with proper coordinate
+  // scaling to handle pen and touch, while letting Konva handle mouse input.
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const container = stage.container();
+    // Prevent browser from claiming pen/touch for gestures (scroll, zoom, etc.)
+    container.style.touchAction = 'none';
+
+    let activePointerId = -1;
+
+    // Convert viewport (client) coordinates → canvas pixel coordinates.
+    // getBoundingClientRect() returns the visual size AFTER CSS transforms,
+    // so dividing by rect size and multiplying by canvas size corrects for
+    // any moodboard zoom/scale.
+    const getPos = (e: PointerEvent) => {
+      const rect = container.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (widthRef.current / Math.max(1, rect.width)),
+        y: (e.clientY - rect.top) * (heightRef.current / Math.max(1, rect.height)),
+      };
+    };
+
+    const startStroke = (pos: { x: number; y: number }, pressure: number) => {
+      const t = toolRef.current;
+      const c = colorRef.current;
+      const sw = strokeWidthRef.current;
+
+      if (t === 'pen' || t === 'eraser') {
+        const stroke: MoodboardStroke = {
+          id: generateId(),
+          tool: t === 'eraser' ? 'eraser' : 'pen',
+          points: [pos.x, pos.y, pressure],
+          color: t === 'eraser' ? '#ffffff' : c,
+          width: sw,
+        };
+        currentStrokeRef.current = stroke;
+        setCurrentStroke(stroke);
+      } else {
+        shapeStartRef.current = pos;
+        const shape: MoodboardDrawShape = {
+          id: generateId(),
+          type: t as 'rect' | 'circle' | 'line',
+          x: pos.x,
+          y: pos.y,
+          width: 0,
+          height: 0,
+          endX: pos.x,
+          endY: pos.y,
+          stroke: c,
+          strokeWidth: sw,
+        };
+        currentShapeRef.current = shape;
+        setCurrentShape(shape);
+      }
+    };
+
+    const addPoint = (pos: { x: number; y: number }, pressure: number) => {
+      const t = toolRef.current;
+      if (t === 'pen' || t === 'eraser') {
+        setCurrentStroke((prev) => {
+          if (!prev) return prev;
+          const next = { ...prev, points: [...prev.points, pos.x, pos.y, pressure] };
+          currentStrokeRef.current = next;
+          return next;
+        });
+      } else if (shapeStartRef.current) {
+        const start = shapeStartRef.current;
+        setCurrentShape((prev) => {
+          if (!prev) return prev;
+          let next: MoodboardDrawShape;
+          if (t === 'line') {
+            next = { ...prev, endX: pos.x, endY: pos.y };
+          } else {
+            next = {
+              ...prev,
+              x: Math.min(start.x, pos.x),
+              y: Math.min(start.y, pos.y),
+              width: Math.abs(pos.x - start.x),
+              height: Math.abs(pos.y - start.y),
+            };
+          }
+          currentShapeRef.current = next;
+          return next;
+        });
+      }
+    };
+
+    // --- window-level move / up (added after pointerdown, removed after up) ---
+    const onWindowMove = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId || !isDrawing.current) return;
+      addPoint(getPos(e), e.pressure ?? 0.5);
+    };
+
+    const onWindowUp = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      activePointerId = -1;
+      window.removeEventListener('pointermove', onWindowMove);
+      window.removeEventListener('pointerup', onWindowUp);
+      window.removeEventListener('pointercancel', onWindowUp);
+      commitStroke();
+    };
+
+    // --- pointerdown on the Konva container ---
+    const onDown = (e: PointerEvent) => {
+      if (!isActiveRef.current) return;
+      // Only handle pen / touch — mouse goes through Konva's event system
+      if (e.pointerType === 'mouse') return;
+
+      e.preventDefault();
+      activePointerId = e.pointerId;
+      isDrawing.current = true;
+
+      startStroke(getPos(e), e.pressure ?? 0.5);
+
+      // Track move/up at the window level so the stroke continues even if
+      // the pen briefly leaves the canvas area.
+      window.addEventListener('pointermove', onWindowMove);
+      window.addEventListener('pointerup', onWindowUp);
+      window.addEventListener('pointercancel', onWindowUp);
+    };
+
+    container.addEventListener('pointerdown', onDown);
+    return () => {
+      container.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onWindowMove);
+      window.removeEventListener('pointerup', onWindowUp);
+      window.removeEventListener('pointercancel', onWindowUp);
+    };
+  }, [commitStroke]);
+
+  // ---------------------------------------------------------------------------
+  // Konva mouse event handlers (regular mouse input only)
+  // Pen/touch is handled by the native pointer event listeners above.
+  // ---------------------------------------------------------------------------
+
   const getPointerPos = useCallback(
     (e: { evt: { offsetX: number; offsetY: number } }) => {
       return { x: e.evt.offsetX, y: e.evt.offsetY };
@@ -153,6 +340,8 @@ export default function DrawingCanvas({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isActive) return;
+      // Skip pen/touch — handled by native pointer listeners
+      if (e.evt?.pointerType && e.evt.pointerType !== 'mouse') return;
       isDrawing.current = true;
       const pos = getPointerPos(e);
       const pressure = e.evt?.pressure ?? 0.5;
@@ -168,7 +357,6 @@ export default function DrawingCanvas({
         currentStrokeRef.current = stroke;
         setCurrentStroke(stroke);
       } else {
-        // Shape tools: rect, circle, line
         shapeStartRef.current = pos;
         const shape: MoodboardDrawShape = {
           id: generateId(),
@@ -193,6 +381,7 @@ export default function DrawingCanvas({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDrawing.current || !isActive) return;
+      if (e.evt?.pointerType && e.evt.pointerType !== 'mouse') return;
       const pos = getPointerPos(e);
       const pressure = e.evt?.pressure ?? 0.5;
 
@@ -228,38 +417,8 @@ export default function DrawingCanvas({
   );
 
   const handlePointerUp = useCallback(() => {
-    if (!isDrawing.current) return;
-    isDrawing.current = false;
-
-    const t = toolRef.current;
-    const d = drawingRef.current;
-    const onChange = onDrawingChangeRef.current;
-
-    if (t === 'pen' || t === 'eraser') {
-      const stroke = currentStrokeRef.current;
-      if (stroke && stroke.points.length >= 3) {
-        onChange({ ...d, strokes: [...d.strokes, stroke] });
-      }
-      currentStrokeRef.current = null;
-      setCurrentStroke(null);
-    } else {
-      const shape = currentShapeRef.current;
-      if (shape) {
-        const hasSize =
-          shape.type === 'line'
-            ? Math.abs((shape.endX ?? 0) - shape.x) > 2 ||
-              Math.abs((shape.endY ?? 0) - shape.y) > 2
-            : shape.width > 2 || shape.height > 2;
-
-        if (hasSize) {
-          onChange({ ...d, shapes: [...d.shapes, shape] });
-        }
-      }
-      currentShapeRef.current = null;
-      setCurrentShape(null);
-      shapeStartRef.current = null;
-    }
-  }, []);
+    commitStroke();
+  }, [commitStroke]);
 
   const handleRemoveStroke = useCallback(
     (strokeId: string) => {
@@ -292,10 +451,10 @@ export default function DrawingCanvas({
       onMouseMove={handlePointerMove}
       onMouseUp={handlePointerUp}
       onMouseLeave={handlePointerUp}
-      onTouchStart={handlePointerDown}
-      onTouchMove={handlePointerMove}
-      onTouchEnd={handlePointerUp}
-      style={{ cursor: isActive ? (isEraser ? 'crosshair' : 'crosshair') : 'default' }}
+      style={{
+        cursor: isActive ? 'crosshair' : 'default',
+        touchAction: 'none',
+      }}
     >
       {/* Background layer */}
       <Layer listening={false}>

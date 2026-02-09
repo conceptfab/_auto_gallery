@@ -5660,6 +5660,7 @@ a {
 
 .moodboard-sketch-item .konvajs-content {
   pointer-events: auto;
+  touch-action: none;
 }
 
 /* Clip container for canvas inside sketch */
@@ -5668,6 +5669,7 @@ a {
   height: 100%;
   overflow: hidden;
   border-radius: 1px;
+  touch-action: none;
 }
 
 /* Sketch label (above sketch, like group label) */
