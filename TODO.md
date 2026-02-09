@@ -4,6 +4,8 @@ n8n? potrzebny?
 
 + poprawki moodbardów w widokach mobilnych - innych widoków
 
+- nie działa oczyszczanie plików - osieroconych plików moodboardów i projektów
+Osierocone pliki graficzne
 
 
 
