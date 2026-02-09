@@ -381,6 +381,7 @@ export default function MoodboardTab({
       ? groups.find((g) => g.id === b.groupId)?.color
       : undefined;
 
+  // ⋮ tylko przy aktywnej zakładce. Przy duplikatach id tylko pierwszy tab z listy dostaje menu.
   const renderTabWithMenu = (
     b: MoodboardBoard,
     isActive: boolean,
@@ -392,21 +393,25 @@ export default function MoodboardTab({
       onInputChange: (v: string) => void;
       onSubmitEdit: () => void;
       onKeyDown: (e: React.KeyboardEvent) => void;
-    }
-  ) => (
-    <TabLabel
-      board={b}
-      isActive={isActive}
-      {...tabLabelProps}
-      menuSlot={isActive ? menuFor(b) : undefined}
-      groupColor={groupColorFor(b)}
-    />
-  );
+    },
+    index: number
+  ) => {
+    const isFirstActive = isActive && boards.findIndex((bb) => bb.id === activeId) === index;
+    return (
+      <TabLabel
+        board={b}
+        isActive={isActive}
+        {...tabLabelProps}
+        menuSlot={isFirstActive ? menuFor(b) : undefined}
+        groupColor={groupColorFor(b)}
+      />
+    );
+  };
 
   const tabBar = (
     <div className="moodboard-tab">
       <div className="moodboard-tab-group">
-        {boards.map((b) => (
+        {boards.map((b, index) => (
           <React.Fragment key={b.id}>
             {renderTabWithMenu(
               b,
@@ -429,7 +434,8 @@ export default function MoodboardTab({
                     onInputChange: () => {},
                     onSubmitEdit: () => {},
                     onKeyDown: () => {},
-                  }
+                  },
+              index
             )}
           </React.Fragment>
         ))}

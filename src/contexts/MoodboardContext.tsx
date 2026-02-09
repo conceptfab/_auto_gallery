@@ -129,6 +129,27 @@ function deduplicateBoard(board: MoodboardBoard): MoodboardBoard {
   };
 }
 
+/** Jedna aktywna zakładka: usuń duplikaty boardów po id, ustaw activeId na istniejący board. */
+function normalizeMoodboardState(state: MoodboardAppState): MoodboardAppState {
+  const boardsDeduped = (() => {
+    const seen = new Set<string>();
+    return state.boards.filter((b) => {
+      if (seen.has(b.id)) return false;
+      seen.add(b.id);
+      return true;
+    });
+  })();
+  const validActiveId =
+    boardsDeduped.length > 0 &&
+    boardsDeduped.some((b) => b.id === state.activeId)
+      ? state.activeId
+      : boardsDeduped[0]?.id ?? state.activeId;
+  return {
+    boards: boardsDeduped.map(deduplicateBoard),
+    activeId: validActiveId,
+  };
+}
+
 async function saveStateToServer(
   appState: MoodboardAppState,
   apiUrl: string,
@@ -202,7 +223,10 @@ export function MoodboardProvider({
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && Array.isArray(parsed.boards) && parsed.activeId) {
-            return { ...parsed, boards: parsed.boards.map(deduplicateBoard) };
+            return normalizeMoodboardState({
+              boards: parsed.boards,
+              activeId: parsed.activeId,
+            });
           }
         }
       } catch (_e) {
@@ -287,10 +311,7 @@ export function MoodboardProvider({
           typeof loaded.activeId === 'string' &&
           loaded.boards.length > 0
         ) {
-          const activeId = loaded.boards.some((b) => b.id === loaded.activeId)
-            ? loaded.activeId
-            : loaded.boards[0].id;
-          setAppState({ boards: loaded.boards.map(deduplicateBoard), activeId });
+          setAppState(normalizeMoodboardState({ boards: loaded.boards, activeId: loaded.activeId }));
         } else {
           const first = emptyBoard();
           setAppState({ boards: [first], activeId: first.id });
@@ -316,8 +337,11 @@ export function MoodboardProvider({
         if (data.success && data.state) {
           setAppState(prev => {
             const remote = data.state as MoodboardAppState;
-            if (!remote.boards || !remote.activeId) return prev;
-            return { boards: remote.boards.map(deduplicateBoard), activeId: prev.activeId };
+            if (!remote.boards || remote.boards.length === 0) return prev;
+            return normalizeMoodboardState({
+              boards: remote.boards,
+              activeId: prev.activeId,
+            });
           });
         }
       })
@@ -367,6 +391,8 @@ export function MoodboardProvider({
     (id: string) => {
       if (id === appState.activeId) return;
       setAppState((prev) => {
+        const exists = prev.boards.some((b) => b.id === id);
+        if (!exists) return prev;
         const next = { ...prev, activeId: id };
         scheduleSave(next);
         return next;

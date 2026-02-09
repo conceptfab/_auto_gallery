@@ -1,3 +1,5 @@
+ β
+
 ### Przeanalizuj dokładnie kod pod kątem optymalizacji, martwego kodu, over-engineeringu, bezpieczeństwa, usuniecie funkcji migracyjnych. Przygotuj szczegółowy raport poprawki.md
 
 n8n? potrzebny?

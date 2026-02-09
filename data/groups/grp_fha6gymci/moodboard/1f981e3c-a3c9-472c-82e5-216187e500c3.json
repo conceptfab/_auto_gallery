@@ -1,0 +1,50 @@
+{
+  "id": "1f981e3c-a3c9-472c-82e5-216187e500c3",
+  "name": "xeee22",
+  "images": [
+    {
+      "id": "1770583683975-fb0qb4zlm",
+      "imagePath": "1f981e3c-a3c9-472c-82e5-216187e500c3/1770583683975-fb0qb4zlm.webp",
+      "x": 207.1920519004386,
+      "y": 148.55799337543772,
+      "width": 300,
+      "height": 200
+    }
+  ],
+  "comments": [
+    {
+      "id": "1770583683975-n80ln61vg",
+      "text": "R 20\nUsunięcie stopek w nodze, aktualizacja geometrii.",
+      "color": "none",
+      "font": "sans",
+      "fontWeight": "normal",
+      "fontSize": 12,
+      "fontColor": "#888888",
+      "x": 207.1920519004386,
+      "y": 352.5579933754377,
+      "width": 200,
+      "height": 60
+    }
+  ],
+  "groups": [
+    {
+      "id": "1770583683975-yr5fh6evt",
+      "name": "R 20",
+      "x": 197.1920519004386,
+      "y": 138.55799337543772,
+      "width": 320,
+      "height": 284,
+      "memberIds": [
+        "1770583683975-fb0qb4zlm",
+        "1770583683975-n80ln61vg"
+      ]
+    }
+  ],
+  "viewport": {
+    "scale": 1,
+    "translateX": 0,
+    "translateY": 0
+  },
+  "sketches": [],
+  "groupId": "grp_fha6gymci"
+}
