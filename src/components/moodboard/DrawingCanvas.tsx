@@ -50,6 +50,11 @@ export default function DrawingCanvas({
   const [currentShape, setCurrentShape] = useState<MoodboardDrawShape | null>(null);
   const shapeStartRef = useRef<{ x: number; y: number } | null>(null);
 
+  // rAF throttling: buffer points and flush once per frame
+  const pendingStrokePointsRef = useRef<number[]>([]);
+  const pendingShapePosRef = useRef<{ x: number; y: number } | null>(null);
+  const rafIdRef = useRef<number>(0);
+
   // Refs to avoid stale closures in event handlers
   const currentStrokeRef = useRef<MoodboardStroke | null>(null);
   const currentShapeRef = useRef<MoodboardDrawShape | null>(null);
@@ -72,21 +77,91 @@ export default function DrawingCanvas({
   widthRef.current = width;
   heightRef.current = height;
 
+  // Flush buffered points to React state (called once per animation frame)
+  const flushPendingPoints = useCallback(() => {
+    rafIdRef.current = 0;
+    const pendingPts = pendingStrokePointsRef.current;
+    const pendingShapePos = pendingShapePosRef.current;
+
+    if (pendingPts.length > 0) {
+      pendingStrokePointsRef.current = [];
+      setCurrentStroke((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev, points: [...prev.points, ...pendingPts] };
+        currentStrokeRef.current = next;
+        return next;
+      });
+    }
+
+    if (pendingShapePos) {
+      pendingShapePosRef.current = null;
+      const start = shapeStartRef.current;
+      if (start) {
+        const pos = pendingShapePos;
+        setCurrentShape((prev) => {
+          if (!prev) return prev;
+          let next: MoodboardDrawShape;
+          if (prev.type === 'line') {
+            next = { ...prev, endX: pos.x, endY: pos.y };
+          } else {
+            next = {
+              ...prev,
+              x: Math.min(start.x, pos.x),
+              y: Math.min(start.y, pos.y),
+              width: Math.abs(pos.x - start.x),
+              height: Math.abs(pos.y - start.y),
+            };
+          }
+          currentShapeRef.current = next;
+          return next;
+        });
+      }
+    }
+  }, []);
+
+  const scheduleFlush = useCallback(() => {
+    if (!rafIdRef.current) {
+      rafIdRef.current = requestAnimationFrame(flushPendingPoints);
+    }
+  }, [flushPendingPoints]);
+
+  // Cancel pending rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, []);
+
   // Helper: commit any in-progress stroke/shape to drawing data
   const flushInProgress = useCallback(() => {
+    // Cancel pending rAF and apply buffered points
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = 0;
+    }
+    const pendingPts = pendingStrokePointsRef.current;
+    if (pendingPts.length > 0 && currentStrokeRef.current) {
+      currentStrokeRef.current = {
+        ...currentStrokeRef.current,
+        points: [...currentStrokeRef.current.points, ...pendingPts],
+      };
+      pendingStrokePointsRef.current = [];
+    }
+    pendingShapePosRef.current = null;
+
     const d = drawingRef.current;
     const onChange = onDrawingChangeRef.current;
     let newDrawing = { ...d };
     let updated = false;
 
     const stroke = currentStrokeRef.current;
-    if (stroke && stroke.points.length >= 3) {
+    if (stroke && stroke.points.length >= 3 && !newDrawing.strokes.some(s => s.id === stroke.id)) {
       newDrawing = { ...newDrawing, strokes: [...newDrawing.strokes, stroke] };
       updated = true;
     }
 
     const shape = currentShapeRef.current;
-    if (shape) {
+    if (shape && !newDrawing.shapes.some(s => s.id === shape.id)) {
       const hasSize =
         shape.type === 'line'
           ? Math.abs((shape.endX ?? 0) - shape.x) > 2 || Math.abs((shape.endY ?? 0) - shape.y) > 2
@@ -122,11 +197,11 @@ export default function DrawingCanvas({
         const onChange = onDrawingChangeRef.current;
         let newDrawing = { ...d };
         let changed = false;
-        if (stroke && stroke.points.length >= 3) {
+        if (stroke && stroke.points.length >= 3 && !newDrawing.strokes.some(s => s.id === stroke.id)) {
           newDrawing = { ...newDrawing, strokes: [...newDrawing.strokes, stroke] };
           changed = true;
         }
-        if (shape) {
+        if (shape && !newDrawing.shapes.some(s => s.id === shape.id)) {
           const hasSize = shape.type === 'line'
             ? Math.abs((shape.endX ?? 0) - shape.x) > 2 || Math.abs((shape.endY ?? 0) - shape.y) > 2
             : shape.width > 2 || shape.height > 2;
@@ -158,20 +233,52 @@ export default function DrawingCanvas({
     if (!isDrawing.current) return;
     isDrawing.current = false;
 
+    // Flush any buffered points before committing
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = 0;
+    }
+    // Apply pending stroke points directly to the ref
+    const pendingPts = pendingStrokePointsRef.current;
+    if (pendingPts.length > 0 && currentStrokeRef.current) {
+      currentStrokeRef.current = {
+        ...currentStrokeRef.current,
+        points: [...currentStrokeRef.current.points, ...pendingPts],
+      };
+      pendingStrokePointsRef.current = [];
+    }
+    const pendingShapePos = pendingShapePosRef.current;
+    if (pendingShapePos && currentShapeRef.current && shapeStartRef.current) {
+      const start = shapeStartRef.current;
+      const prev = currentShapeRef.current;
+      if (prev.type === 'line') {
+        currentShapeRef.current = { ...prev, endX: pendingShapePos.x, endY: pendingShapePos.y };
+      } else {
+        currentShapeRef.current = {
+          ...prev,
+          x: Math.min(start.x, pendingShapePos.x),
+          y: Math.min(start.y, pendingShapePos.y),
+          width: Math.abs(pendingShapePos.x - start.x),
+          height: Math.abs(pendingShapePos.y - start.y),
+        };
+      }
+      pendingShapePosRef.current = null;
+    }
+
     const t = toolRef.current;
     const d = drawingRef.current;
     const onChange = onDrawingChangeRef.current;
 
     if (t === 'pen' || t === 'eraser') {
       const stroke = currentStrokeRef.current;
-      if (stroke && stroke.points.length >= 3) {
+      if (stroke && stroke.points.length >= 3 && !d.strokes.some(s => s.id === stroke.id)) {
         onChange({ ...d, strokes: [...d.strokes, stroke] });
       }
       currentStrokeRef.current = null;
       setCurrentStroke(null);
     } else {
       const shape = currentShapeRef.current;
-      if (shape) {
+      if (shape && !d.shapes.some(s => s.id === shape.id)) {
         const hasSize =
           shape.type === 'line'
             ? Math.abs((shape.endX ?? 0) - shape.x) > 2 ||
@@ -253,31 +360,11 @@ export default function DrawingCanvas({
     const addPoint = (pos: { x: number; y: number }, pressure: number) => {
       const t = toolRef.current;
       if (t === 'pen' || t === 'eraser') {
-        setCurrentStroke((prev) => {
-          if (!prev) return prev;
-          const next = { ...prev, points: [...prev.points, pos.x, pos.y, pressure] };
-          currentStrokeRef.current = next;
-          return next;
-        });
+        pendingStrokePointsRef.current.push(pos.x, pos.y, pressure);
+        scheduleFlush();
       } else if (shapeStartRef.current) {
-        const start = shapeStartRef.current;
-        setCurrentShape((prev) => {
-          if (!prev) return prev;
-          let next: MoodboardDrawShape;
-          if (t === 'line') {
-            next = { ...prev, endX: pos.x, endY: pos.y };
-          } else {
-            next = {
-              ...prev,
-              x: Math.min(start.x, pos.x),
-              y: Math.min(start.y, pos.y),
-              width: Math.abs(pos.x - start.x),
-              height: Math.abs(pos.y - start.y),
-            };
-          }
-          currentShapeRef.current = next;
-          return next;
-        });
+        pendingShapePosRef.current = pos;
+        scheduleFlush();
       }
     };
 
@@ -322,7 +409,7 @@ export default function DrawingCanvas({
       window.removeEventListener('pointerup', onWindowUp);
       window.removeEventListener('pointercancel', onWindowUp);
     };
-  }, [commitStroke]);
+  }, [commitStroke, scheduleFlush]);
 
   // ---------------------------------------------------------------------------
   // Konva mouse event handlers (regular mouse input only)
@@ -386,34 +473,14 @@ export default function DrawingCanvas({
       const pressure = e.evt?.pressure ?? 0.5;
 
       if (tool === 'pen' || tool === 'eraser') {
-        setCurrentStroke((prev) => {
-          if (!prev) return prev;
-          const next = { ...prev, points: [...prev.points, pos.x, pos.y, pressure] };
-          currentStrokeRef.current = next;
-          return next;
-        });
+        pendingStrokePointsRef.current.push(pos.x, pos.y, pressure);
+        scheduleFlush();
       } else if (shapeStartRef.current) {
-        const start = shapeStartRef.current;
-        setCurrentShape((prev) => {
-          if (!prev) return prev;
-          let next: MoodboardDrawShape;
-          if (tool === 'line') {
-            next = { ...prev, endX: pos.x, endY: pos.y };
-          } else {
-            next = {
-              ...prev,
-              x: Math.min(start.x, pos.x),
-              y: Math.min(start.y, pos.y),
-              width: Math.abs(pos.x - start.x),
-              height: Math.abs(pos.y - start.y),
-            };
-          }
-          currentShapeRef.current = next;
-          return next;
-        });
+        pendingShapePosRef.current = pos;
+        scheduleFlush();
       }
     },
-    [isActive, tool, getPointerPos]
+    [isActive, tool, getPointerPos, scheduleFlush]
   );
 
   const handlePointerUp = useCallback(() => {

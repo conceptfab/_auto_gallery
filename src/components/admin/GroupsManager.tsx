@@ -313,7 +313,7 @@ export const GroupsManager: React.FC<GroupsManagerProps> = ({
                           <span style={{ fontSize: '13px', color: '#374151' }}>Kolor:</span>
                           <input
                             type="color"
-                            value={editColor || '#6366f1'}
+                            value={editColor || '#000000'}
                             onChange={(e) => setEditColor(e.target.value)}
                             title="Kolor grupy"
                             style={{

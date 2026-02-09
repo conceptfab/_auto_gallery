@@ -645,7 +645,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ clientName }) => {
                     padding: '8px 16px',
                     border: 'none',
                     borderRadius: '6px',
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#000000',
                     color: 'white',
                     cursor: sendingBug ? 'not-allowed' : 'pointer',
                     fontSize: '14px',

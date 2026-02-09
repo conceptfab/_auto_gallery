@@ -75,6 +75,7 @@ export default function Canvas() {
     addGroup,
     updateGroup,
     removeGroup,
+    removeGroupWithContents,
     addSketch,
     setSelected,
     activeId,
@@ -896,8 +897,12 @@ export default function Canvas() {
           if (!group) return null;
           
           const handleUngroup = () => {
-            if (!window.confirm('Czy na pewno chcesz rozgrupować tę grupę?')) return;
             removeGroup(group.id);
+            setEditingGroup(null);
+          };
+
+          const handleDeleteGroupWithContents = () => {
+            removeGroupWithContents(group.id);
             setEditingGroup(null);
           };
 
@@ -932,6 +937,7 @@ export default function Canvas() {
               onLabelSizeChange={(size) => updateGroup(group.id, { labelSize: size })}
               onLabelColorChange={(color) => updateGroup(group.id, { labelColor: color })}
               onUngroup={handleUngroup}
+              onDeleteWithContents={handleDeleteGroupWithContents}
               onAddComment={handleAddCommentToGroup}
               position={{ x: editingGroup.x, y: editingGroup.y }}
               otherBoards={boards.filter((b) => b.id !== activeId)}

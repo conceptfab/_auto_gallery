@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
+import ConfirmDialog from './ConfirmDialog';
 import type { MoodboardBoard } from '@/src/types/moodboard';
 import type { UserGroup } from '@/src/types/admin';
 import { logger } from '@/src/utils/logger';
@@ -131,12 +132,19 @@ function TabMenu({
     onRename();
     onClose();
   };
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const handleDelete = () => {
-    if (canDelete && window.confirm('Usunąć ten moodboard?')) {
-      onDelete();
+    if (canDelete) {
+      setShowDeleteConfirm(true);
     }
     onClose();
   };
+
+  const confirmDelete = useCallback(() => {
+    setShowDeleteConfirm(false);
+    onDelete();
+  }, [onDelete]);
 
   return (
     <div className="moodboard-tab-menu-wrap" ref={menuRef}>
@@ -219,6 +227,16 @@ function TabMenu({
           </button>
         </div>
       )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Usunąć ten moodboard?"
+        description="Cała zawartość moodboarda zostanie usunięta."
+        actions={[
+          { label: 'Usuń', icon: 'las la-trash-alt', variant: 'danger', onClick: confirmDelete },
+          { label: 'Anuluj', variant: 'cancel', onClick: () => setShowDeleteConfirm(false) },
+        ]}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

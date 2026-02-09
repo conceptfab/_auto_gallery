@@ -12,6 +12,7 @@ interface GroupEditPanelProps {
   onLabelSizeChange: (size: number) => void;
   onLabelColorChange: (color: string) => void;
   onUngroup: () => void;
+  onDeleteWithContents: () => void;
   onAddComment: () => void;
   position: { x: number; y: number };
   /** Opcja przenoszenia na inny moodboard */
@@ -21,7 +22,7 @@ interface GroupEditPanelProps {
 
 export default function GroupEditPanel({
   name,
-  color = '#6366f1',
+  color = '#000000',
   labelSize = 14,
   labelColor = '#ffffff',
   onNameChange,
@@ -29,13 +30,14 @@ export default function GroupEditPanel({
   onLabelSizeChange,
   onLabelColorChange,
   onUngroup,
+  onDeleteWithContents,
   onAddComment,
   position,
   otherBoards = [],
   onMoveToBoard,
 }: GroupEditPanelProps) {
   // Ensure we have a hex color for the picker
-  const hexColor = color.startsWith('rgba') ? '#6366f1' : color;
+  const hexColor = color.startsWith('rgba') ? '#000000' : color;
 
   return (
     <div
@@ -121,7 +123,7 @@ export default function GroupEditPanel({
         </div>
       )}
 
-      <div className="moodboard-edit-panel-section" style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+      <div className="moodboard-edit-panel-section" style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
         <button
           type="button"
           className="moodboard-edit-panel-btn"
@@ -130,11 +132,12 @@ export default function GroupEditPanel({
             flex: 1,
             padding: '6px',
             fontSize: '0.75rem',
-            backgroundColor: '#6366f1',
+            backgroundColor: '#000000',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
+            minWidth: '80px',
           }}
         >
           + Komentarz
@@ -147,6 +150,24 @@ export default function GroupEditPanel({
             flex: 1,
             padding: '6px',
             fontSize: '0.75rem',
+            backgroundColor: '#f59e0b',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            minWidth: '80px',
+          }}
+        >
+          Rozgrupuj
+        </button>
+        <button
+          type="button"
+          className="moodboard-edit-panel-btn"
+          onClick={onDeleteWithContents}
+          style={{
+            flex: '1 1 100%',
+            padding: '6px',
+            fontSize: '0.75rem',
             backgroundColor: '#ef4444',
             color: '#fff',
             border: 'none',
@@ -154,7 +175,8 @@ export default function GroupEditPanel({
             cursor: 'pointer',
           }}
         >
-          Rozgrupuj
+          <i className="las la-trash-alt" style={{ marginRight: 4 }} aria-hidden />
+          Usuń z zawartością
         </button>
       </div>
     </div>

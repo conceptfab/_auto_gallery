@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import './konva-fix';
 import { Path } from 'react-konva';
 import { getStroke } from 'perfect-freehand';
@@ -29,20 +29,22 @@ interface StrokePathProps {
 }
 
 const StrokePath = React.memo(function StrokePath({ stroke, onRemove, isEraser }: StrokePathProps) {
-  // Convert flat [x,y,pressure, x,y,pressure, ...] to [[x,y,pressure], ...]
-  const points: number[][] = [];
-  for (let i = 0; i < stroke.points.length; i += 3) {
-    points.push([stroke.points[i], stroke.points[i + 1], stroke.points[i + 2] ?? 0.5]);
-  }
+  const pathData = useMemo(() => {
+    // Convert flat [x,y,pressure, x,y,pressure, ...] to [[x,y,pressure], ...]
+    const points: number[][] = [];
+    for (let i = 0; i < stroke.points.length; i += 3) {
+      points.push([stroke.points[i], stroke.points[i + 1], stroke.points[i + 2] ?? 0.5]);
+    }
 
-  const outlinePoints = getStroke(points, {
-    size: stroke.width,
-    thinning: 0.5,
-    smoothing: 0.5,
-    streamline: 0.5,
-  });
+    const outlinePoints = getStroke(points, {
+      size: stroke.width,
+      thinning: 0.5,
+      smoothing: 0.5,
+      streamline: 0.5,
+    });
 
-  const pathData = getSvgPathFromStroke(outlinePoints);
+    return getSvgPathFromStroke(outlinePoints);
+  }, [stroke.points, stroke.width]);
 
   return (
     <Path

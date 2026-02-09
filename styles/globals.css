@@ -1628,7 +1628,7 @@ a {
   }
 }
 
-/* Modal content container - proporcje obrazka */
+/* Modal content container - proporcje pliku */
 .modal-content {
   position: relative;
   background: #f8f8f8;
@@ -1638,29 +1638,24 @@ a {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* Szerokość bazowa - dopasowuje się do dostępnej przestrzeni */
   width: auto;
   max-width: 95vw;
   max-height: 95vh;
 }
 
-/* Kontener na obraz - STAŁE PROPORCJE obrazka (4:3) */
+/* Kontener na obraz - proporcje wyświetlanego pliku */
 .modal-image-wrapper {
-  width: 85vw;
-  max-width: 1100px;
-  /* Proporcje 4:3 - typowe dla zdjęć produktowych */
-  aspect-ratio: 4 / 3;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  min-width: 280px;
+  min-height: 200px;
 }
 
-/* Kolorystyka (decors/Kolorystyka): proporcje kwadratu, równa przestrzeń wokół grafiki */
+/* Kolorystyka: lekko mniejszy wrapper */
 .modal-content.modal-content--kolorystyka .modal-image-wrapper {
-  width: 80vmin;
-  max-width: 80vmin;
-  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1673,10 +1668,10 @@ a {
   object-fit: contain;
 }
 
-/* Obraz - dopasowuje się do wrappera */
+/* Obraz - dopasowuje się do dostępnej przestrzeni, zachowując proporcje */
 .modal-content .modal-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: min(85vw, 1100px);
+  max-height: calc(95vh - 80px);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -1693,52 +1688,65 @@ a {
   }
 }
 
-/* Info na dole - stały rozmiar */
-.modal-content .modal-info {
-  flex-shrink: 0;
-  width: 100%;
-}
-
-/* Small close button (X) in top right corner */
+/* Close button (X) - na obrazku, prawy górny róg */
 .close-button {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  color: #999;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #555;
   border: none;
-  width: 36px;
-  height: 36px;
-  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
   cursor: pointer;
   z-index: 1001;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
 }
 
 .close-button:hover {
-  color: #333;
+  background: rgba(255, 255, 255, 0.95);
+  color: #111;
 }
 
-/* Bottom action buttons container in modal */
-.modal-bottom-actions {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
+/* Dolny pas - info + ikony akcji */
+.modal-bottom-bar {
+  flex-shrink: 0;
   display: flex;
-  gap: 10px;
   align-items: center;
-  z-index: 1001;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #f8f8f8;
+  border-top: 1px solid #e8e8e8;
+  width: 100%;
 }
 
-/* Color buttons in modal - 2x larger (52px) */
+.modal-bottom-bar .modal-info {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+}
+
+/* Bottom action buttons - w dolnym pasie, nie absolute */
+.modal-bottom-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Color buttons in modal bottom bar */
 .modal-color-button {
-  width: 52px;
-  height: 52px;
-  min-width: 52px;
-  min-height: 52px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 3px;
   cursor: pointer;
@@ -1754,14 +1762,14 @@ a {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Download button in modal */
+/* Download button in modal bottom bar */
 .modal-download-button {
   background: none;
   color: #999;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  width: 52px;
-  height: 52px;
-  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1809,45 +1817,40 @@ a {
   text-overflow: ellipsis;
 }
 
-/* Left/right navigation arrows in modal */
+/* Left/right navigation arrows - na obrazku */
 .modal-nav-button {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  background: rgba(255, 255, 255, 0.6);
   border: none;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #666;
-  font-size: 32px;
+  color: #555;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   z-index: 1001;
   transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
 }
 
 .modal-nav-button-left {
-  left: 20px;
+  left: 10px;
 }
 
 .modal-nav-button-right {
-  right: 20px;
+  right: 10px;
 }
 
 .modal-nav-button:hover {
-  color: #333;
+  background: rgba(255, 255, 255, 0.95);
+  color: #111;
   transform: translateY(-50%) scale(1.05);
-}
-
-/* Large image display in modal */
-.modal-image {
-  max-width: 100%;
-  max-height: 70vh;
-  min-width: 250px;
-  min-height: 250px;
-  object-fit: contain;
-  display: block;
 }
 
 /* Modal information section below image */
@@ -1858,17 +1861,20 @@ a {
 
 /* Image filename in modal */
 .modal-info h3 {
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: #2c3e50;
   word-break: break-word;
-  font-weight: 200;
-  margin-bottom: 8px;
+  font-weight: 400;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Metadata styling in modal - larger than thumbnail view */
+/* Metadata styling in modal */
 .modal-info .image-metadata {
   color: #666;
-  font-size: 1rem;
+  font-size: 0.8rem;
 }
 
 /* Metadata items spacing in modal */
@@ -2041,16 +2047,10 @@ a {
     padding: 20px;
   }
 
-  /* Tablet - proporcje obrazka */
-  .modal-image-wrapper {
-    width: calc(100vw - 40px);
-    max-width: none;
-    aspect-ratio: 4 / 3;
-  }
-  .modal-content.modal-content--kolorystyka .modal-image-wrapper {
-    width: 80vmin;
-    max-width: 80vmin;
-    aspect-ratio: 1 / 1;
+  /* Tablet - proporcje pliku */
+  .modal-content .modal-image {
+    max-width: calc(100vw - 40px);
+    max-height: calc(95vh - 70px);
   }
 
   /* Podgląd kolorystyki w modalu - tylko miniaturka 150x150px na tablecie */
@@ -2116,24 +2116,29 @@ a {
     font-size: 1.5rem;
   }
 
-  /* Mobile - proporcje obrazka */
+  /* Mobile - proporcje pliku */
   .modal-content {
     max-width: calc(100vw - 16px);
     border-radius: 3px;
   }
 
-  .modal-image-wrapper {
-    width: calc(100vw - 20px);
-    max-width: none;
-    aspect-ratio: 4 / 3;
-  }
-  .modal-content.modal-content--kolorystyka .modal-image-wrapper {
-    width: 80vmin;
-    max-width: 80vmin;
-    aspect-ratio: 1 / 1;
+  .modal-content .modal-image {
+    max-width: calc(100vw - 20px);
+    max-height: calc(95vh - 60px);
   }
 
-  /* Zmniejsz rozmiar nazwy pliku i opisów w modalu na mobile */
+  .modal-image-wrapper {
+    min-width: 200px;
+    min-height: 120px;
+  }
+
+  /* Zmniejsz rozmiar w dolnym pasie na mobile */
+  .modal-bottom-bar {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
   .modal-info h3 {
     font-size: 0.65rem;
     margin-bottom: 2px;
@@ -2143,9 +2148,8 @@ a {
     font-size: 0.65rem;
   }
 
-  /* Zmniejsz padding na dole modal-info na mobile */
-  .modal-info {
-    padding-bottom: 0;
+  .modal-bottom-bar .modal-info {
+    padding: 0;
   }
 
   /* Ukryj ikonki kolorystyki w modalu na mobile */
@@ -2157,14 +2161,22 @@ a {
     display: none !important;
   }
 
-  /* Ukryj oryginalne przyciski nawigacji i download na mobile */
-  .modal-nav-button-left,
-  .modal-nav-button-right {
+  /* Ukryj desktop bottom-actions na mobile */
+  .modal-bottom-actions {
     display: none !important;
   }
 
-  .modal-bottom-actions {
-    display: none !important;
+  /* Strzałki na obrazku - mniejsze na mobile */
+  .modal-nav-button {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .close-button {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
   }
 
   /* Pokaż przyciski mobile poniżej modal-info */
@@ -2172,10 +2184,7 @@ a {
     display: flex !important;
     justify-content: space-between;
     align-items: center;
-    margin-top: 8px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    border-top: 1px solid #e5e7eb;
+    width: 100%;
   }
 
   .modal-mobile-nav-button,
@@ -3251,14 +3260,6 @@ a {
   border-radius: 4px;
 }
 
-.modal-image {
-  max-width: 90vw;
-  max-height: 80vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-}
-
 /* ========================================
    LOGIN PAGE STYLES
    ======================================== */
@@ -3905,7 +3906,7 @@ a {
 }
 
 .design-project-tile:focus {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #000000;
   outline-offset: 2px;
 }
 
@@ -3921,7 +3922,7 @@ a {
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  color: #6366f1;
+  color: #000000;
   margin-bottom: 12px;
 }
 
@@ -3961,7 +3962,7 @@ a {
   font-size: 14px;
   font-weight: 500;
   color: #fff;
-  background: #6366f1;
+  background: #000000;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -4023,7 +4024,7 @@ a {
 }
 
 .design-revision-card--drag-over {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #000000;
   outline-offset: 2px;
 }
 
@@ -4307,7 +4308,7 @@ a {
 }
 
 .design-gallery-grid-item:focus {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #000000;
   outline-offset: 2px;
 }
 
@@ -4321,7 +4322,7 @@ a {
 }
 
 .design-gallery-grid-item:hover .design-gallery-img {
-  border-color: #6366f1;
+  border-color: #000000;
 }
 
 /* Pojedynczy obraz w galerii Design – okno dopasowane do obrazka */
@@ -4533,16 +4534,16 @@ a {
   margin-top: 10px;
   padding: 6px 12px;
   font-size: 13px;
-  color: #6366f1;
+  color: #000000;
   background: transparent;
-  border: 1px solid #6366f1;
+  border: 1px solid #000000;
   border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
 }
 
 .design-revision-edit-embed-btn:hover {
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* Fullscreen overlay dla osadzonej strony */
@@ -4939,7 +4940,7 @@ a {
 
 .moodboard-canvas--drag-over {
   background-color: #f0f9ff;
-  outline: 2px dashed #6366f1;
+  outline: 2px dashed #000000;
   outline-offset: -4px;
 }
 
@@ -5154,7 +5155,7 @@ a {
 
 .moodboard-item--selected {
   outline: none;
-  box-shadow: 0 0 0 1px #7c3aed;
+  box-shadow: 0 0 0 1px #000000;
   z-index: 10;
 }
 
@@ -5166,7 +5167,7 @@ a {
 
 .moodboard-image-item.moodboard-item--selected,
 .moodboard-sketch-item.moodboard-item--selected {
-  box-shadow: 0 0 0 1px #7c3aed, 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 1px #000000, 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .moodboard-item--dragging {
@@ -5210,7 +5211,7 @@ a {
 }
 
 .moodboard-item-edit:hover {
-  background: #7c3aed;
+  background: #000000;
 }
 
 .moodboard-item-delete {
@@ -5238,12 +5239,85 @@ a {
   background: #b91c1c;
 }
 
+/* Dialog usuwania grupy */
+.moodboard-delete-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+}
+
+.moodboard-delete-dialog {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px 24px;
+  min-width: 280px;
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.moodboard-delete-dialog-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.moodboard-delete-dialog-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.moodboard-delete-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moodboard-delete-dialog-btn {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.15s ease;
+}
+
+.moodboard-delete-dialog-btn:hover {
+  opacity: 0.85;
+}
+
+.moodboard-delete-dialog-btn--ungroup {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.moodboard-delete-dialog-btn--delete {
+  background: #ef4444;
+  color: #fff;
+}
+
+.moodboard-delete-dialog-btn--cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .moodboard-resize-handle {
   position: absolute;
   width: 8px;
   height: 8px;
   background: #fff;
-  border: 1px solid #7c3aed;
+  border: 1px solid #000000;
   border-radius: 0;
   box-shadow: none;
   cursor: nwse-resize;
@@ -5578,15 +5652,15 @@ a {
 /* Selection Box */
 .moodboard-selection-box {
   position: absolute;
-  border: 2px dashed #6366f1;
-  background: rgba(99, 102, 241, 0.1);
+  border: 2px dashed #000000;
+  background: rgba(0, 0, 0, 0.06);
   pointer-events: none;
   z-index: 50;
 }
 
 .moodboard-group-item {
-  border: 1px dashed #6366f1;
-  background: rgba(99, 102, 241, 0.05);
+  border: 1px dashed #000000;
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 2px;
   pointer-events: auto;
   z-index: 10;
@@ -5596,7 +5670,7 @@ a {
   position: absolute;
   top: -24px;
   left: 0;
-  background: #6366f1;
+  background: #000000;
   color: #fff;
   padding: 2px 8px;
   font-size: 0.75rem;
@@ -5606,11 +5680,11 @@ a {
 }
 
 .moodboard-item--selected.moodboard-group-item {
-  box-shadow: 0 0 0 2px #6366f1;
+  box-shadow: 0 0 0 2px #000000;
 }
 
 .moodboard-group--hovered {
-  box-shadow: 0 0 0 3px #6366f1, 0 0 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 3px #000000, 0 0 20px rgba(0, 0, 0, 0.2);
   border-style: solid !important;
   z-index: 100 !important;
 }
@@ -5655,7 +5729,7 @@ a {
 }
 
 .moodboard-sketch-item--selected {
-  border-color: #3b82f6;
+  border-color: #000000;
 }
 
 .moodboard-sketch-item .konvajs-content {
@@ -5672,23 +5746,31 @@ a {
   touch-action: none;
 }
 
-/* Sketch label (above sketch, like group label) */
+/* Sketch label — jak etykieta grupy + ikona pisaka (odróżnienie) */
 .sketch-label {
   position: absolute;
   top: 0;
   left: 0;
   transform: translateY(-100%);
+  display: flex;
+  align-items: center;
   white-space: nowrap;
-  font-size: 12px;
-  font-weight: 600;
-  color: #fff;
-  background: #6366f1;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff;
+  background: #000000;
   padding: 2px 10px;
-  border-radius: 1px 1px 0 0;
-  line-height: 1.3;
+  border-radius: 6px 6px 0 0;
+  line-height: 1.2;
   z-index: 20;
   cursor: default;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sketch-label-icon {
+  margin-right: 6px;
+  font-size: 0.95em;
+  opacity: 0.95;
 }
 
 .sketch-label-text {
@@ -5941,8 +6023,8 @@ a {
 }
 
 .moodboard-sketch-item--drawing {
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+  border-color: #000000 !important;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Annotation badge on images */
@@ -5952,7 +6034,7 @@ a {
   right: 4px;
   width: 20px;
   height: 20px;
-  background: rgba(99, 102, 241, 0.85);
+  background: rgba(0, 0, 0, 0.75);
   color: #fff;
   border-radius: 50%;
   font-size: 11px;
@@ -6016,8 +6098,8 @@ a {
 }
 
 @keyframes presence-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
-  50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(0, 0, 0, 0); }
 }
 
 /* --- Remote drawing indicator on sketch/image --- */

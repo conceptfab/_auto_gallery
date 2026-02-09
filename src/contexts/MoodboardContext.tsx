@@ -54,6 +54,7 @@ interface MoodboardContextValue extends MoodboardBoard {
   addGroup: (group: Omit<MoodboardGroup, 'id'>) => void;
   updateGroup: (id: string, patch: Partial<MoodboardGroup>) => void;
   removeGroup: (id: string) => void;
+  removeGroupWithContents: (id: string) => void;
   addSketch: (sketch: Omit<MoodboardSketch, 'id'>) => void;
   updateSketch: (id: string, patch: Partial<MoodboardSketch>) => void;
   removeSketch: (id: string) => void;
@@ -94,6 +95,38 @@ function getStateApiUrl(selectedGroupId: string | undefined): string {
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+/** Deduplicate arrays by `id`, keeping the last occurrence (latest data wins). */
+function dedup<T extends { id: string }>(arr: T[]): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (!seen.has(arr[i].id)) {
+      seen.add(arr[i].id);
+      result.push(arr[i]);
+    }
+  }
+  return result.reverse();
+}
+
+function dedupDrawing(d: DrawingData | undefined): DrawingData | undefined {
+  if (!d) return d;
+  return { strokes: dedup(d.strokes), shapes: dedup(d.shapes) };
+}
+
+function deduplicateBoard(board: MoodboardBoard): MoodboardBoard {
+  return {
+    ...board,
+    images: dedup(board.images).map(img =>
+      img.annotations ? { ...img, annotations: dedupDrawing(img.annotations)! } : img
+    ),
+    comments: dedup(board.comments),
+    groups: dedup(board.groups || []),
+    sketches: dedup(board.sketches || []).map(sk =>
+      sk.drawing ? { ...sk, drawing: dedupDrawing(sk.drawing)! } : sk
+    ),
+  };
 }
 
 async function saveStateToServer(
@@ -169,7 +202,7 @@ export function MoodboardProvider({
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && Array.isArray(parsed.boards) && parsed.activeId) {
-            return parsed;
+            return { ...parsed, boards: parsed.boards.map(deduplicateBoard) };
           }
         }
       } catch (_e) {
@@ -257,7 +290,7 @@ export function MoodboardProvider({
           const activeId = loaded.boards.some((b) => b.id === loaded.activeId)
             ? loaded.activeId
             : loaded.boards[0].id;
-          setAppState({ boards: loaded.boards, activeId });
+          setAppState({ boards: loaded.boards.map(deduplicateBoard), activeId });
         } else {
           const first = emptyBoard();
           setAppState({ boards: [first], activeId: first.id });
@@ -284,7 +317,7 @@ export function MoodboardProvider({
           setAppState(prev => {
             const remote = data.state as MoodboardAppState;
             if (!remote.boards || !remote.activeId) return prev;
-            return { boards: remote.boards, activeId: prev.activeId };
+            return { boards: remote.boards.map(deduplicateBoard), activeId: prev.activeId };
           });
         }
       })
@@ -653,6 +686,34 @@ export function MoodboardProvider({
     [scheduleSave, selectedId, selectedType]
   );
 
+  const removeGroupWithContents = useCallback(
+    (id: string) => {
+      setAppState((prev) => {
+        const boards = prev.boards.map((b) => {
+          if (b.id !== prev.activeId) return b;
+          const group = (b.groups || []).find((g) => g.id === id);
+          if (!group) return b;
+          const memberIds = new Set(group.memberIds || []);
+          return {
+            ...b,
+            groups: (b.groups || []).filter((g) => g.id !== id),
+            images: b.images.filter((img) => !memberIds.has(img.id)),
+            comments: b.comments.filter((c) => !memberIds.has(c.id)),
+            sketches: (b.sketches || []).filter((sk) => !memberIds.has(sk.id)),
+          };
+        });
+        const next = { ...prev, boards };
+        scheduleSave(next);
+        return next;
+      });
+      if (selectedId === id && selectedType === 'group') {
+        setSelectedId(null);
+        setSelectedType(null);
+      }
+    },
+    [scheduleSave, selectedId, selectedType]
+  );
+
   const addSketch = useCallback(
     (sketch: Omit<MoodboardSketch, 'id'>) => {
       const newSketch: MoodboardSketch = {
@@ -728,7 +789,8 @@ export function MoodboardProvider({
               return { ...b, comments: b.comments.filter((c) => c.id !== itemId) };
             }
             if (b.id === targetBoardId) {
-              return { ...b, comments: [...b.comments, comment] };
+              const exists = b.comments.some(c => c.id === comment.id);
+              return exists ? b : { ...b, comments: [...b.comments, comment] };
             }
             return b;
           });
@@ -753,11 +815,14 @@ export function MoodboardProvider({
               };
             }
             if (b.id === targetBoardId) {
+              const existingImageIds = new Set(b.images.map(img => img.id));
+              const existingSketchIds = new Set((b.sketches || []).map(sk => sk.id));
+              const existingGroupIds = new Set((b.groups || []).map(g => g.id));
               return {
                 ...b,
-                groups: [...(b.groups || []), group],
-                images: [...b.images, ...memberImages],
-                sketches: [...(b.sketches || []), ...memberSketches],
+                groups: [...(b.groups || []), ...(existingGroupIds.has(group.id) ? [] : [group])],
+                images: [...b.images, ...memberImages.filter(img => !existingImageIds.has(img.id))],
+                sketches: [...(b.sketches || []), ...memberSketches.filter(sk => !existingSketchIds.has(sk.id))],
               };
             }
             return b;
@@ -793,9 +858,11 @@ export function MoodboardProvider({
           }
           if (b.id === targetBoardId) {
             if (type === 'image') {
-              return { ...b, images: [...b.images, item as MoodboardImage] };
+              const exists = b.images.some(img => img.id === item!.id);
+              return exists ? b : { ...b, images: [...b.images, item as MoodboardImage] };
             } else {
-              return { ...b, sketches: [...(b.sketches || []), item as MoodboardSketch] };
+              const exists = (b.sketches || []).some(sk => sk.id === item!.id);
+              return exists ? b : { ...b, sketches: [...(b.sketches || []), item as MoodboardSketch] };
             }
           }
           return b;
@@ -991,6 +1058,7 @@ export function MoodboardProvider({
       addGroup,
       updateGroup,
       removeGroup,
+      removeGroupWithContents,
       addSketch,
       updateSketch,
       removeSketch,
@@ -1041,6 +1109,7 @@ export function MoodboardProvider({
       addGroup,
       updateGroup,
       removeGroup,
+      removeGroupWithContents,
       addSketch,
       updateSketch,
       removeSketch,

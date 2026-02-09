@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import { MoodboardImage, DrawingData, DrawingTool } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
+import ConfirmDialog from './ConfirmDialog';
 
 const DrawingCanvas = dynamic(() => import('./DrawingCanvas'), { ssr: false });
 
@@ -197,14 +198,20 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
     [image.width, image.height, image.x, image.y]
   );
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!window.confirm('Czy na pewno chcesz usunąć ten obrazek?')) return;
-      removeImage(image.id);
+      setShowDeleteConfirm(true);
     },
-    [image.id, removeImage]
+    []
   );
+
+  const confirmDelete = useCallback(() => {
+    setShowDeleteConfirm(false);
+    removeImage(image.id);
+  }, [image.id, removeImage]);
 
   const handleAnnotationChange = useCallback(
     (drawing: DrawingData) => {
@@ -231,9 +238,8 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
 
   const handleDeleteFromMenu = useCallback(() => {
     setContextMenu(null);
-    if (!window.confirm('Czy na pewno chcesz usunąć ten obrazek?')) return;
-    removeImage(image.id);
-  }, [image.id, removeImage]);
+    setShowDeleteConfirm(true);
+  }, []);
 
   const hasAnnotations = image.annotations &&
     (image.annotations.strokes.length > 0 || image.annotations.shapes.length > 0);
@@ -297,6 +303,8 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
         alt=""
         className="moodboard-image-img"
         draggable={false}
+        loading="lazy"
+        decoding="async"
       />
       {/* Annotation / drawing overlay — always mounted when annotations exist or drawing active.
            No backgroundImage: the <img> underneath is always visible, overlay is transparent. */}
@@ -376,6 +384,15 @@ const ImageItem = React.memo(function ImageItem({ image, parentX = 0, parentY = 
           <div className="moodboard-resize-handle moodboard-resize-handle--w" onPointerDown={(e) => onResizeHandlePointerDown(e, 'w')} />
         </>
       )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Usunąć obrazek?"
+        actions={[
+          { label: 'Usuń', icon: 'las la-trash-alt', variant: 'danger', onClick: confirmDelete },
+          { label: 'Anuluj', variant: 'cancel', onClick: () => setShowDeleteConfirm(false) },
+        ]}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 });

@@ -3,6 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { MoodboardGroup } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
+import ConfirmDialog from './ConfirmDialog';
 
 const MIN_SIZE = 40;
 
@@ -16,6 +17,7 @@ const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMen
   const {
     updateGroup,
     removeGroup,
+    removeGroupWithContents,
     selectedId,
     selectedType,
     setSelected,
@@ -150,14 +152,25 @@ const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMen
     [group.width, group.height, group.x, group.y]
   );
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!window.confirm('Czy na pewno chcesz usunąć tę grupę?')) return;
-      removeGroup(group.id);
+      setShowDeleteDialog(true);
     },
-    [group.id, removeGroup]
+    []
   );
+
+  const handleUngroup = useCallback(() => {
+    setShowDeleteDialog(false);
+    removeGroup(group.id);
+  }, [group.id, removeGroup]);
+
+  const handleDeleteWithContents = useCallback(() => {
+    setShowDeleteDialog(false);
+    removeGroupWithContents(group.id);
+  }, [group.id, removeGroupWithContents]);
 
   return (
     <div
@@ -174,8 +187,8 @@ const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMen
         height: group.height,
         backgroundColor: group.color 
           ? (group.color.startsWith('#') ? `${group.color}1a` : group.color) // ~10% opacity if hex
-          : 'rgba(99, 102, 241, 0.05)',
-        border: '1px dashed #6366f1',
+          : 'rgba(0, 0, 0, 0.03)',
+        border: '1px dashed #000000',
         overflow: 'visible', // Ensure handles and label are visible
       }}
       onPointerDown={handlePointerDown}
@@ -194,7 +207,7 @@ const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMen
         fontSize: `${group.labelSize ?? 14}px`,
         fontWeight: 'bold',
         color: group.labelColor || '#ffffff',
-        backgroundColor: group.color || '#6366f1',
+        backgroundColor: group.color || '#000000',
         padding: '2px 10px',
         borderRadius: '6px 6px 0 0',
         lineHeight: 1.2,
@@ -246,6 +259,17 @@ const GroupItem = React.memo(function GroupItem({ group, children, onOpenEditMen
           <div className="moodboard-resize-handle moodboard-resize-handle--w" onPointerDown={(e) => onResizeHandlePointerDown(e, 'w')} />
         </>
       )}
+      <ConfirmDialog
+        open={showDeleteDialog}
+        title={`Usuń grupę „${group.name}"`}
+        description={`Grupa zawiera ${group.memberIds.length} ${group.memberIds.length === 1 ? 'element' : 'elementów'}.`}
+        actions={[
+          { label: 'Rozgrupuj', icon: 'las la-object-ungroup', variant: 'warning', onClick: handleUngroup },
+          { label: 'Usuń z zawartością', icon: 'las la-trash-alt', variant: 'danger', onClick: handleDeleteWithContents },
+          { label: 'Anuluj', variant: 'cancel', onClick: () => setShowDeleteDialog(false) },
+        ]}
+        onClose={() => setShowDeleteDialog(false)}
+      />
     </div>
   );
 });

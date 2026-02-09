@@ -1,9 +1,15 @@
 import type { NextApiResponse } from 'next';
+import sharp from 'sharp';
 import {
   decodeDataUrlToBuffer,
   saveMoodboardImage,
 } from '@/src/utils/moodboardStorage';
 import { withGroupAccess, GroupScopedRequest } from '@/src/utils/groupAccessMiddleware';
+
+const MAX_DIMENSION = 2000;
+const THUMB_DIMENSION = 400;
+const MAIN_QUALITY = 85;
+const THUMB_QUALITY = 70;
 
 export const config = {
   api: {
@@ -55,21 +61,26 @@ async function handler(
       return res.status(400).json({ error: 'Nieprawidłowy format obrazu' });
     }
 
-    // Określ rozszerzenie na podstawie typu MIME
-    let ext = '.webp';
-    if (dataUrl.includes('image/png')) {
-      ext = '.png';
-    } else if (dataUrl.includes('image/jpeg') || dataUrl.includes('image/jpg')) {
-      ext = '.jpg';
-    } else if (dataUrl.includes('image/gif')) {
-      ext = '.gif';
-    }
+    // Resize do max 2000px i konwertuj do WebP
+    const resizedBuffer = await sharp(buffer)
+      .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: MAIN_QUALITY })
+      .toBuffer();
 
-    const imagePath = await saveMoodboardImage(boardId, imageId, buffer, ext, groupId);
+    const ext = '.webp';
+    const imagePath = await saveMoodboardImage(boardId, imageId, resizedBuffer, ext, groupId);
+
+    // Wygeneruj thumbnail (_thumb)
+    const thumbBuffer = await sharp(buffer)
+      .resize(THUMB_DIMENSION, THUMB_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: THUMB_QUALITY })
+      .toBuffer();
+    await saveMoodboardImage(boardId, `${imageId}_thumb`, thumbBuffer, '.webp', groupId);
 
     return res.status(200).json({
       success: true,
       imagePath,
+      thumbPath: `${boardId}/${imageId}_thumb.webp`,
     });
   } catch (err) {
     console.error('Moodboard upload error:', err);

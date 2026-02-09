@@ -762,7 +762,7 @@ export const CacheMonitorSection: React.FC = () => {
             }}
             className="admin-btn"
             style={{
-              backgroundColor: activeTab === tab ? '#7c3aed' : '#f3f4f6',
+              backgroundColor: activeTab === tab ? '#000000' : '#f3f4f6',
               color: activeTab === tab ? 'white' : '#374151',
               border: 'none',
               padding: '8px 16px',

@@ -715,218 +715,7 @@ const Gallery: React.FC<GalleryProps> = ({
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* UI controls - always visible */}
-            <button
-              className="modal-nav-button modal-nav-button-left"
-              onClick={(e) => {
-                e.stopPropagation();
-                showAdjacentImage(-1);
-              }}
-              title="Poprzedni obraz"
-            >
-              <i className="las la-angle-left"></i>
-            </button>
-            <button
-              className="modal-nav-button modal-nav-button-right"
-              onClick={(e) => {
-                e.stopPropagation();
-                showAdjacentImage(1);
-              }}
-              title="Następny obraz"
-            >
-              <i className="las la-angle-right"></i>
-            </button>
-            <button
-              className="close-button"
-              onClick={closeModal}
-              title="Zamknij"
-            >
-              <i className="las la-times"></i>
-            </button>
-            {imageLoaded && (
-              <div className="modal-bottom-actions">
-                {!isKolorystykaView &&
-                  modalKeywordImages.map((item, idx) => (
-                    <button
-                      key={`modal-keyword-${idx}`}
-                      className="modal-color-button"
-                      onTouchStart={(e) => {
-                        // Na tablecie obsłuż touch event
-                        if (isTouchDevice) {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setModalHoveredPreview({
-                            image: item.image,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                          setTimeout(
-                            () => setModalHoveredPreview(null),
-                            PREVIEW_TIMEOUT
-                          );
-                        }
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Na tablecie TYLKO pokazuj miniaturkę, ABSOLUTNIE NIE zmieniaj obrazu
-                        if (isTouchDevice) {
-                          e.preventDefault();
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setModalHoveredPreview({
-                            image: item.image,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                          // Ukryj podgląd po określonym czasie
-                          setTimeout(
-                            () => setModalHoveredPreview(null),
-                            PREVIEW_TIMEOUT
-                          );
-                          return; // WAŻNE: return early - nie wykonuj dalszego kodu!
-                        }
-                        // Na desktopie zmień obraz
-                        setModalHoveredPreview(null);
-                        const index = kolorystykaImages.findIndex(
-                          (img) => img.path === item.image.path
-                        );
-                        setCurrentImageList(kolorystykaImages);
-                        setCurrentImageIndex(index >= 0 ? index : 0);
-                        setSelectedImage(item.image);
-                        setCurrentFolderPath('Kolorystyka');
-                      }}
-                      onMouseEnter={(e) => {
-                        // Na tablecie wyłącz hover - tylko click pokazuje miniaturkę
-                        if (!isTouchDevice) {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setModalHoveredPreview({
-                            image: item.image,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top,
-                          });
-                        }
-                      }}
-                      onMouseLeave={() => {
-                        // Na tablecie nie ukrywaj podglądu przy mouseLeave
-                        if (!isTouchDevice) {
-                          setModalHoveredPreview(null);
-                        }
-                      }}
-                      title={getDisplayName(item.image.name)}
-                      style={{
-                        backgroundImage: `url(${getOptimizedImageUrl(
-                          item.image,
-                          'thumb'
-                        )})`,
-                      }}
-                    />
-                  ))}
-                <button
-                  className="modal-download-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadFile(
-                      selectedImage.url,
-                      selectedImage.name,
-                      trackDownload
-                    );
-                  }}
-                  title="Pobierz plik"
-                >
-                  <i className="las la-download"></i>
-                </button>
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <button
-                    className="modal-download-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (addedToMoodboard) return;
-                      if (showMoodboardPicker) {
-                        setShowMoodboardPicker(false);
-                      } else {
-                        handleOpenMoodboardPicker();
-                      }
-                    }}
-                    disabled={addingToMoodboard}
-                    title={addedToMoodboard ? 'Dodano do moodboarda' : 'Dodaj do moodboarda'}
-                    style={addedToMoodboard ? { color: '#22c55e' } : undefined}
-                  >
-                    <i className={addingToMoodboard || loadingMoodboards ? 'las la-spinner la-spin' : addedToMoodboard ? 'las la-check' : 'las la-plus-circle'}></i>
-                  </button>
-                  {showMoodboardPicker && moodboardBoards.length > 0 && (
-                    <div
-                      className="moodboard-picker-dropdown"
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: 'absolute',
-                        bottom: '100%',
-                        right: 0,
-                        marginBottom: 8,
-                        background: 'rgba(30,30,30,0.95)',
-                        borderRadius: 8,
-                        padding: '6px 0',
-                        minWidth: 180,
-                        maxHeight: 240,
-                        overflowY: 'auto',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                        zIndex: 1000,
-                        backdropFilter: 'blur(10px)',
-                      }}
-                    >
-                      <div style={{ padding: '4px 12px 6px', fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Dodaj do moodboarda
-                      </div>
-                      {moodboardBoards.map((board) => (
-                        <button
-                          key={board.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToMoodboard(board.id);
-                          }}
-                          style={{
-                            display: 'block',
-                            width: '100%',
-                            padding: '8px 12px',
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#e0e0e0',
-                            fontSize: 13,
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                          onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; }}
-                          onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
-                        >
-                          <i className="las la-th-large" style={{ marginRight: 6, opacity: 0.6 }}></i>
-                          {board.name || `Moodboard ${board.id.slice(0, 6)}`}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            {modalHoveredPreview && !isKolorystykaView && (
-              <div
-                className="modal-color-preview"
-                style={{
-                  left: modalHoveredPreview.x - PREVIEW_OFFSET_X,
-                  top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
-                }}
-              >
-                <img
-                  src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
-                  alt={modalHoveredPreview.image.name}
-                />
-                <span className="preview-name">
-                  {getDisplayName(modalHoveredPreview.image.name)}
-                </span>
-              </div>
-            )}
-            {/* Wrapper na obraz - stały rozmiar */}
+            {/* Wrapper na obraz - proporcje pliku */}
             <div className="modal-image-wrapper">
               <img
                 key={selectedImage.path}
@@ -936,15 +725,205 @@ const Gallery: React.FC<GalleryProps> = ({
                 onLoad={() => setImageLoaded(true)}
                 onError={() => setImageLoaded(true)}
               />
+              {/* Overlay controls na obrazku */}
+              <button
+                className="close-button"
+                onClick={closeModal}
+                title="Zamknij"
+              >
+                <i className="las la-times"></i>
+              </button>
+              <button
+                className="modal-nav-button modal-nav-button-left"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showAdjacentImage(-1);
+                }}
+                title="Poprzedni obraz"
+              >
+                <i className="las la-angle-left"></i>
+              </button>
+              <button
+                className="modal-nav-button modal-nav-button-right"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showAdjacentImage(1);
+                }}
+                title="Następny obraz"
+              >
+                <i className="las la-angle-right"></i>
+              </button>
             </div>
-            {/* Info o obrazie */}
-            <div className="modal-info">
-              <h3>{selectedImage.name}</h3>
-              <ImageMetadata
-                src={selectedImage.url}
-                fileSize={selectedImage.fileSize}
-                lastModified={selectedImage.lastModified}
-              />
+            {/* Dolny pas - info + akcje */}
+            <div className="modal-bottom-bar">
+              <div className="modal-info">
+                <h3>{selectedImage.name}</h3>
+                <ImageMetadata
+                  src={selectedImage.url}
+                  fileSize={selectedImage.fileSize}
+                  lastModified={selectedImage.lastModified}
+                />
+              </div>
+              {imageLoaded && (
+                <div className="modal-bottom-actions">
+                  {!isKolorystykaView &&
+                    modalKeywordImages.map((item, idx) => (
+                      <button
+                        key={`modal-keyword-${idx}`}
+                        className="modal-color-button"
+                        onTouchStart={(e) => {
+                          if (isTouchDevice) {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setModalHoveredPreview({
+                              image: item.image,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            });
+                            setTimeout(
+                              () => setModalHoveredPreview(null),
+                              PREVIEW_TIMEOUT
+                            );
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isTouchDevice) {
+                            e.preventDefault();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setModalHoveredPreview({
+                              image: item.image,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            });
+                            setTimeout(
+                              () => setModalHoveredPreview(null),
+                              PREVIEW_TIMEOUT
+                            );
+                            return;
+                          }
+                          setModalHoveredPreview(null);
+                          const index = kolorystykaImages.findIndex(
+                            (img) => img.path === item.image.path
+                          );
+                          setCurrentImageList(kolorystykaImages);
+                          setCurrentImageIndex(index >= 0 ? index : 0);
+                          setSelectedImage(item.image);
+                          setCurrentFolderPath('Kolorystyka');
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isTouchDevice) {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setModalHoveredPreview({
+                              image: item.image,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            });
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          if (!isTouchDevice) {
+                            setModalHoveredPreview(null);
+                          }
+                        }}
+                        title={getDisplayName(item.image.name)}
+                        style={{
+                          backgroundImage: `url(${getOptimizedImageUrl(
+                            item.image,
+                            'thumb'
+                          )})`,
+                        }}
+                      />
+                    ))}
+                  <button
+                    className="modal-download-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadFile(
+                        selectedImage.url,
+                        selectedImage.name,
+                        trackDownload
+                      );
+                    }}
+                    title="Pobierz plik"
+                  >
+                    <i className="las la-download"></i>
+                  </button>
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <button
+                      className="modal-download-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (addedToMoodboard) return;
+                        if (showMoodboardPicker) {
+                          setShowMoodboardPicker(false);
+                        } else {
+                          handleOpenMoodboardPicker();
+                        }
+                      }}
+                      disabled={addingToMoodboard}
+                      title={addedToMoodboard ? 'Dodano do moodboarda' : 'Dodaj do moodboarda'}
+                      style={addedToMoodboard ? { color: '#22c55e' } : undefined}
+                    >
+                      <i className={addingToMoodboard || loadingMoodboards ? 'las la-spinner la-spin' : addedToMoodboard ? 'las la-check' : 'las la-plus-circle'}></i>
+                    </button>
+                    {showMoodboardPicker && moodboardBoards.length > 0 && (
+                      <div
+                        className="moodboard-picker-dropdown"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: 'absolute',
+                          bottom: '100%',
+                          right: 0,
+                          marginBottom: 8,
+                          background: 'rgba(30,30,30,0.95)',
+                          borderRadius: 8,
+                          padding: '6px 0',
+                          minWidth: 180,
+                          maxHeight: 240,
+                          overflowY: 'auto',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                          zIndex: 1000,
+                          backdropFilter: 'blur(10px)',
+                        }}
+                      >
+                        <div style={{ padding: '4px 12px 6px', fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Dodaj do moodboarda
+                        </div>
+                        {moodboardBoards.map((board) => (
+                          <button
+                            key={board.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToMoodboard(board.id);
+                            }}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: '8px 12px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#e0e0e0',
+                              fontSize: 13,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; }}
+                            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
+                          >
+                            <i className="las la-th-large" style={{ marginRight: 6, opacity: 0.6 }}></i>
+                            {board.name || `Moodboard ${board.id.slice(0, 6)}`}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               {/* Duplikaty przycisków tylko na mobile */}
               <div className="modal-mobile-actions">
                 <button
@@ -986,6 +965,23 @@ const Gallery: React.FC<GalleryProps> = ({
                 </button>
               </div>
             </div>
+            {modalHoveredPreview && !isKolorystykaView && (
+              <div
+                className="modal-color-preview"
+                style={{
+                  left: modalHoveredPreview.x - PREVIEW_OFFSET_X,
+                  top: modalHoveredPreview.y - PREVIEW_OFFSET_Y,
+                }}
+              >
+                <img
+                  src={getOptimizedImageUrl(modalHoveredPreview.image, 'thumb')}
+                  alt={modalHoveredPreview.image.name}
+                />
+                <span className="preview-name">
+                  {getDisplayName(modalHoveredPreview.image.name)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         );

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import { MoodboardSketch, DrawingData, DrawingTool } from '@/src/types/moodboard';
 import { useMoodboard } from '@/src/contexts/MoodboardContext';
+import ConfirmDialog from './ConfirmDialog';
 
 const DrawingCanvas = dynamic(() => import('./DrawingCanvas'), { ssr: false });
 
@@ -165,9 +166,15 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
     setRenaming(false);
   }, [renameValue, sketch.name, sketch.id, updateSketch]);
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const handleDeleteSketch = useCallback(() => {
     setLabelMenu(null);
-    if (!window.confirm('Czy na pewno chcesz usunąć ten szkic?')) return;
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const confirmDeleteSketch = useCallback(() => {
+    setShowDeleteConfirm(false);
     removeSketch(sketch.id);
   }, [sketch.id, removeSketch]);
 
@@ -182,7 +189,7 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
   );
 
   const isDrawingThis = drawingMode && isSelected;
-  const displayName = sketch.name || 'Szkic';
+  const displayName = sketch.name ?? 'Szkic';
 
   // Remote drawing presence indicator
   const otherDrawing = Array.from(drawingUsers.values()).find(
@@ -209,7 +216,7 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
       onPointerLeave={!drawingMode ? handlePointerUp : undefined}
       onContextMenu={handleContextMenu}
     >
-      {/* Label above sketch */}
+      {/* Etykieta szkicu: zawsze własna nazwa (tylko user ją zmienia) + ikona pisaka */}
       <div
         className="sketch-label"
         onContextMenu={handleContextMenu}
@@ -225,7 +232,10 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
             autoFocus
           />
         ) : (
-          <span className="sketch-label-text">{displayName}</span>
+          <>
+            <i className="las la-pen sketch-label-icon" aria-hidden />
+            <span className="sketch-label-text">{displayName}</span>
+          </>
         )}
       </div>
 
@@ -342,6 +352,15 @@ const SketchItem = React.memo(function SketchItem({ sketch, parentX = 0, parentY
           <div className="moodboard-resize-handle moodboard-resize-handle--w" onPointerDown={(e) => onResizeHandlePointerDown(e, 'w')} />
         </>
       )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Usunąć szkic?"
+        actions={[
+          { label: 'Usuń', icon: 'las la-trash-alt', variant: 'danger', onClick: confirmDeleteSketch },
+          { label: 'Anuluj', variant: 'cancel', onClick: () => setShowDeleteConfirm(false) },
+        ]}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 });

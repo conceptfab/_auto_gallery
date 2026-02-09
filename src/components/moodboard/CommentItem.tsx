@@ -2,6 +2,7 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import ConfirmDialog from './ConfirmDialog';
 import {
   MoodboardComment,
   CommentColorKey,
@@ -191,14 +192,20 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
     [comment.width, comment.height, comment.x, comment.y]
   );
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const onDelete = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!window.confirm('Czy na pewno chcesz usunąć ten komentarz?')) return;
-      removeComment(comment.id);
+      setShowDeleteConfirm(true);
     },
-    [comment.id, removeComment]
+    []
   );
+
+  const confirmDelete = useCallback(() => {
+    setShowDeleteConfirm(false);
+    removeComment(comment.id);
+  }, [comment.id, removeComment]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -217,9 +224,8 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
 
   const handleDeleteFromMenu = useCallback(() => {
     setContextMenu(null);
-    if (!window.confirm('Czy na pewno chcesz usunąć ten komentarz?')) return;
-    removeComment(comment.id);
-  }, [comment.id, removeComment]);
+    setShowDeleteConfirm(true);
+  }, []);
 
   const handleEditFromMenu = useCallback(
     (_e: React.MouseEvent) => {
@@ -352,6 +358,15 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
           <div className="moodboard-resize-handle moodboard-resize-handle--w" onPointerDown={(e) => onResizeHandlePointerDown(e, 'w')} />
         </>
       )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Usunąć komentarz?"
+        actions={[
+          { label: 'Usuń', icon: 'las la-trash-alt', variant: 'danger', onClick: confirmDelete },
+          { label: 'Anuluj', variant: 'cancel', onClick: () => setShowDeleteConfirm(false) },
+        ]}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 });

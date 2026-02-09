@@ -511,7 +511,7 @@ export const DataStorageSection: React.FC = () => {
       {/* Auto-backup section */}
       <div style={{ marginBottom: '20px', padding: '14px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
         <div style={{ fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <i className="las la-clock" style={{ color: '#6366f1' }} />
+          <i className="las la-clock" style={{ color: '#000000' }} />
           Automatyczny backup cykliczny
         </div>
         <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#6b7280' }}>
