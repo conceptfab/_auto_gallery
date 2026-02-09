@@ -45,11 +45,12 @@ interface VerifyRepairReport {
     moodboardBoards: number;
     moodboardImageDirs: number;
   };
-  adopted: {
+  deleted: {
+    projectDirs: string[];
     revisionDirs: string[];
-    galleryFiles: string[];
     moodboardBoardFiles: string[];
     moodboardImageDirs: string[];
+    galleryFiles: string[];
   };
   orphans: { projectDirs: string[]; revisionDirs: string[] };
   errors: string[];
@@ -252,10 +253,11 @@ export const DataStorageSection: React.FC = () => {
         data.repaired.galleryPaths > 0 ||
         data.repaired.moodboardBoards > 0 ||
         data.repaired.moodboardImageDirs > 0 ||
-        data.adopted.revisionDirs.length > 0 ||
-        data.adopted.galleryFiles.length > 0 ||
-        data.adopted.moodboardBoardFiles.length > 0 ||
-        data.adopted.moodboardImageDirs.length > 0
+        data.deleted.projectDirs.length > 0 ||
+        data.deleted.revisionDirs.length > 0 ||
+        data.deleted.moodboardBoardFiles.length > 0 ||
+        data.deleted.moodboardImageDirs.length > 0 ||
+        data.deleted.galleryFiles.length > 0
       )) {
         await fetchTree();
       }
@@ -264,7 +266,7 @@ export const DataStorageSection: React.FC = () => {
       setVerifyRepairReport({
         success: false,
         repaired: { projects: 0, revisions: 0, galleryPaths: 0, moodboardBoards: 0, moodboardImageDirs: 0 },
-        adopted: { revisionDirs: [], galleryFiles: [], moodboardBoardFiles: [], moodboardImageDirs: [] },
+        deleted: { projectDirs: [], revisionDirs: [], moodboardBoardFiles: [], moodboardImageDirs: [], galleryFiles: [] },
         orphans: { projectDirs: [], revisionDirs: [] },
         errors: ['Błąd połączenia'],
       });
@@ -422,7 +424,7 @@ export const DataStorageSection: React.FC = () => {
   return (
     <div className="admin-form-box">
       <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#666' }}>
-        Hierarchia projektów i moodboardów zapisanych w <code>/data-storage</code>. Weryfikacja dopasowuje pliki do rodziców i naprawia brakujące wpisy. Backup pobiera archiwum ZIP.
+        Hierarchia projektów i moodboardów zapisanych w <code>/data-storage</code>. Weryfikacja czyta indeksy (project.json, index.json) i usuwa pliki/katalogi nieobecne w indeksach. Backup pobiera archiwum ZIP.
       </p>
 
       <div style={{ marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
@@ -431,7 +433,7 @@ export const DataStorageSection: React.FC = () => {
           className="admin-btn"
           disabled={verifyRepairLoading}
           onClick={handleVerifyRepair}
-          title="Skanuje projects/, znajduje sieroty (katalogi bez wpisu w project.json/revision.json), weryfikuje rodziców i naprawia brakujące wpisy"
+          title="1) Weryfikuje indeksy (project.json.revisionIds, index.json.boardIds). 2) Usuwa pliki i katalogi nieobecne w indeksach (projekty, rewizje, galerie, moodboardy)."
         >
           <i className="las la-tools" style={{ marginRight: '6px' }} />
           {verifyRepairLoading ? 'Weryfikacja...' : 'Weryfikuj i napraw'}
@@ -455,25 +457,31 @@ export const DataStorageSection: React.FC = () => {
           <div style={{ marginBottom: '6px' }}>
             Naprawiono: {verifyRepairReport.repaired.projects} projektów, {verifyRepairReport.repaired.revisions} rewizji, {verifyRepairReport.repaired.galleryPaths} wpisów galerii, {verifyRepairReport.repaired.moodboardBoards} boardów moodboard, {verifyRepairReport.repaired.moodboardImageDirs} katalogów obrazów moodboard.
           </div>
-          {verifyRepairReport.adopted.revisionDirs.length > 0 && (
+          {verifyRepairReport.deleted.projectDirs.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
-              Przyjęte katalogi rewizji (dopasowane do projektu): {verifyRepairReport.adopted.revisionDirs.length} — {verifyRepairReport.adopted.revisionDirs.slice(0, 3).join(', ')}
-              {verifyRepairReport.adopted.revisionDirs.length > 3 ? '…' : ''}
+              Usunięte osierocone katalogi projektów: {verifyRepairReport.deleted.projectDirs.length} — {verifyRepairReport.deleted.projectDirs.slice(0, 3).join(', ')}
+              {verifyRepairReport.deleted.projectDirs.length > 3 ? '…' : ''}
             </div>
           )}
-          {verifyRepairReport.adopted.galleryFiles.length > 0 && (
+          {verifyRepairReport.deleted.revisionDirs.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
-              Przyjęte pliki galerii (dopasowane do rewizji): {verifyRepairReport.adopted.galleryFiles.length}
+              Usunięte osierocone katalogi rewizji: {verifyRepairReport.deleted.revisionDirs.length} — {verifyRepairReport.deleted.revisionDirs.slice(0, 3).join(', ')}
+              {verifyRepairReport.deleted.revisionDirs.length > 3 ? '…' : ''}
             </div>
           )}
-          {verifyRepairReport.adopted.moodboardBoardFiles.length > 0 && (
+          {verifyRepairReport.deleted.galleryFiles.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
-              Usunięte osierocone boardy moodboard: {verifyRepairReport.adopted.moodboardBoardFiles.length}
+              Usunięte osierocone pliki galerii: {verifyRepairReport.deleted.galleryFiles.length}
             </div>
           )}
-          {verifyRepairReport.adopted.moodboardImageDirs.length > 0 && (
+          {verifyRepairReport.deleted.moodboardBoardFiles.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
-              Usunięte osierocone katalogi obrazów moodboard: {verifyRepairReport.adopted.moodboardImageDirs.length}
+              Usunięte osierocone boardy moodboard: {verifyRepairReport.deleted.moodboardBoardFiles.length}
+            </div>
+          )}
+          {verifyRepairReport.deleted.moodboardImageDirs.length > 0 && (
+            <div style={{ marginBottom: '6px' }}>
+              Usunięte osierocone katalogi obrazów moodboard: {verifyRepairReport.deleted.moodboardImageDirs.length}
             </div>
           )}
           {verifyRepairReport.orphans.projectDirs.length > 0 && (

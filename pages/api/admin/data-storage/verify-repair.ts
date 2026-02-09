@@ -16,11 +16,12 @@ export interface VerifyRepairReport {
     moodboardBoards: number;
     moodboardImageDirs: number;
   };
-  adopted: {
+  deleted: {
+    projectDirs: string[];
     revisionDirs: string[];
-    galleryFiles: string[];
     moodboardBoardFiles: string[];
     moodboardImageDirs: string[];
+    galleryFiles: string[];
   };
   orphans: {
     projectDirs: string[];
@@ -75,14 +76,14 @@ async function verifyRepairMoodboardDir(
     const boardPath = path.join(moodboardDir, entry.name);
     await fsp.unlink(boardPath).catch(() => undefined);
     report.repaired.moodboardBoards++;
-    report.adopted.moodboardBoardFiles.push(`${prefix}${entry.name}`);
+    report.deleted.moodboardBoardFiles.push(`${prefix}${entry.name}`);
 
     const imageDir = path.join(moodboardDir, 'images', boardId);
     const imageStat = await fsp.stat(imageDir).catch(() => null);
     if (imageStat?.isDirectory()) {
       await fsp.rm(imageDir, { recursive: true, force: true }).catch(() => undefined);
       report.repaired.moodboardImageDirs++;
-      report.adopted.moodboardImageDirs.push(`${prefix}images/${boardId}`);
+      report.deleted.moodboardImageDirs.push(`${prefix}images/${boardId}`);
     }
   }
 
@@ -116,6 +117,11 @@ async function verifyRepairMoodboardDir(
   }
 }
 
+/**
+ * Weryfikacja i naprawa projektów.
+ * Źródło prawdy: project.json (revisionIds) i revision.json (galleryPaths).
+ * Pliki/foldery nieobecne w indeksach = usunięte w aplikacji → usuwamy z dysku.
+ */
 async function verifyRepairProjectsDir(
   projectsDir: string,
   prefix: string,
@@ -149,8 +155,15 @@ async function verifyRepairProjectsDir(
       if (!meta.id) meta.id = projectId;
       if (!meta.revisionIds) meta.revisionIds = [];
     } catch {
-      report.orphans.projectDirs.push(`${prefix}${projectId}`);
-      report.errors.push(`Brak lub uszkodzony project.json: ${prefix}${projectId}`);
+      // Brak lub uszkodzony project.json = osierocony katalog projektu → usuwamy
+      try {
+        await fsp.rm(projectPath, { recursive: true, force: true });
+        report.repaired.projects++;
+        report.deleted.projectDirs.push(`${prefix}${projectId}`);
+      } catch {
+        report.orphans.projectDirs.push(`${prefix}${projectId}`);
+        report.errors.push(`Brak project.json, nie można usunąć: ${prefix}${projectId}`);
+      }
       continue;
     }
 
@@ -168,20 +181,33 @@ async function verifyRepairProjectsDir(
       if (s?.isDirectory()) actualRevisionIds.push(name);
     }
 
-    const missingInMeta = actualRevisionIds.filter((id) => !meta.revisionIds.includes(id));
-    const inMetaNotOnDisk = meta.revisionIds.filter((id) => !actualRevisionIds.includes(id));
-    const needsUpdate = missingInMeta.length > 0 || inMetaNotOnDisk.length > 0;
+    const validRevisionIds = new Set(meta.revisionIds);
 
-    if (needsUpdate) {
-      meta.revisionIds = actualRevisionIds;
-      await fsp.writeFile(projectJsonPath, JSON.stringify(meta, null, 2), 'utf8');
-      report.repaired.projects++;
-      if (missingInMeta.length > 0) {
-        report.adopted.revisionDirs.push(...missingInMeta.map((revId) => `${prefix}${projectId}/rewizje/${revId}`));
+    // Krok 1: Usuń katalogi rewizji, które nie są w indeksie (project.json.revisionIds)
+    for (const revisionId of actualRevisionIds) {
+      if (validRevisionIds.has(revisionId)) continue;
+      const revDir = path.join(rewizjeDir, revisionId);
+      try {
+        await fsp.rm(revDir, { recursive: true, force: true });
+        report.repaired.revisions++;
+        report.deleted.revisionDirs.push(`${prefix}${projectId}/rewizje/${revisionId}`);
+      } catch {
+        report.orphans.revisionDirs.push(`${prefix}${projectId}/rewizje/${revisionId}`);
       }
     }
 
-    for (const revisionId of actualRevisionIds) {
+    // Zaktualizuj meta.revisionIds – zostały tylko te, które nie zostały usunięte
+    const remainingRevisions = actualRevisionIds.filter((id) => validRevisionIds.has(id));
+    const prevRevisionIds = meta.revisionIds.length;
+    meta.revisionIds = meta.revisionIds.filter((id) => remainingRevisions.includes(id));
+    if (meta.revisionIds.length !== prevRevisionIds) {
+      await fsp.writeFile(projectJsonPath, JSON.stringify(meta, null, 2), 'utf8');
+      report.repaired.projects++;
+    }
+    const existingRevisionIds = remainingRevisions;
+
+    // Krok 2: Dla każdej istniejącej rewizji – napraw revision.json i usuń osierocone pliki galerii
+    for (const revisionId of existingRevisionIds) {
       const revDir = path.join(rewizjeDir, revisionId);
       const revJsonPath = path.join(revDir, 'revision.json');
       let revMeta: {
@@ -221,28 +247,35 @@ async function verifyRepairProjectsDir(
       }
 
       const galleryDir = path.join(revDir, 'gallery');
+      const validGalleryPaths = new Set(revMeta.galleryPaths || []);
       let filesOnDisk: string[] = [];
       try {
         const all = await fsp.readdir(galleryDir);
         filesOnDisk = all.filter((f) => IMAGE_EXT.test(f));
       } catch {
-        // brak gallery
+        filesOnDisk = [];
       }
 
-      const currentPaths = revMeta.galleryPaths || [];
-      const missingInRev = filesOnDisk.filter((f) => !currentPaths.includes(f));
-      const inRevNotOnDisk = currentPaths.filter((f) => !filesOnDisk.includes(f));
+      // Usuń pliki galerii nieobecne w indeksie (revision.json.galleryPaths)
+      for (const fn of filesOnDisk) {
+        if (validGalleryPaths.has(fn)) continue;
+        try {
+          await fsp.unlink(path.join(galleryDir, fn));
+          report.repaired.galleryPaths++;
+          report.deleted.galleryFiles.push(`${prefix}${projectId}/rewizje/${revisionId}/gallery/${fn}`);
+        } catch {
+          // ignoruj
+        }
+      }
 
-      if (missingInRev.length > 0 || inRevNotOnDisk.length > 0) {
-        revMeta.galleryPaths = filesOnDisk.length > 0 ? filesOnDisk : undefined;
+      // Zaktualizuj galleryPaths – usuń wpisy do nieistniejących plików
+      const existingFiles = await fsp.readdir(galleryDir).catch(() => []);
+      const existingImageFiles = existingFiles.filter((f) => IMAGE_EXT.test(f));
+      const validPaths = (revMeta.galleryPaths || []).filter((f) => existingImageFiles.includes(f));
+      if (validPaths.length !== (revMeta.galleryPaths || []).length) {
+        revMeta.galleryPaths = validPaths.length > 0 ? validPaths : undefined;
         await fsp.writeFile(revJsonPath, JSON.stringify(revMeta, null, 2), 'utf8');
         report.repaired.revisions++;
-        if (missingInRev.length > 0) {
-          report.repaired.galleryPaths += missingInRev.length;
-          report.adopted.galleryFiles.push(
-            ...missingInRev.map((f) => `${prefix}${projectId}/rewizje/${revisionId}/gallery/${f}`)
-          );
-        }
       }
     }
   }
@@ -256,7 +289,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const report: VerifyRepairReport = {
     success: true,
     repaired: { projects: 0, revisions: 0, galleryPaths: 0, moodboardBoards: 0, moodboardImageDirs: 0 },
-    adopted: { revisionDirs: [], galleryFiles: [], moodboardBoardFiles: [], moodboardImageDirs: [] },
+    deleted: { projectDirs: [], revisionDirs: [], moodboardBoardFiles: [], moodboardImageDirs: [], galleryFiles: [] },
     orphans: { projectDirs: [], revisionDirs: [] },
     errors: [],
   };
