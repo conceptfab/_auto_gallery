@@ -4,7 +4,8 @@ n8n?
 
 + poprawki moodbardów w widokach mobilnych
 
-+ przeanalizuj jak można zooptymalziwac pracę na moodboardzi - od pracy z duża ilością grafiki - ograniczenie rozmiaru plików do 2000px do ulepszenia pracy online - szybsze wyświetlanie efektów rysowania. zapisz wnioski w moodboard_todo.md
++ przeanalizuj jak można zooptymalziwac/przyśpieszyć pracę na moodboardzi - od pracy z duża ilością grafiki - moze ograniczenie rozmiaru plików do 2000px i chache do ulepszenia pracy online - szybsze wyświetlanie efektów rysowania. zapisz wnioski w moodboard_todo.md
+
 + usuwanie grupy - pytaniecz czy rozgrupowac i usunąć grupę czy usunąć grupę z zawartoscią
 + nie działa szkcicowanie tabletem
 + inne etykieta na szkicu inna na grupie
