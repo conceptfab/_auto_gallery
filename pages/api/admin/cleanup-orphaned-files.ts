@@ -91,10 +91,11 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
   const usedGalleryFiles = new Set<string>();
 
   for (const project of projects) {
+    const prefix = project.groupId ? `groups/${project.groupId}/projects` : 'projects';
     for (const rev of project.revisions || []) {
-      usedRevisions.add(`${project.id}/${rev.id}`);
+      usedRevisions.add(`${prefix}/${project.id}/${rev.id}`);
       for (const fn of rev.galleryPaths || []) {
-        usedGalleryFiles.add(`${project.id}/${rev.id}/${fn}`);
+        usedGalleryFiles.add(`${prefix}/${project.id}/${rev.id}/${fn}`);
       }
     }
   }
@@ -102,9 +103,8 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
   let scannedRevisionThumbnails = 0;
   let scannedGalleryFiles = 0;
 
-  const projectsDir = path.join(dataDir, 'projects');
-  try {
-    const projectIds = await fsp.readdir(projectsDir);
+  async function scanProjectsDir(projectsDir: string, pathPrefix: string) {
+    const projectIds = await fsp.readdir(projectsDir).catch(() => []);
     for (const projectId of projectIds) {
       const projectPath = path.join(projectsDir, projectId);
       const stat = await fsp.stat(projectPath).catch(() => null);
@@ -123,14 +123,14 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
         const revStat = await fsp.stat(revDir).catch(() => null);
         if (!revStat?.isDirectory()) continue;
 
-        const revKey = `${projectId}/${revisionId}`;
+        const revKey = `${pathPrefix}/${projectId}/${revisionId}`;
         const thumbPath = path.join(revDir, 'thumbnail.webp');
         try {
           const thumbStat = await fsp.stat(thumbPath);
           scannedRevisionThumbnails++;
           if (!usedRevisions.has(revKey)) {
             orphanedFiles.push({
-              path: `projects/${projectId}/rewizje/${revisionId}/thumbnail.webp`,
+              path: `${pathPrefix}/${projectId}/rewizje/${revisionId}/thumbnail.webp`,
               type: 'revision-thumbnail',
               size: thumbStat.size,
             });
@@ -147,9 +147,9 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
             const fileStat = await fsp.stat(fullPath).catch(() => null);
             if (!fileStat?.isFile()) continue;
             scannedGalleryFiles++;
-            if (!usedGalleryFiles.has(`${projectId}/${revisionId}/${fn}`)) {
+            if (!usedGalleryFiles.has(`${revKey}/${fn}`)) {
               orphanedFiles.push({
-                path: `projects/${projectId}/rewizje/${revisionId}/gallery/${fn}`,
+                path: `${pathPrefix}/${projectId}/rewizje/${revisionId}/gallery/${fn}`,
                 type: 'gallery',
                 size: fileStat.size,
               });
@@ -160,6 +160,10 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
         }
       }
     }
+  }
+
+  try {
+    await scanProjectsDir(path.join(dataDir, 'projects'), 'projects');
   } catch {
     // brak katalogu projects
   }
@@ -181,12 +185,21 @@ async function scanOrphanedFiles(): Promise<ScanResult> {
     }
   }
 
-  // Group moodboard images
+  // Group projects + group moodboard images
   const groupsDir = path.join(dataDir, 'groups');
   try {
     const groupDirs = await fsp.readdir(groupsDir);
     for (const gid of groupDirs) {
       if (gid === 'groups.json') continue;
+      const groupProjectsDir = path.join(groupsDir, gid, 'projects');
+      const gstat = await fsp.stat(groupProjectsDir).catch(() => null);
+      if (gstat?.isDirectory()) {
+        try {
+          await scanProjectsDir(groupProjectsDir, `groups/${gid}/projects`);
+        } catch {
+          // ignoruj
+        }
+      }
       const groupMoodboardDir = path.join(groupsDir, gid, 'moodboard');
       try {
         const gImagesDir = await getMoodboardImagesDirByGroup(gid);
@@ -263,7 +276,11 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
   for (const file of files) {
     let fullPath: string;
     if (file.type === 'moodboard') {
-      fullPath = path.join(moodboardImagesDir, file.path.replace(/^moodboard\/images\//, ''));
+      if (file.path.startsWith('groups/')) {
+        fullPath = path.join(dataDir, file.path);
+      } else {
+        fullPath = path.join(moodboardImagesDir, file.path.replace(/^moodboard\/images\//, ''));
+      }
     } else {
       fullPath = path.join(dataDir, file.path);
     }
@@ -272,7 +289,8 @@ async function deleteOrphanedFiles(files: OrphanedFile[]): Promise<number> {
     const normalizedFull = path.normalize(fullPath);
     if (file.type === 'moodboard') {
       const moodBase = path.normalize(moodboardImagesDir);
-      if (!normalizedFull.startsWith(moodBase)) continue;
+      const dataBase = path.normalize(dataDir);
+      if (!normalizedFull.startsWith(moodBase) && !normalizedFull.startsWith(dataBase)) continue;
     } else if (!normalizedFull.startsWith(normalizedBase)) {
       continue;
     }

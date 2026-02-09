@@ -18,6 +18,7 @@ import { useAdminGroups } from '../src/hooks/useAdminGroups';
 import { useAdminSettings } from '../src/hooks/useAdminSettings';
 import type { AdminAuthStatus } from '../src/types/admin';
 import { logger } from '../src/utils/logger';
+import { formatBytes } from '../src/utils/formatBytes';
 
 type AdminTab = 'overview' | 'users' | 'settings' | 'files' | 'data' | 'moodboard';
 
@@ -168,14 +169,6 @@ const AdminPanel: React.FC = () => {
     } finally {
       setOrphanedFilesDeleting(false);
     }
-  };
-
-  const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleManualCleanup = async () => {

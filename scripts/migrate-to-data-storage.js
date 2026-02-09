@@ -1,10 +1,8 @@
 /**
- * Opcjonalny skrypt migracji (ręczne uruchomienie).
- * Aplikacja wykonuje migrację automatycznie przy pierwszym odczycie projektów
- * (getProjects), gdy wykryje legacy projects.json i pustą strukturę projects/.
- *
- * Ten skrypt można uruchomić ręcznie, jeśli wolisz migrację przed startem serwera:
- *   node scripts/migrate-to-data-storage.js
+ * Skrypt migracji projects.json → struktura katalogowa (projects/{id}/project.json, rewizje/).
+ * Uruchomienie ręczne: node scripts/migrate-to-data-storage.js
+ * Wymagane: plik projects.json w katalogu danych (data/ lub /data-storage).
+ * Po migracji stare pliki nie są usuwane.
  */
 
 const path = require('path');

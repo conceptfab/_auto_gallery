@@ -3,7 +3,6 @@
 
 export const DEFAULT_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
-export const API_TIMEOUT = 30000;
 
 export const GALLERY_BASE_URL =
   process.env.NEXT_PUBLIC_GALLERY_BASE_URL ||
@@ -22,6 +21,8 @@ export const LOGIN_CODE_EXPIRY_MINUTES = 15;
 // API timeouts (in milliseconds)
 export const API_TIMEOUT_SHORT = 15000; // 15 seconds
 export const API_TIMEOUT_LONG = 30000; // 30 seconds
+/** @deprecated Użyj API_TIMEOUT_LONG */
+export const API_TIMEOUT = API_TIMEOUT_LONG;
 
 // UI delays (in milliseconds)
 export const UI_DELAY_SHORT = 200; // 200ms

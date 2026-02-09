@@ -30,11 +30,6 @@ interface MoodboardIndex {
   activeId: string;
 }
 
-/** Zwraca folder moodboarda z uwzględnieniem grupy. */
-async function getMoodboardDir(groupId?: string): Promise<string> {
-  return getMoodboardBaseDir(groupId);
-}
-
 function getBoardFilename(boardId: string): string {
   return `${boardId}.json`;
 }
@@ -235,7 +230,7 @@ async function loadBoardsWithGroupId(
 /** (Admin) Ładuje połączony stan moodboardów ze wszystkich grup + global. */
 async function loadAllGroupsMoodboardState(): Promise<MoodboardAppState> {
   const allBoards: MoodboardBoard[] = [];
-  const globalDir = await getMoodboardDir(undefined);
+  const globalDir = await getMoodboardBaseDir(undefined);
   const globalBoards = await loadBoardsWithGroupId(globalDir, undefined);
   allBoards.push(...globalBoards);
 
@@ -296,7 +291,7 @@ async function handler(
   const allGroups = req.isAdmin && req.query.allGroups === '1';
   const groupId = req.isAdmin && queryGroupId ? queryGroupId : req.userGroupId;
 
-  const dir = await getMoodboardDir(groupId);
+  const dir = await getMoodboardBaseDir(groupId);
 
   if (req.method === 'GET') {
     try {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/src/utils/logger';
+import { formatBytes } from '@/src/utils/formatBytes';
 
 interface MoodboardBoardInfo {
   id: string;
@@ -53,14 +54,6 @@ interface BackupFileInfo {
   name: string;
   sizeBytes: number;
   createdAt: string;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 function formatDate(iso: string): string {
@@ -932,7 +925,7 @@ export const DataStorageSection: React.FC = () => {
 
         {tree && !tree.moodboard?.boards?.length && !tree.projects?.length && (!tree.groups?.length || tree.groups?.every((g) => !g.moodboard?.boards?.length && !g.projects?.length)) ? (
           <div style={{ padding: '16px', color: '#6b7280', fontSize: '14px' }}>
-            Brak danych moodboard ani projektów w nowej strukturze. Uruchom skrypt migracji jeśli masz stare dane.
+            Brak danych moodboard ani projektów w nowej strukturze. Uruchom <code>node scripts/migrate-to-data-storage.js</code> jeśli masz stare dane w projects.json.
           </div>
         ) : null}
       </div>

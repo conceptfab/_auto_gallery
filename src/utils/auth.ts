@@ -5,7 +5,16 @@ import { ADMIN_EMAIL } from '../config/constants';
 const isProduction = process.env.NODE_ENV === 'production';
 const cookieSecure = isProduction ? '; Secure' : '';
 
-const COOKIE_SECRET = process.env.COOKIE_SECRET || process.env.FILE_PROXY_SECRET || 'dev-cookie-secret';
+function getCookieSecret(): string {
+  const secret = process.env.COOKIE_SECRET || process.env.FILE_PROXY_SECRET;
+  if (isProduction && (!secret || secret.length < 16)) {
+    throw new Error(
+      'COOKIE_SECRET lub FILE_PROXY_SECRET musi być ustawiony (min. 16 znaków) w produkcji. Ustaw zmienną środowiskową.'
+    );
+  }
+  return secret || 'dev-cookie-secret';
+}
+const COOKIE_SECRET = getCookieSecret();
 
 /** Podpisuje wartość HMAC-SHA256 i zwraca wartość w formacie `value.signature`. */
 function signCookieValue(value: string): string {

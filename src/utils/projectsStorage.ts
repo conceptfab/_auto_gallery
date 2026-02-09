@@ -332,7 +332,6 @@ export async function addProject(
   description?: string,
   groupId?: string
 ): Promise<Project> {
-  const _projects = groupId ? await getProjects(groupId) : await getProjects();
   const allProjects = await getAllProjects();
   const existingSlugs = allProjects.filter((p) => p.slug).map((p) => p.slug!);
   const projectId = crypto.randomUUID();
