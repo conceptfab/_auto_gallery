@@ -35,7 +35,8 @@
       "WebFetch(domain:bestofjs.org)",
       "WebFetch(domain:github.com)",
       "Bash(python:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(gh secret-scanning:*)"
     ],
     "deny": [],
     "ask": []
