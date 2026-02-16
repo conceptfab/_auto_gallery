@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ConfirmDialog from './ConfirmDialog';
 import {
@@ -235,10 +235,25 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
     [comment.id, contextMenu, onOpenEditMenu]
   );
 
+  const textRef = useRef<HTMLDivElement>(null);
+  const isTypingRef = useRef(false);
+
+  // Set initial text content via ref (only on mount or when text changes externally)
+  useEffect(() => {
+    if (textRef.current && !isTypingRef.current) {
+      if (textRef.current.innerText !== (comment.text || '')) {
+        textRef.current.innerText = comment.text || '';
+      }
+    }
+  }, [comment.text]);
+
   const onTextChange = useCallback(
     (e: React.FormEvent<HTMLDivElement>) => {
       const text = (e.target as HTMLDivElement).innerText;
+      isTypingRef.current = true;
       updateComment(comment.id, { text });
+      // Reset typing flag after React render cycle
+      requestAnimationFrame(() => { isTypingRef.current = false; });
     },
     [comment.id, updateComment]
   );
@@ -315,14 +330,15 @@ const CommentItem = React.memo(function CommentItem({ comment, parentX = 0, pare
         document.body
       )}
       <div
+        ref={textRef}
         className="moodboard-comment-text moodboard-comment-edit"
         contentEditable
         suppressContentEditableWarning
         data-placeholder="Kliknij i wpisz…"
         onInput={onTextChange}
-      >
-        {comment.text}
-      </div>
+        onFocus={() => { isTypingRef.current = true; }}
+        onBlur={() => { isTypingRef.current = false; }}
+      />
       {isSelected && (
         <>
           {onOpenEditMenu && (

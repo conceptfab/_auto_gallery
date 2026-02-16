@@ -24,6 +24,17 @@
       "y": 352.5579933754377,
       "width": 200,
       "height": 60
+    },
+    {
+      "text": "dfghdfhdfhdfhdf",
+      "color": "yellow",
+      "font": "sans",
+      "fontWeight": "normal",
+      "x": 664,
+      "y": 215,
+      "width": 200,
+      "height": 120,
+      "id": "1771238579471-hwnnacs5e"
     }
   ],
   "groups": [
@@ -42,7 +53,7 @@
   ],
   "viewport": {
     "scale": 1,
-    "translateX": 0,
+    "translateX": 0.800048828125,
     "translateY": 0
   },
   "sketches": [],

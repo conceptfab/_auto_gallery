@@ -1,6 +1,6 @@
 {
   "name": "ConceptDesk",
-  "version": "β 0.39-4",
+  "version": "β 0.39-5",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -32,7 +32,7 @@
     "uuid": "^13.0.0",
     "xxhash-wasm": "^1.1.0",
     "yauzl": "^2.10.0",
-    "zod": "^3.23.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
